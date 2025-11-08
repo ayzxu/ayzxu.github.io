@@ -38,9 +38,9 @@ export default function App() {
         <h1 className="text-2xl font-semibold tracking-tight">andyxu</h1>
         <button
           onClick={toggleTheme}
-          className="rounded-2xl px-4 py-2 border border-black/10 dark:border-white/10
-                     bg-white/60 dark:bg-ai-surface/80 backdrop-blur
-                     text-black dark:text-white
+          className="rounded-2xl px-4 py-2 border border-black/10 dark:border-white/20
+                     bg-white/60 dark:bg-gray-800/90 backdrop-blur
+                     text-black dark:text-white font-medium
                      hover:scale-[1.02] active:scale-[0.98] transition"
         >
           {dark ? 'Light' : 'Dark'} mode
