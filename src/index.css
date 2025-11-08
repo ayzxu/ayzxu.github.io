@@ -12,17 +12,19 @@
 html {
   color: var(--text-light);
   background: radial-gradient(1200px 800px at 20% -10%, var(--bg-light), var(--bg-light-2));
-  transition: color 1s ease, background 1s ease;
-}
-
-body,
-body * {
-  transition: background-color 1s ease, color 1s ease, border-color 1s ease, opacity 1s ease;
+  transition: color 1s ease;
 }
 
 html.dark {
   color: var(--text-dark);
   background: radial-gradient(1200px 800px at 20% -10%, var(--bg-dark), var(--bg-dark-2));
+}
+
+/* Ensure all elements transition smoothly - be more specific to avoid conflicts */
+div, section, header, main, footer, button, a, h1, h2, h3, p {
+  transition-property: background-color, color, border-color, opacity;
+  transition-duration: 1s;
+  transition-timing-function: ease;
 }
 a {
   font-weight: 500;
