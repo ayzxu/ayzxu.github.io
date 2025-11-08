@@ -60,11 +60,11 @@ export default function App() {
                className="rounded-xl px-4 py-2 bg-black text-white dark:bg-white dark:text-black">
               GitHub
             </a>
-            <a href="https://www.linkedin.com/in/andy-xu-/" target="_blank" rel="noreferrer"
+            <a href="https://www.linkedin.com/in/ayzxu/" target="_blank" rel="noreferrer"
                className="rounded-xl px-4 py-2 border border-black/10 dark:border-white/15">
               LinkedIn
             </a>
-            <a href="mailto:andyyxu@cmu.edu"
+            <a href="mailto:andyxu@cmu.edu"
                className="rounded-xl px-4 py-2 border border-black/10 dark:border-white/15">
               Email
             </a>
