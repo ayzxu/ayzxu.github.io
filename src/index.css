@@ -1,83 +1,33 @@
+/* Tailwind v4 global import (+ allow @apply if you want it elsewhere) */
 @import "tailwindcss";
+@reference "tailwindcss";
+
+/* Reset / minimal base */
+html, body { margin: 0; min-height: 100%; }
+body { min-height: 100vh; }
+
+/* Tokens used in inline styles */
 :root {
-  --bg-light: #f7f1e8;
-  --bg-light-2: #e9e2d6;
-  --text-light: #1f1b16;
-
-  --bg-dark: #101214;
-  --bg-dark-2: #181a1f;
-  --text-dark: #e6e6e6;
+  --card-radius: 1rem;
+  --shadow-soft: 0 8px 24px rgba(0,0,0,0.08);
 }
 
-html {
-  color: var(--text-light);
-  background: radial-gradient(1200px 800px at 20% -10%, var(--bg-light), var(--bg-light-2));
-  transition: color 1s ease;
+/* Define the custom utilities you use in JSX */
+@layer utilities {
+  .bg-beige-gradient { background-image: radial-gradient(1200px 800px at 20% -10%, #f7f1e8, #e9e2d6); }
+  .bg-ai-gradient    { background-image: radial-gradient(1200px 800px at 20% -10%, #101214, #181a1f); }
+  .text-beige-text   { color: #1f1b16; }
+  .bg-beige-surface  { background-color: #fffaf3; }
+  .bg-ai-surface     { background-color: #111418; }
 }
 
-html.dark {
-  color: var(--text-dark);
-  background: radial-gradient(1200px 800px at 20% -10%, var(--bg-dark), var(--bg-dark-2));
-}
-
-/* Ensure all elements transition smoothly - be more specific to avoid conflicts */
+/* (Optional) global transitions */
 div, section, header, main, footer, button, a, h1, h2, h3, p {
-  transition-property: background-color, color, border-color, opacity;
-  transition-duration: 1s;
+  transition-property: background-color, color, border-color, opacity, transform;
+  transition-duration: 300ms;
   transition-timing-function: ease;
 }
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition-property: background-color, color, border-color, opacity;
-  transition-duration: 1s;
-  transition-timing-function: ease;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; }
 }

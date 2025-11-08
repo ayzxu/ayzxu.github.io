@@ -14,3 +14,24 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
+const user = localStorage.getItem('theme') // 'dark' | 'light' | null
+const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+if (user ? user === 'dark' : systemPrefersDark) {
+  document.documentElement.classList.add('dark')
+} else {
+  document.documentElement.classList.remove('dark')
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  const saved = localStorage.getItem('theme')
+  if (saved) return
+  document.documentElement.classList.toggle('dark', e.matches)
+})
+
+export function toggleTheme() {
+  const el = document.documentElement
+  const next = el.classList.toggle('dark') ? 'dark' : 'light'
+  localStorage.setItem('theme', next)
+}
+
+
