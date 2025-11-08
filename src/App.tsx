@@ -42,7 +42,7 @@ export default function App() {
                      bg-white/60 dark:bg-ai-surface/80 backdrop-blur
                      hover:scale-[1.02] active:scale-[0.98] transition"
         >
-          {dark ? 'Light' : 'pp'} mode
+          {dark ? 'pp' : 'Dark'} mode
         </button>
       </header>
 
