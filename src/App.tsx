@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react'
 
+interface Card {
+  title: string
+  desc: string
+}
+
 export default function App() {
-  const [dark, setDark] = useState(false)
+  const [dark, setDark] = useState<boolean>(false)
 
   // load saved theme
   useEffect(() => {
@@ -11,12 +16,19 @@ export default function App() {
     document.documentElement.classList.toggle('dark', isDark)
   }, [])
 
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     const next = !dark
     setDark(next)
     document.documentElement.classList.toggle('dark', next)
     localStorage.setItem('theme', next ? 'dark' : 'light')
   }
+
+  const cards: Card[] = [
+    { title: 'Projects', desc: 'Selected work in AI, infra, and analytics.' },
+    { title: 'Writing', desc: 'Essays, case studies, and teaching notes.' },
+    { title: 'Talks', desc: 'Boards, pitches, and workshops.' },
+    { title: 'Contact', desc: 'Freelance, collaborations, coffee.' },
+  ]
 
   return (
     <div className="min-h-screen transition-colors duration-300
@@ -30,15 +42,15 @@ export default function App() {
                      bg-white/60 dark:bg-ai-surface/80 backdrop-blur
                      hover:scale-[1.02] active:scale-[0.98] transition"
         >
-          {dark ? 'Light' : 'Dark'} mode
+          {dark ? 'Light' : 'pp'} mode
         </button>
       </header>
 
       <main className="max-w-5xl mx-auto px-6 pb-24">
-        <section className="rounded-2xl p-8 md:p-12 shadow-lg"
-                 style={{ borderRadius: 'var(--card-radius)', boxShadow: 'var(--shadow-soft)' }}
-                 className="bg-beige-surface/70 dark:bg-ai-surface/70">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">Hello, I’m Andy.</h2>
+        <section className="rounded-2xl p-8 md:p-12 shadow-lg
+                            bg-beige-surface/70 dark:bg-ai-surface/70"
+                 style={{ borderRadius: 'var(--card-radius)', boxShadow: 'var(--shadow-soft)' }}>
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">Hello, I'm Andy.</h2>
           <p className="opacity-90 leading-relaxed">
             CMU senior • Business + CS • builder of AI products and slick tooling.
           </p>
@@ -59,12 +71,7 @@ export default function App() {
         </section>
 
         <section className="mt-10 grid gap-6 md:grid-cols-2">
-          {[
-            { title: 'Projects', desc: 'Selected work in AI, infra, and analytics.' },
-            { title: 'Writing', desc: 'Essays, case studies, and teaching notes.' },
-            { title: 'Talks', desc: 'Boards, pitches, and workshops.' },
-            { title: 'Contact', desc: 'Freelance, collaborations, coffee.' },
-          ].map((c) => (
+          {cards.map((c) => (
             <div key={c.title}
                  className="rounded-2xl p-6 bg-white/70 dark:bg-ai-surface/70 border border-black/5 dark:border-white/10
                             hover:translate-y-[-2px] transition"
@@ -82,3 +89,4 @@ export default function App() {
     </div>
   )
 }
+

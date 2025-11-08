@@ -1,19 +1,23 @@
 @import "tailwindcss";
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --bg-light: #f7f1e8;
+  --bg-light-2: #e9e2d6;
+  --text-light: #1f1b16;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --bg-dark: #101214;
+  --bg-dark-2: #181a1f;
+  --text-dark: #e6e6e6;
 }
 
+html {
+  color: var(--text-light);
+  background: radial-gradient(1200px 800px at 20% -10%, var(--bg-light), var(--bg-light-2));
+}
+
+html.dark {
+  color: var(--text-dark);
+  background: radial-gradient(1200px 800px at 20% -10%, var(--bg-dark), var(--bg-dark-2));
+}
 a {
   font-weight: 500;
   color: #646cff;
