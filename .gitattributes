@@ -1,0 +1,2 @@
+src/assets/gym/*.mov filter=lfs diff=lfs merge=lfs -text
+src/assets/gym/*.MOV filter=lfs diff=lfs merge=lfs -text
