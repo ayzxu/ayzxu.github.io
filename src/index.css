@@ -12,6 +12,12 @@
 html {
   color: var(--text-light);
   background: radial-gradient(1200px 800px at 20% -10%, var(--bg-light), var(--bg-light-2));
+  transition: color 0.6s ease, background 0.6s ease;
+}
+
+body,
+body * {
+  transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease, opacity 0.6s ease;
 }
 
 html.dark {

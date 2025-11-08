@@ -31,7 +31,7 @@ export default function App() {
   ]
 
   return (
-    <div className="min-h-screen transition-colors duration-300
+    <div className="min-h-screen transition-colors duration-500
                     bg-beige-gradient text-beige-text
                     dark:bg-ai-gradient dark:text-white">
       <header className="max-w-5xl mx-auto px-6 py-8 flex items-center justify-between">
@@ -42,7 +42,7 @@ export default function App() {
                      bg-white/60 dark:bg-ai-surface/80 backdrop-blur
                      hover:scale-[1.02] active:scale-[0.98] transition"
         >
-          {dark ? 'pp' : 'Dark'} mode
+          {dark ? 'Light' : 'Dark'} mode
         </button>
       </header>
 
