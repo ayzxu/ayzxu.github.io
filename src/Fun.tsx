@@ -1,0 +1,221 @@
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import gusfring from './assets/art/gusfring.jpg';
+import stevejobs from './assets/art/stevejobs.png';
+import vagabondshoes from './assets/art/vagabondshoes.png';
+import walterwhite from './assets/art/walterwhite.jpg';
+import valorantIcon from './assets/icons/valorant.png';
+import clashRoyaleIcon from './assets/icons/cr.avif';
+import chessIcon from './assets/icons/chess.png';
+
+// Initialize theme synchronously before component renders
+function getInitialTheme(): boolean {
+  if (typeof window === 'undefined') return false;
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') return true;
+  if (saved === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
+  const [dark, setDark] = useState(getInitialTheme);
+  const [isVisible, setIsVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+  const location = useLocation();
+
+  // Apply theme class immediately on mount and when it changes
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+  }, [dark]);
+
+  // Fade in on mount
+  useEffect(() => {
+    setIsVisible(false);
+    const timer = setTimeout(() => setIsVisible(true), isTransitioning ? 400 : 10);
+    return () => clearTimeout(timer);
+  }, [location.pathname, isTransitioning]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (selectedImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedImage]);
+
+  const toggleTheme = () => {
+    setDark(prev => {
+      const next = !prev;
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+      return next;
+    });
+  };
+
+  const navigate = useNavigate();
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate('/');
+  };
+
+  return (
+    <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
+      <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
+        <a href="/" onClick={handleHomeClick} className="text-xl sm:text-2xl font-semibold tracking-tight hover:opacity-80 transition-opacity">
+          andyxu
+        </a>
+
+        <button
+          onClick={toggleTheme}
+          aria-pressed={dark}
+          className="rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base border border-black/10 dark:border-white/20
+                     bg-white/60 dark:bg-gray-800/90 backdrop-blur
+                     text-black dark:text-white font-medium
+                     hover:scale-[1.02] active:scale-[0.98] transition"
+        >
+          {dark ? 'Light mode' : 'Dark mode'}
+        </button>
+      </header>
+
+      <main className={`max-w-5xl mx-auto px-4 sm:px-6 flex-1 w-full transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '100ms' : '450ms' }}>
+        <div className="py-4 sm:py-6">
+          <section className="mb-8 sm:mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Fun</h1>
+            <p className="text-base sm:text-lg opacity-90">What I do outside of work and school: Gym, Volleyball, Art, Gaming, Chess, etc.</p>
+          </section>
+
+          <section className="space-y-6 sm:space-y-8">
+            {[
+              {
+                title: 'Gym',
+                description: 'Staying active and healthy through regular workouts.',
+                delay: 200
+              },
+              {
+                title: 'Volleyball',
+                description: 'Playing competitive volleyball as part of CMU Men\'s Club Volleyball team. Led the team to top 15 in Division II of National Club Volleyball Foundation in 2023, 2024, 2025.',
+                delay: 250
+              },
+              {
+                title: 'Art',
+                description: 'Exploring creativity through various artistic mediums.',
+                images: [
+                  { src: gusfring, alt: 'Gus Fring' },
+                  { src: stevejobs, alt: 'Steve Jobs' },
+                  { src: vagabondshoes, alt: 'Vagabond Shoes' },
+                  { src: walterwhite, alt: 'Walter White' }
+                ],
+                links: [
+                  { name: 'Portfolio', url: 'https://axuportfolio.weebly.com' }
+                ],
+                delay: 300
+              },
+              {
+                title: 'Gaming',
+                description: (
+                  <>
+                    Previously Immortal 2 in Valorant.<br />
+                    Previously top 63 global in Clash Royale.
+                  </>
+                ),
+                links: [
+                  { name: 'Valorant Tracker', url: 'https://tracker.gg/valorant/profile/riot/nuts%23deep/overview?platform=pc&playlist=competitive', icon: valorantIcon },
+                  { name: 'Clash Royale Profile', url: 'https://royaleapi.com/player/8C9QQGVCR', icon: clashRoyaleIcon }
+                ],
+                delay: 350
+              },
+              {
+                title: 'Chess',
+                description: 'Playing chess and building chess AI projects.',
+                links: [
+                  { name: 'Chess.com Profile', url: 'https://www.chess.com/member/chokeonbanana', icon: chessIcon }
+                ],
+                delay: 400
+              }
+            ].map((item, index) => (
+              <div
+                key={item.title}
+                className={`rounded-2xl p-6 sm:p-8 border border-black/5 dark:border-white/10
+                            bg-white/70
+                            hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
+                style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: shouldFadeOut ? `${item.delay}ms` : `${500 + index * 50}ms` }}
+              >
+                <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">{item.title}</h2>
+                <p className="opacity-80 text-sm sm:text-base mb-3">{item.description}</p>
+                {item.images && (
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
+                    {item.images.map((img: { src: string; alt: string }, imgIndex: number) => (
+                      <div
+                        key={imgIndex}
+                        className="relative rounded-lg overflow-hidden cursor-pointer group"
+                        onClick={() => setSelectedImage(img)}
+                      >
+                        <img
+                          src={img.src}
+                          alt={img.alt}
+                          className="w-full h-32 sm:h-40 md:h-48 object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-150 flex items-center justify-center">
+                          <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm sm:text-base font-medium px-4 text-center">
+                            {img.alt}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {item.links && (
+                  <div className="flex flex-wrap gap-3 sm:gap-4 mt-3">
+                    {item.links.map((link: { name: string; url: string; icon?: string }) => (
+                      <a
+                        key={link.name}
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm sm:text-base opacity-70 hover:opacity-100 transition-opacity inline-flex items-center gap-2"
+                      >
+                        {link.icon && (
+                          <img src={link.icon} alt="" className="w-4 h-4 sm:w-5 sm:h-5 object-contain" />
+                        )}
+                        {link.name} →
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </section>
+        </div>
+      </main>
+
+      {/* Image Modal/Lightbox */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-7xl max-h-full">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors text-2xl font-bold"
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <img
+              src={selectedImage.src}
+              alt={selectedImage.alt}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

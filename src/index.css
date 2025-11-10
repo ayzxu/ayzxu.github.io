@@ -4,14 +4,14 @@
 html, body { 
   margin: 0; 
   min-height: 100%; 
-  overflow: hidden; 
+  overflow: overlay; 
   background-color: #e8e0d5; /* Fallback background color (light mode) to prevent flash */
 }
 .dark html, .dark body {
   background-color: #080808; /* Fallback background color (dark mode) to prevent flash */
 }
-body { min-height: 100vh; overflow: hidden; }
-#root { height: 100vh; overflow: hidden; }
+body { min-height: 100vh; }
+#root { min-height: 100vh; }
 
 /* Tokens */
 :root {
@@ -47,6 +47,12 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
   transition-duration: 0.8s;
   transition-timing-function: ease-in-out;
 }
+
+/* Ensure scrollbar track transitions work */
+::-webkit-scrollbar-track {
+  transition: background-color 0.8s ease-in-out !important;
+}
+
 
 /* Ensure text color transitions work */
 .text-white,
@@ -104,13 +110,96 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
   position: relative;
 }
 
-/* Small screen breakpoint - allow scrolling */
+/* Overlay Scrollbars Custom Styling */
+.os-scrollbar {
+  --os-size: 24px;
+}
+
+.os-scrollbar-vertical {
+  right: 4px !important;
+  top: 4px !important;
+  bottom: 4px !important;
+  height: calc(100% - 8px) !important;
+}
+
+.os-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  transition: background-color 0.8s ease-in-out !important;
+}
+
+html.dark .os-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.os-scrollbar-handle {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border-radius: 12px !important;
+  transition: background-color 0.8s ease-in-out !important;
+}
+
+.os-scrollbar-handle:hover {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .os-scrollbar-handle {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+html.dark .os-scrollbar-handle:hover {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Custom Scrollbar Styling */
+/* For WebKit browsers (Chrome, Safari, Opera) */
+::-webkit-scrollbar {
+  width: 24px;
+  height: 24px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  transition: background-color 0.8s ease-in-out !important;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  transition: background-color 0.8s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05);
+}
+
+html.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Small screen breakpoint - adjust layout */
 @media (max-height: 600px) or (max-width: 640px) {
-  html, body { overflow: auto; }
-  #root { overflow: auto; }
-  
   .small-screen-scrollable {
-    overflow-y: auto !important;
     flex-direction: column !important;
     align-items: flex-start !important;
     padding-top: 1rem !important;
@@ -119,10 +208,5 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
   
   .small-screen-no-max-height {
     max-height: none !important;
-  }
-  
-  .h-screen {
-    min-height: 100vh;
-    height: auto;
   }
 }

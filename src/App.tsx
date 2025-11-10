@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import githubIcon from './assets/github.png';
-import githubWhiteIcon from './assets/githubwhite.png';
-import linkedinIcon from './assets/linkedin.png';
-import emailIcon from './assets/email.png';
-import portrait2 from './assets/portrait2.jpg';
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-react';
+import githubIcon from './assets/icons/github.png';
+import githubWhiteIcon from './assets/icons/githubwhite.png';
+import linkedinIcon from './assets/icons/linkedin.png';
+import emailIcon from './assets/icons/email.png';
+import portrait2 from './assets/portraits/portrait2.jpg';
 import Projects from './Projects';
 import About from './About';
+import Fun from './Fun';
 
 type Card = { title: string; desc: string; link?: string };
 
@@ -50,7 +52,7 @@ export default function App() {
 
   const cards: Card[] = [
     { title: 'Projects', desc: 'AI sidequests from IBM and personal side projects.', link: '/projects' },
-    { title: 'Fun',  desc: 'What I do outside of work and school: Gym, Volleyball, Art, Gaming, Chess, etc.' },
+    { title: 'Fun',  desc: 'What I do outside of work and school: Gym, Volleyball, Art, Gaming, Chess, etc.', link: '/fun' },
     { title: 'Talks',    desc: 'Boards, pitches, and workshops.' },
     { title: 'About Me',  desc: 'Some of my background and experiences.', link: '/about' },
   ];
@@ -77,14 +79,29 @@ export default function App() {
     }
   }, [location.pathname, displayLocation]);
 
+  const scrollbarOptions = {
+    scrollbars: {
+      theme: 'os-theme-dark',
+      autoHide: 'never' as const,
+      autoHideDelay: 0,
+    },
+    overflow: {
+      x: 'hidden' as const,
+      y: 'scroll' as const,
+    },
+  };
+
   return (
-    <div className="page-transition-container bg-beige-gradient min-h-screen">
-      <Routes location={{ pathname: displayLocation } as any} key={displayLocation}>
-        <Route path="/projects" element={<Projects isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
-        <Route path="/about" element={<About isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
-        <Route path="/" element={<Home dark={dark} toggleTheme={toggleTheme} cards={cards} year={year} isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
-      </Routes>
-    </div>
+    <OverlayScrollbarsComponent options={scrollbarOptions} className="h-screen">
+      <div className="page-transition-container bg-beige-gradient min-h-screen">
+        <Routes location={{ pathname: displayLocation } as any} key={displayLocation}>
+          <Route path="/projects" element={<Projects isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
+          <Route path="/fun" element={<Fun isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
+          <Route path="/about" element={<About isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
+          <Route path="/" element={<Home dark={dark} toggleTheme={toggleTheme} cards={cards} year={year} isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
+        </Routes>
+      </div>
+    </OverlayScrollbarsComponent>
   );
 }
 
@@ -123,7 +140,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
   }, [location.pathname, isTransitioning]);
 
   return (
-    <div className="h-screen bg-beige-gradient text-beige-text flex flex-col overflow-hidden min-h-screen">
+    <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
       <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
         <h1 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">andyxu</h1>
 
@@ -139,8 +156,8 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
         </button>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 flex-1 overflow-hidden w-full flex items-center min-h-0 small-screen-scrollable">
-        <div className="w-full small-screen-no-max-height" style={{ maxHeight: '100%', overflow: 'hidden' }}>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 flex-1 w-full flex items-center min-h-0">
+        <div className="w-full">
           <section
             className={`rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg bg-beige-surface-70 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
             style={{ borderRadius: '1.25rem', boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: shouldFadeOut ? '100ms' : '450ms' }}
