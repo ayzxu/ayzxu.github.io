@@ -1,33 +1,96 @@
-/* Tailwind v4 global import (+ allow @apply if you want it elsewhere) */
 @import "tailwindcss";
-@reference "tailwindcss";
 
-/* Reset / minimal base */
+/* Base */
 html, body { margin: 0; min-height: 100%; }
 body { min-height: 100vh; }
 
-/* Tokens used in inline styles */
+/* Tokens */
 :root {
-  --card-radius: 1rem;
-  --shadow-soft: 0 8px 24px rgba(0,0,0,0.08);
+  --card-radius: 1.25rem;
+  --shadow-soft: 0 8px 30px rgba(0,0,0,0.08);
+
+  --beige-text: #2b2b2b;
+  --beige-surface: #ede5d8;
+  --ai-surface: rgba(16, 16, 16, 0.7);
+  
+  /* Theme-aware variables */
+  --theme-text: var(--beige-text);
+  --theme-bg-gradient: radial-gradient(2000px 1200px at 20% -10%, #f0e6d5 0%, rgba(255,255,255,0) 80%), radial-gradient(2000px 1200px at 20% 110%, #f4c2a1 0%, rgba(255,255,255,0) 70%), linear-gradient(180deg, #e8e0d5 0%, #ddd4c0 100%);
+  --theme-surface: color-mix(in oklab, var(--beige-surface) 70%, transparent);
 }
 
-/* Define the custom utilities you use in JSX */
-@layer utilities {
-  .bg-beige-gradient { background-image: radial-gradient(1200px 800px at 20% -10%, #f7f1e8, #e9e2d6); }
-  .bg-ai-gradient    { background-image: radial-gradient(1200px 800px at 20% -10%, #101214, #181a1f); }
-  .text-beige-text   { color: #1f1b16; }
-  .bg-beige-surface  { background-color: #fffaf3; }
-  .bg-ai-surface     { background-color: #111418; }
+.dark {
+  --theme-text: white;
+  --theme-bg-gradient: radial-gradient(800px 500px at 80% -10%, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 80%), linear-gradient(180deg, #080808 0%, #0d0d0d 100%);
+  --theme-surface: var(--ai-surface);
 }
 
-/* (Optional) global transitions */
+/* Smooth UI transitions */
 div, section, header, main, footer, button, a, h1, h2, h3, p {
   transition-property: background-color, color, border-color, opacity, transform;
-  transition-duration: 300ms;
+  transition-duration: 0.8s;
   transition-timing-function: ease;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * { transition-duration: 0.01ms !important; }
+/* Smooth theme transitions - applied globally for colors */
+* {
+  transition-property: background-color, color, border-color;
+  transition-duration: 0.8s;
+  transition-timing-function: ease-in-out;
+}
+
+/* Ensure text color transitions work */
+.text-white,
+.text-beige-text {
+  transition: color 0.8s ease-in-out;
+}
+
+/* Ensure background transitions work for all backgrounds */
+.bg-white\/70 {
+  transition: background-color 0.8s ease-in-out;
+}
+
+/* Override bg-white/70 in dark mode to use theme surface */
+.dark .bg-white\/70 {
+  background-color: var(--theme-surface) !important;
+  transition: background-color 0.8s ease-in-out;
+}
+
+/* Tailwind v4 custom utilities (alphanumeric names) */
+@utility text-beige-text {
+  color: var(--theme-text);
+  transition: color 0.8s ease-in-out;
+}
+
+@utility bg-beige-surface-70 {
+  background-color: var(--theme-surface);
+  transition: background-color 0.8s ease-in-out;
+}
+
+@utility bg-ai-surface-70 {
+  background-color: var(--theme-surface);
+  transition: background-color 0.8s ease-in-out;
+}
+
+@utility bg-beige-gradient {
+  position: relative;
+  background-image: var(--theme-bg-gradient);
+  background-size: cover;
+  background-attachment: fixed;
+  transition: background-image 0.8s ease-in-out;
+}
+
+@utility bg-ai-gradient {
+  position: relative;
+  background-image: var(--theme-bg-gradient);
+  background-size: cover;
+  background-attachment: fixed;
+  transition: background-image 0.8s ease-in-out;
+}
+
+/* Dark mode is now handled via CSS variables above, so transitions will work smoothly */
+
+/* Page transition animations */
+.page-transition-container {
+  position: relative;
 }
