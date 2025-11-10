@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import githubIcon from './assets/github.png';
+import githubWhiteIcon from './assets/githubwhite.png';
 import linkedinIcon from './assets/linkedin.png';
 import emailIcon from './assets/email.png';
 import portrait2 from './assets/portrait2.jpg';
-import resume from './assets/Xu_Andy Resume.pdf';
 import Projects from './Projects';
+import About from './About';
 
 type Card = { title: string; desc: string; link?: string };
 
@@ -49,9 +50,9 @@ export default function App() {
 
   const cards: Card[] = [
     { title: 'Projects', desc: 'AI sidequests from IBM and personal side projects.', link: '/projects' },
-    { title: 'Fun',  desc: 'What I do outside of work and school: Gym, Volleyball, Art' },
+    { title: 'Fun',  desc: 'What I do outside of work and school: Gym, Volleyball, Art, Gaming, Chess, etc.' },
     { title: 'Talks',    desc: 'Boards, pitches, and workshops.' },
-    { title: 'Contact',  desc: 'Freelance, collaborations, coffee.', link: resume },
+    { title: 'About Me',  desc: 'Some of my background and experiences.', link: '/about' },
   ];
 
   const year = useMemo(() => new Date().getFullYear(), []);
@@ -80,6 +81,7 @@ export default function App() {
     <div className="page-transition-container bg-beige-gradient min-h-screen">
       <Routes location={{ pathname: displayLocation } as any} key={displayLocation}>
         <Route path="/projects" element={<Projects isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
+        <Route path="/about" element={<About isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
         <Route path="/" element={<Home dark={dark} toggleTheme={toggleTheme} cards={cards} year={year} isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
       </Routes>
     </div>
@@ -121,14 +123,14 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
   }, [location.pathname, isTransitioning]);
 
   return (
-    <div className="min-h-screen bg-beige-gradient text-beige-text">
-      <header className={`max-w-5xl mx-auto px-6 py-8 flex items-center justify-between transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
-        <h1 className="text-2xl font-semibold tracking-tight">andyxu</h1>
+    <div className="h-screen bg-beige-gradient text-beige-text flex flex-col overflow-hidden min-h-screen">
+      <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
+        <h1 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">andyxu</h1>
 
         <button
           onClick={toggleTheme}
           aria-pressed={dark}
-          className="rounded-2xl px-4 py-2 border border-black/10 dark:border-white/20
+          className="rounded-2xl px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-xs sm:text-sm md:text-base border border-black/10 dark:border-white/20
                      bg-white/60 dark:bg-gray-800/90 backdrop-blur
                      text-black dark:text-white font-medium
                      hover:scale-[1.02] active:scale-[0.98] transition"
@@ -137,28 +139,29 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
         </button>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 pb-24">
-        <section
-          className={`rounded-2xl p-8 md:p-12 shadow-lg bg-beige-surface-70 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
-          style={{ borderRadius: '1.25rem', boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: shouldFadeOut ? '100ms' : '450ms' }}
-        >
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="flex-1">
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Hello, I&apos;m Andy Xu!</h2>
-              <p className="opacity-90 leading-relaxed">I'm a current CMU senior studying Business + CS. I'm interested in building AI products and working on something meaningful. In the past, I've worked as an AI Engineer at IBM.</p>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 flex-1 overflow-hidden w-full flex items-center min-h-0 small-screen-scrollable">
+        <div className="w-full small-screen-no-max-height" style={{ maxHeight: '100%', overflow: 'hidden' }}>
+          <section
+            className={`rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg bg-beige-surface-70 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
+            style={{ borderRadius: '1.25rem', boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: shouldFadeOut ? '100ms' : '450ms' }}
+          >
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8 items-start">
+              <div className="flex-1 w-full md:w-auto">
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3">Hello, I&apos;m Andy Xu!</h2>
+                <p className="opacity-90 leading-relaxed text-xs sm:text-sm md:text-base">I'm a current CMU senior studying Business + CS. I'm interested in building AI products and working on something meaningful. In the past, I've worked as an AI Engineer at IBM.</p>
+              </div>
+              <div className="w-full md:w-auto flex justify-center md:justify-start">
+                <img src={portrait2} alt="Portrait" className="rounded-2xl w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 object-cover" />
+              </div>
             </div>
-            <div>
-              <img src={portrait2} alt="Portrait" className="rounded-2xl w-64 h-64 object-cover" />
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <section className={`mt-10 grid gap-6 md:grid-cols-2 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '200ms' : '500ms' }}>
+          <section className={`mt-4 sm:mt-5 md:mt-6 lg:mt-8 grid gap-3 sm:gap-4 md:gap-5 lg:gap-6 md:grid-cols-2 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '200ms' : '500ms' }}>
           {cards.map((c, index) => {
             const CardContent = (
               <>
-                <h3 className="text-xl font-semibold mb-1">{c.title}</h3>
-                <p className="opacity-80">{c.desc}</p>
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1">{c.title}</h3>
+                <p className="opacity-80 text-xs sm:text-sm md:text-base">{c.desc}</p>
               </>
             );
 
@@ -168,7 +171,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
               c.link.startsWith('/') ? (
                 <TransitionLink key={c.title}
                       to={c.link}
-                      className={`rounded-2xl p-6 border border-black/5 dark:border-white/10
+                      className={`rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
                                  bg-white/70
                                  hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out
                                  cursor-pointer block transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
@@ -181,7 +184,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
                    target={typeof c.link === 'string' && c.link.startsWith('http') ? '_blank' : undefined}
                    rel={typeof c.link === 'string' && c.link.startsWith('http') ? 'noreferrer' : undefined}
                    download={typeof c.link === 'string' && c.link.endsWith('.pdf') ? true : c.title === 'Contact' ? true : undefined}
-                   className={`rounded-2xl p-6 border border-black/5 dark:border-white/10
+                   className={`rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
                               bg-white/70
                               hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out
                               cursor-pointer block transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
@@ -191,7 +194,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
               )
             ) : (
               <div key={c.title}
-                   className={`rounded-2xl p-6 border border-black/5 dark:border-white/10
+                   className={`rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
                               bg-white/70
                               hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
                    style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: fadeDelay }}>
@@ -199,25 +202,29 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
               </div>
             );
           })}
-        </section>
+          </section>
+        </div>
       </main>
 
-      <footer className={`max-w-5xl mx-auto px-6 pb-10 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '300ms' : '600ms' }}>
-        <div className="flex flex-wrap gap-3 justify-center mb-6">
+      <footer className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '300ms' : '600ms' }}>
+        <div className="flex flex-wrap gap-2 sm:gap-2.5 md:gap-3 justify-center mb-2 sm:mb-3 md:mb-4 lg:mb-6">
           <a href="https://github.com/ayzxu" target="_blank" rel="noreferrer"
-             className="rounded-xl p-3 border-2 border-black dark:border-white/15 bg-black dark:bg-white hover:scale-105 transition-transform">
-            <img src={githubIcon} alt="GitHub" className="w-6 h-6" />
+             className="rounded-xl p-2 sm:p-2.5 md:p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform"
+             style={{ backgroundColor: dark ? '#000000' : '#ffffff' }}>
+            <img src={dark ? githubWhiteIcon : githubIcon} alt="GitHub" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </a>
           <a href="https://www.linkedin.com/in/ayzxu/" target="_blank" rel="noreferrer"
-             className="rounded-xl p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform">
-            <img src={linkedinIcon} alt="LinkedIn" className="w-6 h-6" />
+             className="rounded-xl p-2 sm:p-2.5 md:p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform"
+             style={{ backgroundColor: dark ? '#000000' : '#ffffff' }}>
+            <img src={linkedinIcon} alt="LinkedIn" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </a>
           <a href="mailto:andyxu@cmu.edu"
-             className="rounded-xl p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform">
-            <img src={emailIcon} alt="Email" className="w-6 h-6" />
+             className="rounded-xl p-2 sm:p-2.5 md:p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform"
+             style={{ backgroundColor: dark ? '#000000' : '#ffffff' }}>
+            <img src={emailIcon} alt="Email" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </a>
         </div>
-        <p className="opacity-70 text-center">© {year} Andy Xu</p>
+        <p className="opacity-70 text-center text-xs sm:text-sm md:text-base">© {year} Andy Xu</p>
       </footer>
     </div>
   );

@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 /* Base */
-html, body { margin: 0; min-height: 100%; }
-body { min-height: 100vh; }
+html, body { margin: 0; min-height: 100%; overflow: hidden; }
+body { min-height: 100vh; overflow: hidden; }
+#root { height: 100vh; overflow: hidden; }
 
 /* Tokens */
 :root {
@@ -93,4 +94,27 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
 /* Page transition animations */
 .page-transition-container {
   position: relative;
+}
+
+/* Small screen breakpoint - allow scrolling */
+@media (max-height: 600px) or (max-width: 640px) {
+  html, body { overflow: auto; }
+  #root { overflow: auto; }
+  
+  .small-screen-scrollable {
+    overflow-y: auto !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  .small-screen-no-max-height {
+    max-height: none !important;
+  }
+  
+  .h-screen {
+    min-height: 100vh;
+    height: auto;
+  }
 }
