@@ -1,7 +1,15 @@
 @import "tailwindcss";
 
 /* Base */
-html, body { margin: 0; min-height: 100%; overflow: hidden; }
+html, body { 
+  margin: 0; 
+  min-height: 100%; 
+  overflow: hidden; 
+  background-color: #e8e0d5; /* Fallback background color (light mode) to prevent flash */
+}
+.dark html, .dark body {
+  background-color: #080808; /* Fallback background color (dark mode) to prevent flash */
+}
 body { min-height: 100vh; overflow: hidden; }
 #root { height: 100vh; overflow: hidden; }
 
