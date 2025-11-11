@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef, useLayoutEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react';
 import githubIcon from './assets/icons/github.png';
@@ -9,6 +9,7 @@ import portrait2 from './assets/portraits/portrait2.jpg';
 import Projects from './Projects';
 import About from './About';
 import Fun from './Fun';
+import Test from './Test';
 // Preload large video files used in Fun page
 import gymVideo1 from './assets/gym/IMG_6232.mov';
 import gymVideo2 from './assets/gym/IMG_6418.MOV';
@@ -16,13 +17,20 @@ import volleyballVideo1 from './assets/volleyball/VB1.mov';
 
 type Card = { title: string; desc: string; link?: string };
 
+const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+
+function scaleFromHorizon(cy: number, horizon: number, height: number) {
+  const d = clamp((cy - horizon) / height, -0.5, 0.6);
+  return 0.75 + d * 0.9;
+}
+
 // Initialize theme synchronously before component renders
 function getInitialTheme(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') return true;
   const saved = localStorage.getItem('theme');
   if (saved === 'dark') return true;
   if (saved === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return true; // Default to dark mode
 }
 
 export default function App() {
@@ -85,7 +93,7 @@ export default function App() {
   useEffect(() => {
     if (location.pathname === '/') {
       const saved = localStorage.getItem('theme');
-      const currentDark = saved === 'dark' ? true : saved === 'light' ? false : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const currentDark = saved === 'dark' ? true : saved === 'light' ? false : true; // Default to dark mode
       if (currentDark !== dark) {
         setDark(currentDark);
       }
@@ -126,6 +134,7 @@ export default function App() {
           <Route path="/projects" element={<Projects isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
           <Route path="/fun" element={<Fun isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
           <Route path="/about" element={<About isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
+          <Route path="/test" element={<Test />} />
           <Route path="/" element={<Home dark={dark} toggleTheme={toggleTheme} cards={cards} year={year} isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
         </Routes>
       </div>
@@ -167,6 +176,12 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const location = useLocation();
+  const cardsSectionRef = useRef<HTMLDivElement>(null);
+  const [sz, setSz] = useState({ w: 0, h: 0 });
+  const [mousePos, setMousePos] = useState(() => ({
+    x: typeof window !== 'undefined' ? window.innerWidth / 2 : 0,
+    y: typeof window !== 'undefined' ? window.innerHeight / 2 : 0,
+  }));
 
   useEffect(() => {
     setIsVisible(false);
@@ -174,9 +189,53 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
     return () => clearTimeout(timer);
   }, [location.pathname, isTransitioning]);
 
+  // Track container size
+  useLayoutEffect(() => {
+    const el = cardsSectionRef.current;
+    if (!el) return;
+    
+    const updateSize = () => {
+      const width = el.clientWidth || window.innerWidth;
+      const height = el.clientHeight || window.innerHeight;
+      setSz({ w: width, h: height });
+    };
+    
+    updateSize();
+    
+    const ro = new ResizeObserver(() => {
+      updateSize();
+    });
+    ro.observe(el);
+    
+    return () => {
+      ro.disconnect();
+    };
+  }, []);
+
+  // Track mouse position globally
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({
+        x: e.clientX,
+        y: e.clientY,
+      });
+    };
+
+    // Initialize to center of screen
+    setMousePos({
+      x: typeof window !== 'undefined' ? window.innerWidth / 2 : 0,
+      y: typeof window !== 'undefined' ? window.innerHeight / 2 : 0,
+    });
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
-      <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
+    <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col relative">
+      <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 relative z-10 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
         <h1 className="text-lg sm:text-xl md:text-2xl font-lemonmilk font-semibold tracking-tight">andyxu</h1>
 
         <button
@@ -195,16 +254,17 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
         </button>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 flex-1 w-full flex items-center min-h-0">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 flex-1 w-full flex items-center min-h-0 relative z-10">
         <div className="w-full">
           <section
-            className={`rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg bg-beige-surface-70 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
+            className={`rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg bg-beige-surface-70 transition-opacity duration-300 relative z-10 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
             style={{ borderRadius: '1.25rem', boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: shouldFadeOut ? '100ms' : '450ms' }}
           >
             <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8 items-start">
               <div className="flex-1 w-full md:w-auto">
                 <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3">Hello, I&apos;m Andy!</h2>
-                <p className="opacity-90 leading-relaxed text-xs sm:text-sm md:text-base">I'm a current CMU senior studying Business + CS. I'm interested in building AI products and working on something meaningful. In the past, I've worked as an AI Engineer at IBM.</p>
+                <p className="opacity-90 leading-relaxed text-xs sm:text-sm md:text-base">I'm a current CMU senior studying Business + CS. I'm interested in building AI products and working on something meaningful.
+                   <br /> In the past, I've worked as an AI Engineer at IBM.</p>
               </div>
               <div className="w-full md:w-auto flex justify-center md:justify-start">
                 <img src={portrait2} alt="Portrait" className="rounded-2xl w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 object-cover" />
@@ -212,71 +272,146 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
             </div>
           </section>
 
-          <section className={`mt-4 sm:mt-5 md:mt-6 lg:mt-8 grid gap-3 sm:gap-4 md:gap-5 lg:gap-6 grid-cols-3 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '200ms' : '500ms' }}>
+          <section 
+            ref={cardsSectionRef}
+            className={`mt-2 sm:mt-2 md:mt-3 lg:mt-3 relative transition-opacity duration-300 z-10 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} 
+            style={{ 
+              transitionDelay: shouldFadeOut ? '200ms' : '500ms',
+              minHeight: '260px',
+              height: '260px'
+            }}
+          >
           {cards.map((c, index) => {
             const CardContent = (
               <>
-                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1">{c.title}</h3>
-                <p className="opacity-80 text-xs sm:text-sm md:text-base">{c.desc}</p>
+                <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold mb-1">{c.title}</h3>
+                <p className="opacity-80 text-sm sm:text-base md:text-lg lg:text-xl">{c.desc}</p>
               </>
             );
 
             const fadeDelay = shouldFadeOut ? `${100 + index * 50}ms` : `${500 + index * 50}ms`;
             
+            // Calculate card position and scale
+            const effectiveW = sz.w > 0 ? sz.w : (typeof window !== 'undefined' ? window.innerWidth : 1200);
+            const effectiveH = sz.h > 0 ? sz.h : 260;
+            const hasValidSize = effectiveW > 0 && effectiveH > 0;
+            
+            // Card positions: left, center, right
+            const cardPositions = [
+              { xPct: 0.166, yPct: 0.5 }, // Left card
+              { xPct: 0.5, yPct: 0.5 },   // Center card
+              { xPct: 0.834, yPct: 0.5 }, // Right card
+            ];
+            const pos = cardPositions[index] || { xPct: 0.5, yPct: 0.5 };
+            
+            const baseX = pos.xPct * effectiveW;
+            const baseY = pos.yPct * effectiveH;
+            
+            // Base scale from horizon (using center of container as horizon)
+            const horizonY = effectiveH * 0.5;
+            const baseScale = scaleFromHorizon(baseY, horizonY, effectiveH);
+            
+            // Cursor-based scaling: cards closer to cursor get bigger
+            const scaleBoost = 0.1; // Reduced from 0.25 for more subtle effect
+            const windowWidth = typeof window !== 'undefined' ? window.innerWidth : effectiveW;
+            const mouseXNormalized = windowWidth > 0 ? Math.max(0, Math.min(1, mousePos.x / windowWidth)) : 0.5;
+            
+            let finalScaleFactor = 1;
+            if (index === 0) { // Projects (left card)
+              finalScaleFactor = 1 + scaleBoost * (1 - mouseXNormalized * 1.4);
+            } else if (index === 2) { // About Me (right card)
+              finalScaleFactor = 1 + scaleBoost * (mouseXNormalized * 1.4 - 0.4);
+            } else { // Fun (middle card)
+              const distanceFromCenter = Math.abs(mouseXNormalized - 0.5);
+              const normalizedDistance = distanceFromCenter * 2;
+              finalScaleFactor = 1 + scaleBoost * (1 - normalizedDistance * 1.4);
+            }
+            
+            finalScaleFactor = Math.max(0.95, Math.min(1.1, finalScaleFactor));
+            
+            const finalScale = baseScale * finalScaleFactor;
+            
+            // Calculate card dimensions
+            const cardW = Math.min(700, effectiveW * 0.4);
+            const cardH = 220;
+            
+            // Calculate transform position (center of card)
+            const translateX = baseX - cardW / 2;
+            const translateY = baseY - cardH / 2;
+            
+            const cardStyle: React.CSSProperties = {
+              position: 'absolute',
+              width: cardW,
+              height: cardH,
+              top: 0,
+              left: 0,
+              transformOrigin: 'center center',
+              transform: `translate(${translateX}px, ${translateY}px) scale(${finalScale})`,
+              boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+              transition: 'background-color 0.05s ease-in-out, opacity 0.3s ease-in-out',
+            };
+            
             return c.link ? (
               c.link.startsWith('/') ? (
-                <TransitionLink key={c.title}
-                      to={c.link}
-                      className={`rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
-                                 bg-white/70
-                                 hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out
-                                 cursor-pointer block transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')} ${c.title === 'Projects' ? 'projects-card-hover' : ''}`}
-                      style={{ 
-                        boxShadow: '0 8px 30px rgba(0,0,0,0.08)', 
-                        transitionDelay: fadeDelay,
-                        transition: 'background-color 0.3s ease-in-out, transform 2s ease-in-out, opacity 0.3s ease-in-out'
-                      }}
-                      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        if (c.title === 'Projects' || c.title === 'Fun' || c.title === 'About Me') {
-                          if (dark) {
-                            // Dark mode: lighten to lighter gray (from rgba(16, 16, 16, 0.7) to lighter)
-                            // Use setProperty with 'important' to override CSS !important rule
-                            e.currentTarget.style.setProperty('background-color', 'rgba(60, 60, 60, 0.7)', 'important');
-                          } else {
-                            // Light mode: darken (from rgba(255, 255, 255, 0.7) to darker beige)
-                            e.currentTarget.style.backgroundColor = 'rgba(220, 210, 195, 0.9)';
-                          }
-                        }
-                      }}
-                      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        if (c.title === 'Projects' || c.title === 'Fun' || c.title === 'About Me') {
-                          // Reset to original (let CSS handle it)
-                          // Remove the inline style to allow CSS to take over again
-                          e.currentTarget.style.removeProperty('background-color');
-                        }
-                      }}>
+                <TransitionLink 
+                  key={c.title}
+                  to={c.link}
+                  className={`absolute rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
+                             bg-white/70
+                             cursor-pointer transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')} ${c.title === 'Projects' ? 'projects-card-hover' : ''}`}
+                  style={{ 
+                    ...cardStyle,
+                    transitionProperty: 'background-color, opacity',
+                    transitionDuration: '0.05s, 0.3s',
+                    transitionDelay: `0s, ${fadeDelay}`,
+                  }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                    if (c.title === 'Projects' || c.title === 'Fun' || c.title === 'About Me') {
+                      if (dark) {
+                        e.currentTarget.style.setProperty('background-color', 'rgba(60, 60, 60, 0.7)', 'important');
+                      } else {
+                        e.currentTarget.style.backgroundColor = 'rgba(220, 210, 195, 0.9)';
+                      }
+                    }
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                    if (c.title === 'Projects' || c.title === 'Fun' || c.title === 'About Me') {
+                      e.currentTarget.style.removeProperty('background-color');
+                    }
+                  }}>
                   {CardContent}
                 </TransitionLink>
               ) : (
-                <a key={c.title}
-                   href={c.link}
-                   target={typeof c.link === 'string' && c.link.startsWith('http') ? '_blank' : undefined}
-                   rel={typeof c.link === 'string' && c.link.startsWith('http') ? 'noreferrer' : undefined}
-                   download={typeof c.link === 'string' && c.link.endsWith('.pdf') ? true : c.title === 'Contact' ? true : undefined}
-                   className={`rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
-                              bg-white/70
-                              hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out
-                              cursor-pointer block transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
-                   style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: fadeDelay }}>
+                <a 
+                  key={c.title}
+                  href={c.link}
+                  target={typeof c.link === 'string' && c.link.startsWith('http') ? '_blank' : undefined}
+                  rel={typeof c.link === 'string' && c.link.startsWith('http') ? 'noreferrer' : undefined}
+                  download={typeof c.link === 'string' && c.link.endsWith('.pdf') ? true : c.title === 'Contact' ? true : undefined}
+                  className={`absolute rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
+                             bg-white/70
+                             cursor-pointer transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
+                  style={{ 
+                    ...cardStyle,
+                    transitionProperty: 'background-color, opacity',
+                    transitionDuration: '0.05s, 0.3s',
+                    transitionDelay: `0s, ${fadeDelay}`,
+                  }}>
                   {CardContent}
                 </a>
               )
             ) : (
-              <div key={c.title}
-                   className={`rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
-                              bg-white/70
-                              hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
-                   style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: fadeDelay }}>
+              <div 
+                key={c.title}
+                className={`absolute rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
+                           bg-white/70
+                           transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
+                style={{ 
+                  ...cardStyle,
+                  transitionProperty: 'background-color, opacity',
+                  transitionDuration: '0.05s, 0.3s',
+                  transitionDelay: `0s, ${fadeDelay}`,
+                }}>
                 {CardContent}
               </div>
             );
@@ -285,7 +420,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
         </div>
       </main>
 
-      <footer className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '300ms' : '600ms' }}>
+      <footer className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex-shrink-0 transition-opacity duration-300 relative z-10 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '300ms' : '600ms' }}>
         <div className="flex flex-wrap gap-2 sm:gap-2.5 md:gap-3 justify-center mb-2 sm:mb-3 md:mb-4 lg:mb-6">
           <a href="https://github.com/ayzxu" target="_blank" rel="noreferrer"
              className="rounded-xl p-2 sm:p-2.5 md:p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform"
