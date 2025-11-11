@@ -53,9 +53,13 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
           onClick={toggleTheme}
           aria-pressed={dark}
           className="rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base border border-black/10 dark:border-white/20
-                     bg-white/60 dark:bg-gray-800/90 backdrop-blur
-                     text-black dark:text-white font-medium
+                     backdrop-blur
+                     font-medium
                      hover:scale-[1.02] active:scale-[0.98] transition"
+          style={{ 
+            backgroundColor: dark ? '#ede5d8' : '#080808',
+            color: dark ? '#2b2b2b' : '#ffffff'
+          }}
         >
           {dark ? 'Light mode' : 'Dark mode'}
         </button>

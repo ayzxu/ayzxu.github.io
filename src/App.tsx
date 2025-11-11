@@ -54,7 +54,6 @@ export default function App() {
   const cards: Card[] = [
     { title: 'Projects', desc: 'AI sidequests from IBM and personal side projects.', link: '/projects' },
     { title: 'Fun',  desc: 'What I do outside of work and school: Art, Gym, Volleyball, Gaming, Chess, etc.', link: '/fun' },
-    { title: 'Talks',    desc: 'Boards, pitches, and workshops.' },
     { title: 'About Me',  desc: 'Some of my background and experiences.', link: '/about' },
   ];
 
@@ -160,9 +159,13 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
           onClick={toggleTheme}
           aria-pressed={dark}
           className="rounded-2xl px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-xs sm:text-sm md:text-base border border-black/10 dark:border-white/20
-                     bg-white/60 dark:bg-gray-800/90 backdrop-blur
-                     text-black dark:text-white font-medium
+                     backdrop-blur
+                     font-medium
                      hover:scale-[1.02] active:scale-[0.98] transition"
+          style={{ 
+            backgroundColor: dark ? '#ede5d8' : '#080808',
+            color: dark ? '#2b2b2b' : '#ffffff'
+          }}
         >
           {dark ? 'Light mode' : 'Dark mode'}
         </button>
@@ -185,7 +188,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
             </div>
           </section>
 
-          <section className={`mt-4 sm:mt-5 md:mt-6 lg:mt-8 grid gap-3 sm:gap-4 md:gap-5 lg:gap-6 md:grid-cols-2 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '200ms' : '500ms' }}>
+          <section className={`mt-4 sm:mt-5 md:mt-6 lg:mt-8 grid gap-3 sm:gap-4 md:gap-5 lg:gap-6 grid-cols-3 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '200ms' : '500ms' }}>
           {cards.map((c, index) => {
             const CardContent = (
               <>
