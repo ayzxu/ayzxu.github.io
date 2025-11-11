@@ -5,6 +5,9 @@ const config: Config = {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        'lemonmilk': ['LemonMilk', 'sans-serif'],
+      },
       colors: {
         // Light mode palette
         "beige-text": "#1f1b16",

@@ -9,6 +9,10 @@ import portrait2 from './assets/portraits/portrait2.jpg';
 import Projects from './Projects';
 import About from './About';
 import Fun from './Fun';
+// Preload large video files used in Fun page
+import gymVideo1 from './assets/gym/IMG_6232.mov';
+import gymVideo2 from './assets/gym/IMG_6418.MOV';
+import volleyballVideo1 from './assets/volleyball/VB1.mov';
 
 type Card = { title: string; desc: string; link?: string };
 
@@ -23,6 +27,19 @@ function getInitialTheme(): boolean {
 
 export default function App() {
   const [dark, setDark] = useState(getInitialTheme);
+
+  // Preload large video files when app loads
+  useEffect(() => {
+    const videos = [gymVideo1, gymVideo2, volleyballVideo1];
+    videos.forEach((videoSrc) => {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'video';
+      link.href = videoSrc;
+      link.crossOrigin = 'anonymous';
+      document.head.appendChild(link);
+    });
+  }, []);
 
   // Reflect state to <html> class
   useEffect(() => {
@@ -153,7 +170,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
       <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
-        <h1 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">andyxu</h1>
+        <h1 className="text-lg sm:text-xl md:text-2xl font-lemonmilk font-semibold tracking-tight">andyxu</h1>
 
         <button
           onClick={toggleTheme}
@@ -179,7 +196,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
           >
             <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8 items-start">
               <div className="flex-1 w-full md:w-auto">
-                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3">Hello, I&apos;m Andy Xu!</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3">Hello, I&apos;m Andy!</h2>
                 <p className="opacity-90 leading-relaxed text-xs sm:text-sm md:text-base">I'm a current CMU senior studying Business + CS. I'm interested in building AI products and working on something meaningful. In the past, I've worked as an AI Engineer at IBM.</p>
               </div>
               <div className="w-full md:w-auto flex justify-center md:justify-start">

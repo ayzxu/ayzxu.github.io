@@ -45,7 +45,7 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
       <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
-        <a href="/" onClick={handleHomeClick} className="text-xl sm:text-2xl font-semibold tracking-tight hover:opacity-80 transition-opacity">
+        <a href="/" onClick={handleHomeClick} className="text-xl sm:text-2xl font-lemonmilk font-semibold tracking-tight hover:opacity-80 transition-opacity">
           andyxu
         </a>
 
