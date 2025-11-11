@@ -133,7 +133,14 @@ export default function App() {
   );
 }
 
-function TransitionLink({ to, children, className, style }: { to: string; children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+function TransitionLink({ to, children, className, style, onMouseEnter, onMouseLeave }: { 
+  to: string; 
+  children: React.ReactNode; 
+  className?: string; 
+  style?: React.CSSProperties;
+  onMouseEnter?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  onMouseLeave?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+}) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -144,7 +151,7 @@ function TransitionLink({ to, children, className, style }: { to: string; childr
   };
 
   return (
-    <a href={to} onClick={handleClick} className={className} style={style}>
+    <a href={to} onClick={handleClick} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {children}
     </a>
   );
@@ -223,8 +230,31 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
                       className={`rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-black/5 dark:border-white/10
                                  bg-white/70
                                  hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out
-                                 cursor-pointer block transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
-                      style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: fadeDelay }}>
+                                 cursor-pointer block transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')} ${c.title === 'Projects' ? 'projects-card-hover' : ''}`}
+                      style={{ 
+                        boxShadow: '0 8px 30px rgba(0,0,0,0.08)', 
+                        transitionDelay: fadeDelay,
+                        transition: 'background-color 0.3s ease-in-out, transform 2s ease-in-out, opacity 0.3s ease-in-out'
+                      }}
+                      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                        if (c.title === 'Projects' || c.title === 'Fun' || c.title === 'About Me') {
+                          if (dark) {
+                            // Dark mode: lighten to lighter gray (from rgba(16, 16, 16, 0.7) to lighter)
+                            // Use setProperty with 'important' to override CSS !important rule
+                            e.currentTarget.style.setProperty('background-color', 'rgba(60, 60, 60, 0.7)', 'important');
+                          } else {
+                            // Light mode: darken (from rgba(255, 255, 255, 0.7) to darker beige)
+                            e.currentTarget.style.backgroundColor = 'rgba(220, 210, 195, 0.9)';
+                          }
+                        }
+                      }}
+                      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                        if (c.title === 'Projects' || c.title === 'Fun' || c.title === 'About Me') {
+                          // Reset to original (let CSS handle it)
+                          // Remove the inline style to allow CSS to take over again
+                          e.currentTarget.style.removeProperty('background-color');
+                        }
+                      }}>
                   {CardContent}
                 </TransitionLink>
               ) : (
@@ -259,17 +289,65 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
         <div className="flex flex-wrap gap-2 sm:gap-2.5 md:gap-3 justify-center mb-2 sm:mb-3 md:mb-4 lg:mb-6">
           <a href="https://github.com/ayzxu" target="_blank" rel="noreferrer"
              className="rounded-xl p-2 sm:p-2.5 md:p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform"
-             style={{ backgroundColor: dark ? '#000000' : '#ffffff' }}>
+             style={{ 
+               backgroundColor: dark ? '#000000' : '#ffffff',
+               transition: 'background-color 0.3s ease-in-out, transform 0.3s ease-in-out'
+             }}
+             onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+               if (dark) {
+                 // Dark mode: lighten to lighter gray
+                 e.currentTarget.style.backgroundColor = 'rgba(60, 60, 60, 1)';
+               } else {
+                 // Light mode: darken
+                 e.currentTarget.style.backgroundColor = 'rgba(220, 210, 195, 1)';
+               }
+             }}
+             onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+               // Reset to original
+               e.currentTarget.style.backgroundColor = dark ? '#000000' : '#ffffff';
+             }}>
             <img src={dark ? githubWhiteIcon : githubIcon} alt="GitHub" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </a>
           <a href="https://www.linkedin.com/in/ayzxu/" target="_blank" rel="noreferrer"
              className="rounded-xl p-2 sm:p-2.5 md:p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform"
-             style={{ backgroundColor: dark ? '#000000' : '#ffffff' }}>
+             style={{ 
+               backgroundColor: dark ? '#000000' : '#ffffff',
+               transition: 'background-color 0.3s ease-in-out, transform 0.3s ease-in-out'
+             }}
+             onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+               if (dark) {
+                 // Dark mode: lighten to lighter gray
+                 e.currentTarget.style.backgroundColor = 'rgba(60, 60, 60, 1)';
+               } else {
+                 // Light mode: darken
+                 e.currentTarget.style.backgroundColor = 'rgba(220, 210, 195, 1)';
+               }
+             }}
+             onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+               // Reset to original
+               e.currentTarget.style.backgroundColor = dark ? '#000000' : '#ffffff';
+             }}>
             <img src={linkedinIcon} alt="LinkedIn" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </a>
           <a href="mailto:andyxu@cmu.edu"
              className="rounded-xl p-2 sm:p-2.5 md:p-3 border-2 border-black dark:border-white/15 hover:scale-105 transition-transform"
-             style={{ backgroundColor: dark ? '#000000' : '#ffffff' }}>
+             style={{ 
+               backgroundColor: dark ? '#000000' : '#ffffff',
+               transition: 'background-color 0.3s ease-in-out, transform 0.3s ease-in-out'
+             }}
+             onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+               if (dark) {
+                 // Dark mode: lighten to lighter gray
+                 e.currentTarget.style.backgroundColor = 'rgba(60, 60, 60, 1)';
+               } else {
+                 // Light mode: darken
+                 e.currentTarget.style.backgroundColor = 'rgba(220, 210, 195, 1)';
+               }
+             }}
+             onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+               // Reset to original
+               e.currentTarget.style.backgroundColor = dark ? '#000000' : '#ffffff';
+             }}>
             <img src={emailIcon} alt="Email" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </a>
         </div>
