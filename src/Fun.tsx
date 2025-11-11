@@ -7,6 +7,9 @@ import walterwhite from './assets/art/walterwhite.jpg';
 import valorantIcon from './assets/icons/valorant.png';
 import clashRoyaleIcon from './assets/icons/cr.avif';
 import chessIcon from './assets/icons/chess.png';
+import gymImage1 from './assets/gym/IMG_6494.JPG';
+import gymVideo1 from './assets/gym/IMG_6232.mov';
+import gymVideo2 from './assets/gym/IMG_6418.MOV';
 
 // Initialize theme synchronously before component renders
 function getInitialTheme(): boolean {
@@ -20,7 +23,7 @@ function getInitialTheme(): boolean {
 export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
   const [dark, setDark] = useState(getInitialTheme);
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<{ src: string; alt: string; type: 'image' | 'video' } | null>(null);
   const location = useLocation();
 
   // Apply theme class immediately on mount and when it changes
@@ -37,7 +40,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
 
   // Prevent body scroll when modal is open
   useEffect(() => {
-    if (selectedImage) {
+    if (selectedMedia) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -45,7 +48,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     return () => {
       document.body.style.overflow = '';
     };
-  }, [selectedImage]);
+  }, [selectedMedia]);
 
   const toggleTheme = () => {
     setDark(prev => {
@@ -85,21 +88,11 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
         <div className="py-4 sm:py-6">
           <section className="mb-8 sm:mb-12">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Fun</h1>
-            <p className="text-base sm:text-lg opacity-90">What I do outside of work and school: Gym, Volleyball, Art, Gaming, Chess, etc.</p>
+            <p className="text-base sm:text-lg opacity-90">What I do outside of work and school: Art, Gym, Volleyball, Gaming, Chess, etc.</p>
           </section>
 
           <section className="space-y-6 sm:space-y-8">
             {[
-              {
-                title: 'Gym',
-                description: 'Staying active and healthy through regular workouts.',
-                delay: 200
-              },
-              {
-                title: 'Volleyball',
-                description: 'Playing competitive volleyball as part of CMU Men\'s Club Volleyball team. Led the team to top 15 in Division II of National Club Volleyball Foundation in 2023, 2024, 2025.',
-                delay: 250
-              },
               {
                 title: 'Art',
                 description: 'Exploring creativity through various artistic mediums.',
@@ -112,6 +105,27 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                 links: [
                   { name: 'Portfolio', url: 'https://axuportfolio.weebly.com' }
                 ],
+                delay: 200
+              },
+              {
+                title: 'Gym',
+                description: <>
+                Current Lifting Stats: <br />
+                295lbs Bench, <br />
+                385lbs Squat, <br />
+                405lbs Deadlift. <br />
+                Just trying to stay healthy and get stronger!
+                </>,
+                media: [
+                  { src: gymVideo1, alt: '365 Squat for 2!', type: 'video' as const },
+                  { src: gymVideo2, alt: '295 Bench!', type: 'video' as const },
+                  { src: gymImage1, alt: '10/2025 Physique', type: 'image' as const }
+                ],
+                delay: 250
+              },
+              {
+                title: 'Volleyball',
+                description: 'Playing competitive volleyball as part of CMU Men\'s Club Volleyball team. Led the team to top 15 in Division II of National Club Volleyball Foundation in 2023, 2024, 2025.',
                 delay: 300
               },
               {
@@ -130,7 +144,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
               },
               {
                 title: 'Chess',
-                description: 'Playing chess and building chess AI projects.',
+                description: 'Currently rated 1450 Blitz, 1400 Rapid, 1300 Blitz. Just trying to get better at chess!',
                 links: [
                   { name: 'Chess.com Profile', url: 'https://www.chess.com/member/chokeonbanana', icon: chessIcon }
                 ],
@@ -152,7 +166,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                       <div
                         key={imgIndex}
                         className="relative rounded-lg overflow-hidden cursor-pointer group"
-                        onClick={() => setSelectedImage(img)}
+                        onClick={() => setSelectedMedia({ ...img, type: 'image' })}
                       >
                         <img
                           src={img.src}
@@ -166,6 +180,40 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+                {item.media && (
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
+                    {item.media.map((media: { src: string; alt: string; type: 'image' | 'video' }, mediaIndex: number) => {
+                      const isImage = media.type === 'image';
+                      return (
+                        <div
+                          key={mediaIndex}
+                          className={`relative rounded-lg overflow-hidden cursor-pointer group ${isImage ? 'col-start-2 row-span-2 row-start-1' : ''}`}
+                          onClick={() => setSelectedMedia(media)}
+                        >
+                          {isImage ? (
+                            <img
+                              src={media.src}
+                              alt={media.alt}
+                              className="w-full h-[268px] sm:h-[336px] md:h-[400px] object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75"
+                            />
+                          ) : (
+                            <video
+                              src={media.src}
+                              className="w-full h-32 sm:h-40 md:h-48 object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75"
+                              muted
+                              playsInline
+                            />
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-150 flex items-center justify-center">
+                            <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm sm:text-base font-medium px-4 text-center">
+                              {media.alt}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 {item.links && (
@@ -192,26 +240,36 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
         </div>
       </main>
 
-      {/* Image Modal/Lightbox */}
-      {selectedImage && (
+      {/* Media Modal/Lightbox */}
+      {selectedMedia && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-          onClick={() => setSelectedImage(null)}
+          onClick={() => setSelectedMedia(null)}
         >
           <div className="relative max-w-7xl max-h-full">
             <button
-              onClick={() => setSelectedImage(null)}
+              onClick={() => setSelectedMedia(null)}
               className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors text-2xl font-bold"
               aria-label="Close"
             >
               ×
             </button>
-            <img
-              src={selectedImage.src}
-              alt={selectedImage.alt}
-              className="max-w-full max-h-[90vh] object-contain rounded-lg"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {selectedMedia.type === 'image' ? (
+              <img
+                src={selectedMedia.src}
+                alt={selectedMedia.alt}
+                className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <video
+                src={selectedMedia.src}
+                className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                controls
+                autoPlay
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
           </div>
         </div>
       )}
