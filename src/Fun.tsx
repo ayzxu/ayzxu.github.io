@@ -10,6 +10,9 @@ import chessIcon from './assets/icons/chess.png';
 import gymImage1 from './assets/gym/IMG_6494.JPG';
 import gymVideo1 from './assets/gym/IMG_6232.mov';
 import gymVideo2 from './assets/gym/IMG_6418.MOV';
+import volleyballVideo1 from './assets/volleyball/VB1.mov';
+import volleyballImage1 from './assets/volleyball/HS2A3950_Original.jpg';
+import volleyballImage2 from './assets/volleyball/HS2A4018_Original.jpg';
 
 // Initialize theme synchronously before component renders
 function getInitialTheme(): boolean {
@@ -95,7 +98,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
             {[
               {
                 title: 'Art',
-                description: 'Exploring creativity through various artistic mediums.',
+                description: 'I like drawing bald or nearly bald guys and painting shoes.',
                 images: [
                   { src: gusfring, alt: 'Gus Fring' },
                   { src: stevejobs, alt: 'Steve Jobs' },
@@ -125,7 +128,12 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
               },
               {
                 title: 'Volleyball',
-                description: 'Playing competitive volleyball as part of CMU Men\'s Club Volleyball team. Led the team to top 15 in Division II of National Club Volleyball Foundation in 2023, 2024, 2025.',
+                description: 'Playing competitive volleyball as a captain as part of CMU Men\'s Club Volleyball team. Led the team to top 15 in Division II of National Club Volleyball Foundation in 2023, 2025.',
+                media: [
+                  { src: volleyballImage1, alt: 'Phoenix Nationals 2025', type: 'image' as const },
+                  { src: volleyballImage2, alt: 'Phoenix Nationals 2025 as well', type: 'image' as const },
+                  { src: volleyballVideo1, alt: 'Clip from Phoenix Nationals 2025', type: 'video' as const }
+                ],
                 delay: 300
               },
               {
@@ -186,22 +194,25 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
                     {item.media.map((media: { src: string; alt: string; type: 'image' | 'video' }, mediaIndex: number) => {
                       const isImage = media.type === 'image';
+                      // For gym section: videos are small, image is large (spans 2 rows on right)
+                      // For volleyball section: images are small, video is large (spans 2 rows on right)
+                      const isLargeItem = (item.title === 'Gym' && isImage) || (item.title === 'Volleyball' && !isImage);
                       return (
                         <div
                           key={mediaIndex}
-                          className={`relative rounded-lg overflow-hidden cursor-pointer group ${isImage ? 'col-start-2 row-span-2 row-start-1' : ''}`}
+                          className={`relative rounded-lg overflow-hidden cursor-pointer group ${isLargeItem ? 'col-start-2 row-span-2 row-start-1' : ''}`}
                           onClick={() => setSelectedMedia(media)}
                         >
                           {isImage ? (
                             <img
                               src={media.src}
                               alt={media.alt}
-                              className="w-full h-[268px] sm:h-[336px] md:h-[400px] object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75"
+                              className={`w-full ${isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75`}
                             />
                           ) : (
                             <video
                               src={media.src}
-                              className="w-full h-32 sm:h-40 md:h-48 object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75"
+                              className={`w-full ${isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75`}
                               muted
                               playsInline
                             />
