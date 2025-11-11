@@ -12,16 +12,17 @@ import Fun from './Fun';
 
 type Card = { title: string; desc: string; link?: string };
 
-export default function App() {
-  const [dark, setDark] = useState(false);
+// Initialize theme synchronously before component renders
+function getInitialTheme(): boolean {
+  if (typeof window === 'undefined') return false;
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') return true;
+  if (saved === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
 
-  // Hydrate from saved theme or system
-  useEffect(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark') setDark(true);
-    else if (saved === 'light') setDark(false);
-    else setDark(window.matchMedia('(prefers-color-scheme: dark)').matches);
-  }, []);
+export default function App() {
+  const [dark, setDark] = useState(getInitialTheme);
 
   // Reflect state to <html> class
   useEffect(() => {
@@ -63,6 +64,17 @@ export default function App() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayLocation, setDisplayLocation] = useState(location.pathname);
   const [shouldFadeOut, setShouldFadeOut] = useState(false);
+
+  // Sync theme state when navigating back to home from other pages
+  useEffect(() => {
+    if (location.pathname === '/') {
+      const saved = localStorage.getItem('theme');
+      const currentDark = saved === 'dark' ? true : saved === 'light' ? false : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (currentDark !== dark) {
+        setDark(currentDark);
+      }
+    }
+  }, [location.pathname, dark]);
 
   useEffect(() => {
     if (location.pathname !== displayLocation) {
