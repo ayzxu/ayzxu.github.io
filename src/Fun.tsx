@@ -7,7 +7,6 @@ import walterwhite from './assets/art/walterwhite.jpg';
 import valorantIcon from './assets/icons/valorant.png';
 import clashRoyaleIcon from './assets/icons/cr.avif';
 import chessIcon from './assets/icons/chess.png';
-import gymImage1 from './assets/gym/IMG_6494.JPG';
 import gymVideo1 from './assets/gym/IMG_6232.mov';
 import gymVideo2 from './assets/gym/IMG_6418.MOV';
 import volleyballVideo1 from './assets/volleyball/VB1.mov';
@@ -121,8 +120,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                 </>,
                 media: [
                   { src: gymVideo1, alt: '365 Squat for 2!', type: 'video' as const },
-                  { src: gymVideo2, alt: '295 Bench!', type: 'video' as const },
-                  { src: gymImage1, alt: '10/2025 Physique', type: 'image' as const }
+                  { src: gymVideo2, alt: '295 Bench!', type: 'video' as const }
                 ],
                 delay: 250
               },
@@ -194,13 +192,14 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
                     {item.media.map((media: { src: string; alt: string; type: 'image' | 'video' }, mediaIndex: number) => {
                       const isImage = media.type === 'image';
-                      // For gym section: videos are small, image is large (spans 2 rows on right)
                       // For volleyball section: images are small, video is large (spans 2 rows on right)
-                      const isLargeItem = (item.title === 'Gym' && isImage) || (item.title === 'Volleyball' && !isImage);
+                      const isLargeItem = item.title === 'Volleyball' && !isImage;
+                      // For gym section: videos are square
+                      const isGymVideo = item.title === 'Gym' && !isImage;
                       return (
                         <div
                           key={mediaIndex}
-                          className={`relative rounded-lg overflow-hidden cursor-pointer group ${isLargeItem ? 'col-start-2 row-span-2 row-start-1' : ''}`}
+                          className={`relative ${isGymVideo ? 'rounded-2xl' : 'rounded-lg'} overflow-hidden cursor-pointer group ${isLargeItem ? 'col-start-2 row-span-2 row-start-1' : ''}`}
                           onClick={() => setSelectedMedia(media)}
                         >
                           {isImage ? (
@@ -212,7 +211,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                           ) : (
                             <video
                               src={media.src}
-                              className={`w-full ${isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75`}
+                              className={`w-full ${isGymVideo ? 'aspect-square' : isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75`}
                               muted
                               playsInline
                             />
