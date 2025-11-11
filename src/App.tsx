@@ -53,7 +53,7 @@ export default function App() {
 
   const cards: Card[] = [
     { title: 'Projects', desc: 'AI sidequests from IBM and personal side projects.', link: '/projects' },
-    { title: 'Fun',  desc: 'What I do outside of work and school: Gym, Volleyball, Art, Gaming, Chess, etc.', link: '/fun' },
+    { title: 'Fun',  desc: 'What I do outside of work and school: Art, Gym, Volleyball, Gaming, Chess, etc.', link: '/fun' },
     { title: 'Talks',    desc: 'Boards, pitches, and workshops.' },
     { title: 'About Me',  desc: 'Some of my background and experiences.', link: '/about' },
   ];
