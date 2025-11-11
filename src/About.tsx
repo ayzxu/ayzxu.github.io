@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
+// Initialize theme synchronously before component renders
+function getInitialTheme(): boolean {
+  if (typeof window === 'undefined') return false;
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') return true;
+  if (saved === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
 export default function About({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(getInitialTheme);
   const [isVisible, setIsVisible] = useState(false);
   const location = useLocation();
 
-  // Hydrate from saved theme or system
-  useEffect(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark') setDark(true);
-    else if (saved === 'light') setDark(false);
-    else setDark(window.matchMedia('(prefers-color-scheme: dark)').matches);
-  }, []);
-
-  // Reflect state to <html> class
+  // Apply theme class immediately on mount and when it changes
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
   }, [dark]);
