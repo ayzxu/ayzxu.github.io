@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import portrait3 from './assets/portraits/portrait3.jpg';
 import portrait4 from './assets/portraits/portrait4.JPEG';
+import azukiIcon from './assets/icons/azuki.jpg';
+import ibmIcon from './assets/icons/ibm.svg';
 
 // Initialize theme synchronously before component renders
 function getInitialTheme(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') return true;
   const saved = localStorage.getItem('theme');
   if (saved === 'dark') return true;
   if (saved === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return true; // Default to dark mode
 }
 
 export default function About({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
@@ -127,11 +129,67 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                 </div>
                 <div className="w-full">
                   <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">Background</h2>
-                  <p className="opacity-80 text-sm sm:text-base mb-4">
+                  <p className="opacity-80 text-sm sm:text-base mb-6">
                     I grew up in the Bay Area, California, and attended Lynbrook High School. I'm currently a senior at Carnegie Mellon University studying Business + Computer Science, with a passion for building AI products and working on meaningful projects. I also scooter around campus sometimes, so there's that.
                   </p>
-                  <p className="opacity-80 text-sm sm:text-base">
-                    In the past, I've worked as an AI Engineer at IBM, where I gained experience developing AI solutions and working on innovative technology projects. I'm always looking for opportunities to combine my technical skills with business acumen to create impactful products.
+                  
+                  <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Work Experience</h3>
+                  <div className="space-y-6 sm:space-y-8">
+                    {/* AI Engineer Intern - IBM */}
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <img src={ibmIcon} alt="IBM" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
+                          <h4 className="text-base sm:text-lg font-medium">AI Engineer Intern</h4>
+                          <span className="text-xs sm:text-sm opacity-60">May 2025 - Aug 2025</span>
+                        </div>
+                        <p className="text-sm sm:text-base opacity-70 mb-3">IBM • San Francisco, CA</p>
+                        <ul className="space-y-2 opacity-80 text-sm sm:text-base list-disc list-inside">
+                          <li>Developed an intelligent document processing pipeline leveraging <strong>OCR</strong>, <strong>Tensorflow</strong>, and <strong>Granite-8B</strong> to decrease costs by <strong>80%</strong> and speed up by <strong>150%</strong> when compared to GPT-4o</li>
+                          <li>Created a semantic search pipeline and chatbot utilizing <strong>watsonx.ai</strong>, <strong>Pytorch</strong>, and <strong>Puppeteer</strong> for Minnesota Government</li>
+                          <li>Engineered full-stack automated recording summarization platform integrating <strong>watsonx.ai</strong> with <strong>Flask</strong> and <strong>ThreadPoolExecutor</strong> parallel processing, achieving <strong>80%</strong> faster transcription and <strong>90%</strong> time savings</li>
+                          <li>Built internal AI OneDrive document chat system using <strong>LangChain</strong> and <strong>vectorized Lucene database</strong></li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    {/* Data and AI Specialist Intern - IBM */}
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <img src={ibmIcon} alt="IBM" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
+                          <h4 className="text-base sm:text-lg font-medium">Data and AI Specialist Intern</h4>
+                          <span className="text-xs sm:text-sm opacity-60">May 2024 - Aug 2024</span>
+                        </div>
+                        <p className="text-sm sm:text-base opacity-70 mb-3">IBM • San Francisco, CA</p>
+                        <ul className="space-y-2 opacity-80 text-sm sm:text-base list-disc list-inside">
+                          <li>Ensured client readiness for Data and AI infrastructure with technical solutions, reducing deployment time by <strong>20%</strong></li>
+                          <li>Prospected <strong>10+</strong> use cases and demos for IBM's <strong>watsonx.ai</strong>, <strong>watsonx.data</strong>, and <strong>watsonx.gov</strong> in Python and SQL</li>
+                          <li>Built fullstack application with <strong>Node.js, HTML</strong>, and <strong>CSS</strong> for manipulating sales CSV files using <strong>Pandas</strong> in Python</li>
+                          <li>Constructed custom Excel spreadsheet with macros to assist sales team with <strong>40+</strong> clients</li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    {/* Software Engineering and Marketing Intern - Chiru Labs/Azuki */}
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <img src={azukiIcon} alt="Azuki" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
+                          <h4 className="text-base sm:text-lg font-medium">Software Engineering and Marketing Intern</h4>
+                          <span className="text-xs sm:text-sm opacity-60">Jun 2023 - Aug 2023</span>
+                        </div>
+                        <p className="text-sm sm:text-base opacity-70 mb-3">Chiru Labs (Azuki) • Los Angeles, CA</p>
+                        <ul className="space-y-2 opacity-80 text-sm sm:text-base list-disc list-inside">
+                          <li>Built a client-facing website using <strong>React.js</strong> and a <strong>Python</strong> backend, improved UX with responsive animated UI</li>
+                          <li>Conducted web3 market research that identified <strong>10+</strong> key customer segments, resulting in a <strong>15%</strong> increase in revenue</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="opacity-80 text-sm sm:text-base mt-6">
+                    I'm always looking for opportunities to combine my technical skills with my business acumen to create impactful products! Contact me if you'd like to chat or collaborate.
                   </p>
                 </div>
               </div>

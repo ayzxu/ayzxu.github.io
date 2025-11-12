@@ -75,31 +75,38 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
           <section className="space-y-6 sm:space-y-8">
             {[
               {
-                title: 'Full-stack Spoiler-block Chrome Extension',
+                title: 'Squat Form Analyzer',
+                date: 'Nov 2025',
+                description: 'Python + OpenCV web application that analyzes squat form from uploaded videos using MediaPipe pose estimation. Provides detailed ratings (0-100) and actionable feedback on knee tracking, back angle, depth, and alignment.',
+                link: 'https://github.com/ayzxu/squatform',
+                delay: 200
+              },
+              {
+                title: 'Spoiler-block Chrome Extension',
                 date: 'Nov 2024 - Ongoing',
                 description: 'NLP-based Chrome extension that blocks spoilers with 40% efficiency increase.',
                 link: 'https://github.com/ayzxu/spoilerblock',
-                delay: 200
+                delay: 250
               },
               {
                 title: 'Brawl Stars Agent - Supercell Game',
                 date: 'Nov 2024 - Ongoing',
                 description: 'AI-powered bot using computer vision and reinforcement learning to play Brawl Stars.',
-                delay: 250
+                delay: 300
               },
               {
                 title: 'ThreeGL Planet – WebGL Game World',
                 date: 'Sep 2025',
                 description: 'Browser-based 3D game world built with React, Three.js, and WebGL. Features an asset pipeline with GLTF + Draco/KTX2 compression.',
                 link: 'https://github.com/ayzxu/threegl-planet',
-                delay: 300
+                delay: 350
               },
               {
                 title: 'Chess AI',
                 date: 'Dec 2022',
                 description: 'AI opponent using minimax algorithm with alpha-beta pruning. Supports human vs. human and human vs. AI game modes.',
                 link: 'https://www.github.com/ayzxu/chess',
-                delay: 350
+                delay: 400
               }
             ].map((project, index) => (
               <div
