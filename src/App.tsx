@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState, useRef, useLayoutEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react';
+import Lottie from 'lottie-react';
+import './App.css';
 import githubIcon from './assets/icons/github.png';
 import githubWhiteIcon from './assets/icons/githubwhite.png';
 import linkedinIcon from './assets/icons/linkedin.png';
 import emailIcon from './assets/icons/email.png';
 import portrait2 from './assets/portraits/portrait2.jpg';
+import sunMoonAnimation from './assets/icons/icons8-sun.json';
 import Projects from './Projects';
 import About from './About';
 import Fun from './Fun';
@@ -87,7 +90,9 @@ export default function App() {
   const location = useLocation();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayLocation, setDisplayLocation] = useState(location.pathname);
-  const [shouldFadeOut, setShouldFadeOut] = useState(false);
+  const [shouldZoomOut, setShouldZoomOut] = useState(false);
+  const [isZoomingIn, setIsZoomingIn] = useState(false);
+  const [isZoomingOut, setIsZoomingOut] = useState(false);
 
   // Sync theme state when navigating back to home from other pages
   useEffect(() => {
@@ -102,16 +107,42 @@ export default function App() {
 
   useEffect(() => {
     if (location.pathname !== displayLocation) {
-      // Start fade-out
-      setShouldFadeOut(true);
-      setIsTransitioning(true);
-      // Wait for fade-out (400ms) then update location and fade in
-      const timer = setTimeout(() => {
-        setDisplayLocation(location.pathname);
-        setShouldFadeOut(false);
-        setIsTransitioning(false);
-      }, 400);
-      return () => clearTimeout(timer);
+      const isLeavingHome = displayLocation === '/';
+      const isGoingToHome = location.pathname === '/';
+      
+      if (isLeavingHome) {
+        // Zoom in when leaving home
+        setIsZoomingIn(true);
+        setIsTransitioning(true);
+        const timer = setTimeout(() => {
+          setDisplayLocation(location.pathname);
+          setIsZoomingIn(false);
+          setIsTransitioning(false);
+        }, 400);
+        return () => clearTimeout(timer);
+      } else if (isGoingToHome) {
+        // Zoom out when returning to home
+        setIsZoomingOut(true);
+        setIsTransitioning(true);
+        setShouldZoomOut(true);
+        const timer = setTimeout(() => {
+          setDisplayLocation(location.pathname);
+          setIsZoomingOut(false);
+          setShouldZoomOut(false);
+          setIsTransitioning(false);
+        }, 400);
+        return () => clearTimeout(timer);
+      } else {
+        // Regular transition between non-home pages
+        setShouldZoomOut(true);
+        setIsTransitioning(true);
+        const timer = setTimeout(() => {
+          setDisplayLocation(location.pathname);
+          setShouldZoomOut(false);
+          setIsTransitioning(false);
+        }, 400);
+        return () => clearTimeout(timer);
+      }
     }
   }, [location.pathname, displayLocation]);
 
@@ -131,11 +162,11 @@ export default function App() {
     <OverlayScrollbarsComponent options={scrollbarOptions} className="h-screen">
       <div className="page-transition-container bg-beige-gradient min-h-screen">
         <Routes location={{ pathname: displayLocation } as any} key={displayLocation}>
-          <Route path="/projects" element={<Projects isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
-          <Route path="/fun" element={<Fun isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
-          <Route path="/about" element={<About isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
+          <Route path="/projects" element={<Projects isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
+          <Route path="/fun" element={<Fun isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
+          <Route path="/about" element={<About isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
           <Route path="/test" element={<Test />} />
-          <Route path="/" element={<Home dark={dark} toggleTheme={toggleTheme} cards={cards} year={year} isTransitioning={isTransitioning} shouldFadeOut={shouldFadeOut} />} />
+          <Route path="/" element={<Home dark={dark} toggleTheme={toggleTheme} cards={cards} year={year} isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} isZoomingIn={isZoomingIn} isZoomingOut={isZoomingOut} />} />
         </Routes>
       </div>
     </OverlayScrollbarsComponent>
@@ -166,22 +197,72 @@ function TransitionLink({ to, children, className, style, onMouseEnter, onMouseL
   );
 }
 
-function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }: { 
+function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, isZoomingIn, isZoomingOut }: { 
   dark: boolean; 
   toggleTheme: () => void;
   cards: Card[];
   year: number;
   isTransitioning: boolean;
   shouldFadeOut: boolean;
+  isZoomingIn: boolean;
+  isZoomingOut: boolean;
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const location = useLocation();
   const cardsSectionRef = useRef<HTMLDivElement>(null);
+  const lottieRef = useRef<any>(null);
+  const prevDarkRef = useRef<boolean | null>(null);
+  const isAnimatingRef = useRef<boolean>(false);
+  const isInitializedRef = useRef<boolean>(false);
   const [sz, setSz] = useState({ w: 0, h: 0 });
   const [mousePos, setMousePos] = useState(() => ({
     x: typeof window !== 'undefined' ? window.innerWidth / 2 : 0,
     y: typeof window !== 'undefined' ? window.innerHeight / 2 : 0,
   }));
+
+  // Memoize the onComplete callback to prevent re-renders
+  const handleAnimationComplete = useMemo(() => () => {
+    isAnimatingRef.current = false;
+  }, []);
+
+  // Update Lottie animation when theme changes (but not on initial mount)
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (!isInitializedRef.current) {
+      // Initial mount - just set the frame without animating
+      isInitializedRef.current = true;
+      prevDarkRef.current = dark;
+      timer = setTimeout(() => {
+        if (lottieRef.current) {
+          lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+        }
+      }, 100);
+    } else if (prevDarkRef.current !== dark) {
+      // Theme actually changed - play the animation
+      prevDarkRef.current = dark;
+      isAnimatingRef.current = true;
+      
+      timer = setTimeout(() => {
+        if (lottieRef.current) {
+          // Stop any ongoing animation first
+          lottieRef.current.stop();
+          // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
+          lottieRef.current.setSpeed(1.33);
+          // Set the starting frame
+          const startFrame = dark ? 0 : 14;
+          const endFrame = dark ? 14 : 0;
+          lottieRef.current.goToAndStop(startFrame, true);
+          // Then play the animation
+          lottieRef.current.playSegments([startFrame, endFrame], true);
+        }
+      }, 100);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [dark]);
 
   useEffect(() => {
     setIsVisible(false);
@@ -233,32 +314,92 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
     };
   }, []);
 
+  // Calculate zoom scale for sections
+  // When zooming in (leaving home): scale from 1 to 2 and fade out
+  // When zooming out (returning to home): start at 0.5, scale to 1 and fade in
+  let sectionZoomScale = 1;
+  let sectionOpacity = isVisible ? 1 : 0;
+  
+  if (isZoomingIn) {
+    sectionZoomScale = 2;
+    sectionOpacity = 0;
+  } else if (isZoomingOut) {
+    sectionZoomScale = isVisible ? 1 : 0.5;
+    sectionOpacity = isVisible ? 1 : 0;
+  }
+
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col relative">
       <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 relative z-10 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
-        <h1 className="text-lg sm:text-xl md:text-2xl font-lemonmilk font-semibold tracking-tight">andyxu</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-lemonmilk font-semibold tracking-tight">andyxu</h1>
 
-        <button
-          onClick={toggleTheme}
-          aria-pressed={dark}
-          className="rounded-2xl px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-xs sm:text-sm md:text-base border border-black/10 dark:border-white/20
-                     backdrop-blur
-                     font-medium
-                     hover:scale-[1.02] active:scale-[0.98] transition"
-          style={{ 
-            backgroundColor: dark ? '#ede5d8' : '#080808',
-            color: dark ? '#2b2b2b' : '#ffffff'
-          }}
-        >
-          {dark ? 'Light mode' : 'Dark mode'}
-        </button>
+        <div className="theme-switch-container">
+          <div 
+            className={`theme-switch-animation ${dark ? 'moon-white' : ''}`}
+            onClick={toggleTheme}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleTheme();
+              }
+            }}
+            aria-label="Toggle dark mode"
+          >
+            <Lottie
+              key="theme-animation"
+              lottieRef={lottieRef}
+              animationData={sunMoonAnimation}
+              loop={false}
+              autoplay={false}
+              initialSegment={dark ? [14, 14] : [0, 0]}
+              style={{ width: '2.25em', height: '2.25em' }}
+              onComplete={handleAnimationComplete}
+              onLoadedData={() => {
+                // Ensure correct frame is set immediately when animation loads
+                if (lottieRef.current && !isInitializedRef.current) {
+                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                }
+              }}
+            />
+          </div>
+          <div className="theme-switch-wrapper">
+            <input
+              type="checkbox"
+              id="theme-check"
+              className="theme-checkbox"
+              checked={dark}
+              onChange={toggleTheme}
+              aria-label="Toggle dark mode"
+            />
+            <label htmlFor="theme-check" className="switch">
+              <svg viewBox="0 0 212.4992 84.4688" overflow="visible" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  pathLength={360}
+                  fill="none"
+                  stroke="currentColor"
+                  d="M 42.2496 0 A 42.24 42.24 90 0 0 0 42.2496 A 42.24 42.24 90 0 0 42.2496 84.4688 A 42.24 42.24 90 0 0 84.4992 42.2496 A 42.24 42.24 90 0 0 42.2496 0 A 42.24 42.24 90 0 0 0 42.2496 A 42.24 42.24 90 0 0 42.2496 84.4688 L 170.2496 84.4688 A 42.24 42.24 90 0 0 212.4992 42.2496 A 42.24 42.24 90 0 0 170.2496 0 A 42.24 42.24 90 0 0 128 42.2496 A 42.24 42.24 90 0 0 170.2496 84.4688 A 42.24 42.24 90 0 0 212.4992 42.2496 A 42.24 42.24 90 0 0 170.2496 0 L 42.2496 0"
+                />
+              </svg>
+            </label>
+          </div>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 flex-1 w-full flex items-center min-h-0 relative z-10">
         <div className="w-full">
           <section
-            className={`rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg bg-beige-surface-70 transition-opacity duration-300 relative z-10 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
-            style={{ borderRadius: '1.25rem', boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: shouldFadeOut ? '100ms' : '450ms' }}
+            className={`rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg bg-beige-surface-70 relative z-10`}
+            style={{ 
+              borderRadius: '1.25rem', 
+              boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+              transform: `scale(${sectionZoomScale})`,
+              transformOrigin: 'center center',
+              opacity: sectionOpacity,
+              transition: 'transform 0.4s ease-in-out, opacity 0.4s ease-in-out',
+              transitionDelay: isZoomingOut ? '0ms' : (isVisible ? '450ms' : '100ms')
+            }}
           >
             <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8 items-start">
               <div className="flex-1 w-full md:w-auto">
@@ -274,9 +415,13 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
 
           <section 
             ref={cardsSectionRef}
-            className={`mt-2 sm:mt-2 md:mt-3 lg:mt-3 relative transition-opacity duration-300 z-10 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} 
+            className={`mt-2 sm:mt-2 md:mt-3 lg:mt-3 relative z-10`} 
             style={{ 
-              transitionDelay: shouldFadeOut ? '200ms' : '500ms',
+              transform: `scale(${sectionZoomScale})`,
+              transformOrigin: 'center center',
+              opacity: sectionOpacity,
+              transition: 'transform 0.4s ease-in-out, opacity 0.4s ease-in-out',
+              transitionDelay: isZoomingOut ? '0ms' : (isVisible ? '500ms' : '200ms'),
               minHeight: '260px',
               height: '260px'
             }}

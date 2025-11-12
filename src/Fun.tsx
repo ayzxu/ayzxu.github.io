@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Lottie from 'lottie-react';
+import sunMoonAnimation from './assets/icons/icons8-sun.json';
+import './App.css';
 import gusfring from './assets/art/gusfring.jpg';
 import stevejobs from './assets/art/stevejobs.png';
 import vagabondshoes from './assets/art/vagabondshoes.png';
@@ -27,10 +30,58 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
   const [isVisible, setIsVisible] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ src: string; alt: string; type: 'image' | 'video' } | null>(null);
   const location = useLocation();
+  const lottieRef = useRef<any>(null);
+  const prevDarkRef = useRef<boolean | null>(null);
+  const isAnimatingRef = useRef<boolean>(false);
+  const isInitializedRef = useRef<boolean>(false);
+
+  // Memoize the onComplete callback to prevent re-renders
+  const handleAnimationComplete = useMemo(() => () => {
+    isAnimatingRef.current = false;
+  }, []);
 
   // Apply theme class immediately on mount and when it changes
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
+  }, [dark]);
+
+  // Update Lottie animation when theme changes (but not on initial mount)
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (!isInitializedRef.current) {
+      // Initial mount - just set the frame without animating
+      isInitializedRef.current = true;
+      prevDarkRef.current = dark;
+      timer = setTimeout(() => {
+        if (lottieRef.current) {
+          lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+        }
+      }, 100);
+    } else if (prevDarkRef.current !== dark) {
+      // Theme actually changed - play the animation
+      prevDarkRef.current = dark;
+      isAnimatingRef.current = true;
+      
+      timer = setTimeout(() => {
+        if (lottieRef.current) {
+          // Stop any ongoing animation first
+          lottieRef.current.stop();
+          // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
+          lottieRef.current.setSpeed(1.33);
+          // Set the starting frame
+          const startFrame = dark ? 0 : 14;
+          const endFrame = dark ? 14 : 0;
+          lottieRef.current.goToAndStop(startFrame, true);
+          // Then play the animation
+          lottieRef.current.playSegments([startFrame, endFrame], true);
+        }
+      }, 100);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [dark]);
 
   // Fade in on mount
@@ -70,24 +121,62 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
       <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
-        <a href="/" onClick={handleHomeClick} className="text-xl sm:text-2xl font-lemonmilk font-semibold tracking-tight hover:opacity-80 transition-opacity">
+        <a href="/" onClick={handleHomeClick} className="text-2xl sm:text-3xl md:text-4xl font-lemonmilk font-semibold tracking-tight hover:opacity-80 transition-opacity">
           andyxu
         </a>
 
-        <button
-          onClick={toggleTheme}
-          aria-pressed={dark}
-          className="rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base border border-black/10 dark:border-white/20
-                     backdrop-blur
-                     font-medium
-                     hover:scale-[1.02] active:scale-[0.98] transition"
-          style={{ 
-            backgroundColor: dark ? '#ede5d8' : '#080808',
-            color: dark ? '#2b2b2b' : '#ffffff'
-          }}
-        >
-          {dark ? 'Light mode' : 'Dark mode'}
-        </button>
+        <div className="theme-switch-container">
+          <div 
+            className={`theme-switch-animation ${dark ? 'moon-white' : ''}`}
+            onClick={toggleTheme}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleTheme();
+              }
+            }}
+            aria-label="Toggle dark mode"
+          >
+            <Lottie
+              key="theme-animation"
+              lottieRef={lottieRef}
+              animationData={sunMoonAnimation}
+              loop={false}
+              autoplay={false}
+              initialSegment={dark ? [14, 14] : [0, 0]}
+              style={{ width: '2.25em', height: '2.25em' }}
+              onComplete={handleAnimationComplete}
+              onLoadedData={() => {
+                // Ensure correct frame is set immediately when animation loads
+                if (lottieRef.current && !isInitializedRef.current) {
+                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                }
+              }}
+            />
+          </div>
+          <div className="theme-switch-wrapper">
+            <input
+              type="checkbox"
+              id="theme-check-fun"
+              className="theme-checkbox"
+              checked={dark}
+              onChange={toggleTheme}
+              aria-label="Toggle dark mode"
+            />
+            <label htmlFor="theme-check-fun" className="switch">
+              <svg viewBox="0 0 212.4992 84.4688" overflow="visible" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  pathLength={360}
+                  fill="none"
+                  stroke="currentColor"
+                  d="M 42.2496 0 A 42.24 42.24 90 0 0 0 42.2496 A 42.24 42.24 90 0 0 42.2496 84.4688 A 42.24 42.24 90 0 0 84.4992 42.2496 A 42.24 42.24 90 0 0 42.2496 0 A 42.24 42.24 90 0 0 0 42.2496 A 42.24 42.24 90 0 0 42.2496 84.4688 L 170.2496 84.4688 A 42.24 42.24 90 0 0 212.4992 42.2496 A 42.24 42.24 90 0 0 170.2496 0 A 42.24 42.24 90 0 0 128 42.2496 A 42.24 42.24 90 0 0 170.2496 84.4688 A 42.24 42.24 90 0 0 212.4992 42.2496 A 42.24 42.24 90 0 0 170.2496 0 L 42.2496 0"
+                />
+              </svg>
+            </label>
+          </div>
+        </div>
       </header>
 
       <main className={`max-w-5xl mx-auto px-4 sm:px-6 flex-1 w-full transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '100ms' : '450ms' }}>

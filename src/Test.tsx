@@ -254,7 +254,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut }
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col relative">
       <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 relative z-10 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
-        <h1 className="text-lg sm:text-xl md:text-2xl font-lemonmilk font-semibold tracking-tight">andyxu</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-lemonmilk font-semibold tracking-tight">andyxu</h1>
 
         <button
           ref={themeButtonRef}
