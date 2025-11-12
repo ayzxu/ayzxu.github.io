@@ -225,6 +225,10 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
     isAnimatingRef.current = false;
   }, []);
 
+  // Capture initial dark value and memoize initialSegment to prevent it from changing on re-renders
+  const initialDarkRef = useRef(dark);
+  const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]), []);
+
   // Update Lottie animation when theme changes (but not on initial mount)
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -353,7 +357,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
               animationData={sunMoonAnimation}
               loop={false}
               autoplay={false}
-              initialSegment={dark ? [14, 14] : [0, 0]}
+              initialSegment={initialSegment}
               style={{ width: '2.25em', height: '2.25em' }}
               onComplete={handleAnimationComplete}
               onLoadedData={() => {

@@ -27,6 +27,10 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
     isAnimatingRef.current = false;
   }, []);
 
+  // Capture initial dark value and memoize initialSegment to prevent it from changing on re-renders
+  const initialDarkRef = useRef(dark);
+  const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]), []);
+
   // Apply theme class immediately on mount and when it changes
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
@@ -120,7 +124,7 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
               animationData={sunMoonAnimation}
               loop={false}
               autoplay={false}
-              initialSegment={dark ? [14, 14] : [0, 0]}
+              initialSegment={initialSegment}
               style={{ width: '2.25em', height: '2.25em' }}
               onComplete={handleAnimationComplete}
               onLoadedData={() => {
