@@ -471,7 +471,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
             const baseScale = scaleFromHorizon(baseY, horizonY, effectiveH);
             
             // Cursor-based scaling: cards closer to cursor get bigger
-            const scaleBoost = 0.1; // Reduced from 0.25 for more subtle effect
+            const scaleBoost = 0.05; // Reduced for more subtle zoom effect
             const windowWidth = typeof window !== 'undefined' ? window.innerWidth : effectiveW;
             const mouseXNormalized = windowWidth > 0 ? Math.max(0, Math.min(1, mousePos.x / windowWidth)) : 0.5;
             
@@ -486,12 +486,12 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
               finalScaleFactor = 1 + scaleBoost * (1 - normalizedDistance * 1.4);
             }
             
-            finalScaleFactor = Math.max(0.95, Math.min(1.1, finalScaleFactor));
+            finalScaleFactor = Math.max(0.97, Math.min(1.05, finalScaleFactor));
             
             const finalScale = baseScale * finalScaleFactor;
             
-            // Calculate card dimensions
-            const cardW = Math.min(700, effectiveW * 0.4);
+            // Calculate card dimensions - match intro box width
+            const cardW = Math.min(705, effectiveW * 0.42);
             const cardH = 220;
             
             // Calculate transform position (center of card)
