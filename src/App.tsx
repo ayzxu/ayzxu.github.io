@@ -235,13 +235,20 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
     
     if (!isInitializedRef.current) {
       // Initial mount - just set the frame without animating
-      isInitializedRef.current = true;
       prevDarkRef.current = dark;
-      timer = setTimeout(() => {
-        if (lottieRef.current) {
-          lottieRef.current.goToAndStop(dark ? 14 : 0, true);
-        }
-      }, 100);
+      // Try to set frame immediately if animation is already loaded
+      if (lottieRef.current) {
+        lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+        isInitializedRef.current = true;
+      } else {
+        // If not loaded yet, wait a bit and try again
+        timer = setTimeout(() => {
+          if (lottieRef.current) {
+            lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+            isInitializedRef.current = true;
+          }
+        }, 50);
+      }
     } else if (prevDarkRef.current !== dark) {
       // Theme actually changed - play the animation
       prevDarkRef.current = dark;
@@ -358,12 +365,15 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
               loop={false}
               autoplay={false}
               initialSegment={initialSegment}
-              style={{ width: '2.25em', height: '2.25em' }}
+              style={{ width: '2.25em', height: '2.25em', opacity: 1 }}
               onComplete={handleAnimationComplete}
               onLoadedData={() => {
                 // Ensure correct frame is set immediately when animation loads
-                if (lottieRef.current && !isInitializedRef.current) {
-                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                if (lottieRef.current) {
+                  if (!isInitializedRef.current) {
+                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                    isInitializedRef.current = true;
+                  }
                 }
               }}
             />

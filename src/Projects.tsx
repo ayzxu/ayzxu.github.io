@@ -3,6 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
 import './App.css';
+// Project images
+import squatformAnalyze from './assets/projectpics/squatform/analyze.png';
+import squatformFeedback from './assets/projectpics/squatform/feedback.png';
+import spoilerblockExtension from './assets/projectpics/spoilerblock/extension.png';
+import spoilerblockRedacted from './assets/projectpics/spoilerblock/redacted.png';
+import spoilerblockFurtherRedaction from './assets/projectpics/spoilerblock/furtherredaction.png';
+import threeglWorld from './assets/projectpics/threegl/world.png';
+import chessaiGameplay from './assets/projectpics/chessai/gameplay.png';
 
 // Initialize theme synchronously before component renders
 function getInitialTheme(): boolean {
@@ -16,6 +24,7 @@ function getInitialTheme(): boolean {
 export default function Projects({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
   const [dark, setDark] = useState(getInitialTheme);
   const [isVisible, setIsVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
   const location = useLocation();
   const lottieRef = useRef<any>(null);
   const prevDarkRef = useRef<boolean | null>(null);
@@ -42,13 +51,20 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
     
     if (!isInitializedRef.current) {
       // Initial mount - just set the frame without animating
-      isInitializedRef.current = true;
       prevDarkRef.current = dark;
-      timer = setTimeout(() => {
-        if (lottieRef.current) {
-          lottieRef.current.goToAndStop(dark ? 14 : 0, true);
-        }
-      }, 100);
+      // Try to set frame immediately if animation is already loaded
+      if (lottieRef.current) {
+        lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+        isInitializedRef.current = true;
+      } else {
+        // If not loaded yet, wait a bit and try again
+        timer = setTimeout(() => {
+          if (lottieRef.current) {
+            lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+            isInitializedRef.current = true;
+          }
+        }, 50);
+      }
     } else if (prevDarkRef.current !== dark) {
       // Theme actually changed - play the animation
       prevDarkRef.current = dark;
@@ -81,6 +97,25 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
     const timer = setTimeout(() => setIsVisible(true), isTransitioning ? 400 : 10);
     return () => clearTimeout(timer);
   }, [location.pathname, isTransitioning]);
+
+  // Prevent body scroll when lightbox is open and handle ESC key
+  useEffect(() => {
+    if (selectedImage) {
+      document.body.style.overflow = 'hidden';
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setSelectedImage(null);
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleEscape);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [selectedImage]);
 
   const toggleTheme = () => {
     setDark(prev => {
@@ -125,12 +160,15 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
               loop={false}
               autoplay={false}
               initialSegment={initialSegment}
-              style={{ width: '2.25em', height: '2.25em' }}
+              style={{ width: '2.25em', height: '2.25em', opacity: 1 }}
               onComplete={handleAnimationComplete}
               onLoadedData={() => {
                 // Ensure correct frame is set immediately when animation loads
-                if (lottieRef.current && !isInitializedRef.current) {
-                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                if (lottieRef.current) {
+                  if (!isInitializedRef.current) {
+                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                    isInitializedRef.current = true;
+                  }
                 }
               }}
             />
@@ -172,6 +210,10 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
                 date: 'Nov 2025',
                 description: 'Python + OpenCV web application that analyzes squat form from uploaded videos using MediaPipe pose estimation. Provides detailed ratings (0-100) and actionable feedback on knee tracking, back angle, depth, and alignment.',
                 link: 'https://github.com/ayzxu/squatform',
+                images: [
+                  { src: squatformAnalyze, alt: 'Squat Form Analysis Interface' },
+                  { src: squatformFeedback, alt: 'Detailed Feedback Display' }
+                ],
                 delay: 200
               },
               {
@@ -179,6 +221,11 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
                 date: 'Nov 2024 - Ongoing',
                 description: 'NLP-based Chrome extension that blocks spoilers with 40% efficiency increase.',
                 link: 'https://github.com/ayzxu/spoilerblock',
+                images: [
+                  { src: spoilerblockExtension, alt: 'Extension Interface' },
+                  { src: spoilerblockRedacted, alt: 'Spoiler Redaction Example' },
+                  { src: spoilerblockFurtherRedaction, alt: 'Advanced Redaction Features' }
+                ],
                 delay: 250
               },
               {
@@ -192,6 +239,9 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
                 date: 'Sep 2025',
                 description: 'Browser-based 3D game world built with React, Three.js, and WebGL. Features an asset pipeline with GLTF + Draco/KTX2 compression.',
                 link: 'https://github.com/ayzxu/threegl-planet',
+                images: [
+                  { src: threeglWorld, alt: '3D Game World Screenshot' }
+                ],
                 delay: 350
               },
               {
@@ -199,6 +249,9 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
                 date: 'Dec 2022',
                 description: 'AI opponent using minimax algorithm with alpha-beta pruning. Supports human vs. human and human vs. AI game modes.',
                 link: 'https://www.github.com/ayzxu/chess',
+                images: [
+                  { src: chessaiGameplay, alt: 'Chess AI Gameplay' }
+                ],
                 delay: 400
               }
             ].map((project, index) => (
@@ -214,12 +267,35 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
                   <span className="text-sm sm:text-base opacity-60 whitespace-nowrap">{project.date}</span>
                 </div>
                 <p className="opacity-80 text-sm sm:text-base mb-3">{project.description}</p>
+                {project.images && project.images.length > 0 && (
+                  <div className={`grid gap-3 sm:gap-4 mt-4 ${project.images.length === 1 ? 'grid-cols-1' : project.images.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                    {project.images.map((img, imgIndex) => (
+                      <div
+                        key={imgIndex}
+                        className="relative rounded-lg overflow-hidden cursor-pointer group"
+                        onClick={() => setSelectedImage(img)}
+                      >
+                        <img
+                          src={img.src}
+                          alt={img.alt}
+                          className="w-full h-48 sm:h-56 md:h-64 object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                          <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-sm sm:text-base font-medium px-4 text-center">
+                            {img.alt}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {project.link && (
                   <a
                     href={project.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm sm:text-base opacity-70 hover:opacity-100 transition-opacity inline-flex items-center gap-1"
+                    className="text-sm sm:text-base opacity-70 hover:opacity-100 transition-opacity inline-flex items-center gap-1 mt-3"
                   >
                     View on GitHub →
                   </a>
@@ -229,6 +305,30 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
           </section>
         </div>
       </main>
+
+      {/* Image Lightbox */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-7xl max-h-full">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors text-3xl sm:text-4xl font-bold z-10"
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <img
+              src={selectedImage.src}
+              alt={selectedImage.alt}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

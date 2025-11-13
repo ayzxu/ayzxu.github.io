@@ -104,6 +104,30 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
   transition: background-image 0.8s ease-in-out;
 }
 
+/* Apple Liquid Glass Effect */
+@utility bg-liquid-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: background-color 0.8s ease-in-out, border-color 0.8s ease-in-out, box-shadow 0.8s ease-in-out;
+}
+
+.dark .bg-liquid-glass {
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 /* Dark mode is now handled via CSS variables above, so transitions will work smoothly */
 
 /* Page transition animations */
