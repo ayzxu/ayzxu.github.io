@@ -39,54 +39,54 @@ body { min-height: 100vh; }
 /* Smooth UI transitions */
 div, section, header, main, footer, button, a, h1, h2, h3, p {
   transition-property: background-color, color, border-color, opacity, transform;
-  transition-duration: 0.8s;
+  transition-duration: 0.4s;
   transition-timing-function: ease;
 }
 
 /* Smooth theme transitions - applied globally for colors */
 * {
   transition-property: background-color, color, border-color;
-  transition-duration: 0.8s;
+  transition-duration: 0.4s;
   transition-timing-function: ease-in-out;
 }
 
 /* Ensure scrollbar track transitions work */
 ::-webkit-scrollbar-track {
-  transition: background-color 0.8s ease-in-out !important;
+  transition: background-color 0.4s ease-in-out !important;
 }
 
 
 /* Ensure text color transitions work */
 .text-white,
 .text-beige-text {
-  transition: color 0.8s ease-in-out;
+  transition: color 0.4s ease-in-out;
 }
 
 /* Ensure background transitions work for all backgrounds */
 .bg-white\/70 {
-  transition: background-color 0.8s ease-in-out;
+  transition: background-color 0.4s ease-in-out;
 }
 
 /* Override bg-white/70 in dark mode to use theme surface */
 .dark .bg-white\/70 {
   background-color: var(--theme-surface) !important;
-  transition: background-color 0.8s ease-in-out;
+  transition: background-color 0.4s ease-in-out;
 }
 
 /* Tailwind v4 custom utilities (alphanumeric names) */
 @utility text-beige-text {
   color: var(--theme-text);
-  transition: color 0.8s ease-in-out;
+  transition: color 0.4s ease-in-out;
 }
 
 @utility bg-beige-surface-70 {
   background-color: var(--theme-surface);
-  transition: background-color 0.8s ease-in-out;
+  transition: background-color 0.4s ease-in-out;
 }
 
 @utility bg-ai-surface-70 {
   background-color: var(--theme-surface);
-  transition: background-color 0.8s ease-in-out;
+  transition: background-color 0.4s ease-in-out;
 }
 
 @utility bg-beige-gradient {
@@ -94,7 +94,7 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
   background-image: var(--theme-bg-gradient);
   background-size: cover;
   background-attachment: fixed;
-  transition: background-image 0.8s ease-in-out;
+  transition: background-image 0.4s ease-in-out;
 }
 
 @utility bg-ai-gradient {
@@ -102,7 +102,7 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
   background-image: var(--theme-bg-gradient);
   background-size: cover;
   background-attachment: fixed;
-  transition: background-image 0.8s ease-in-out;
+  transition: background-image 0.4s ease-in-out;
 }
 
 /* Apple Liquid Glass Effect */
@@ -115,7 +115,7 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
     0 8px 32px rgba(0, 0, 0, 0.1),
     0 2px 8px rgba(0, 0, 0, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  transition: background-color 0.8s ease-in-out, border-color 0.8s ease-in-out, box-shadow 0.8s ease-in-out;
+  transition: background-color 0.4s ease-in-out, border-color 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
 }
 
 .dark .bg-liquid-glass {
@@ -150,7 +150,7 @@ div, section, header, main, footer, button, a, h1, h2, h3, p {
 
 .os-scrollbar-track {
   background-color: rgba(0, 0, 0, 0.05) !important;
-  transition: background-color 0.8s ease-in-out !important;
+  transition: background-color 0.4s ease-in-out !important;
 }
 
 html.dark .os-scrollbar-track {
@@ -160,7 +160,7 @@ html.dark .os-scrollbar-track {
 .os-scrollbar-handle {
   background-color: rgba(0, 0, 0, 0.3) !important;
   border-radius: 12px !important;
-  transition: background-color 0.8s ease-in-out !important;
+  transition: background-color 0.4s ease-in-out !important;
 }
 
 .os-scrollbar-handle:hover {
@@ -184,7 +184,7 @@ html.dark .os-scrollbar-handle:hover {
 
 ::-webkit-scrollbar-track {
   background-color: rgba(0, 0, 0, 0.05) !important;
-  transition: background-color 0.8s ease-in-out !important;
+  transition: background-color 0.4s ease-in-out !important;
 }
 
 html.dark ::-webkit-scrollbar-track {
@@ -198,7 +198,7 @@ html.dark ::-webkit-scrollbar-track {
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 12px;
-  transition: background-color 0.8s ease-in-out;
+  transition: background-color 0.4s ease-in-out;
 }
 
 ::-webkit-scrollbar-thumb:hover {

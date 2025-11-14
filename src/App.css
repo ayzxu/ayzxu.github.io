@@ -128,3 +128,10 @@ img {
   image-rendering: auto;
   -ms-interpolation-mode: bicubic;
 }
+
+/* Performance optimization for image hover effects */
+.group {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}

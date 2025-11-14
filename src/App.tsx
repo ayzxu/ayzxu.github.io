@@ -443,7 +443,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
                    <br /> In the past, I've worked as an AI Engineer at IBM.</p>
               </div>
               <div className="w-full md:w-auto flex justify-center md:justify-start">
-                <img src={portrait2} alt="Portrait" className="rounded-2xl w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 object-cover" />
+                <img src={portrait2} alt="Portrait" className="rounded-2xl w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 object-cover" loading="lazy" style={{ willChange: 'transform' }} />
               </div>
             </div>
           </section>

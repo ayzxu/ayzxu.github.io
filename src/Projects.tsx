@@ -141,6 +141,59 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
     navigate('/');
   };
 
+  // Memoize projects array to prevent recreation on every render
+  const projects = useMemo(() => [
+    {
+      title: 'Squat Form Analyzer',
+      date: 'Nov 2025',
+      description: 'Python + OpenCV web application that analyzes squat form from uploaded videos using MediaPipe pose estimation. Provides detailed ratings (0-100) and actionable feedback on knee tracking, back angle, depth, and alignment.',
+      link: 'https://github.com/ayzxu/squatform',
+      images: [
+        { src: squatformAnalyze, alt: 'Squat Form Analysis Interface' },
+        { src: squatformFeedback, alt: 'Detailed Feedback Display' }
+      ],
+      delay: 200
+    },
+    {
+      title: 'Spoiler-block Chrome Extension',
+      date: 'Nov 2024 - Ongoing',
+      description: 'NLP-based Chrome extension that blocks spoilers with 40% efficiency increase.',
+      link: 'https://github.com/ayzxu/spoilerblock',
+      images: [
+        { src: spoilerblockExtension, alt: 'Extension Interface' },
+        { src: spoilerblockRedacted, alt: 'Spoiler Redaction Example' },
+        { src: spoilerblockFurtherRedaction, alt: 'Advanced Redaction Features' }
+      ],
+      delay: 250
+    },
+    {
+      title: 'Brawl Stars Agent - Supercell Game',
+      date: 'Nov 2024 - Ongoing',
+      description: 'AI-powered bot using computer vision and reinforcement learning to play Brawl Stars.',
+      delay: 300
+    },
+    {
+      title: 'ThreeGL Planet – WebGL Game World',
+      date: 'Sep 2025',
+      description: 'Browser-based 3D game world built with React, Three.js, and WebGL. Features an asset pipeline with GLTF + Draco/KTX2 compression.',
+      link: 'https://github.com/ayzxu/threegl-planet',
+      images: [
+        { src: threeglWorld, alt: '3D Game World Screenshot' }
+      ],
+      delay: 350
+    },
+    {
+      title: 'Chess AI',
+      date: 'Dec 2022',
+      description: 'AI opponent using minimax algorithm with alpha-beta pruning. Supports human vs. human and human vs. AI game modes.',
+      link: 'https://www.github.com/ayzxu/chess',
+      images: [
+        { src: chessaiGameplay, alt: 'Chess AI Gameplay' }
+      ],
+      delay: 400
+    }
+  ], []);
+
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
       <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
@@ -225,57 +278,7 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
           </section>
 
           <section className="space-y-6 sm:space-y-8">
-            {[
-              {
-                title: 'Squat Form Analyzer',
-                date: 'Nov 2025',
-                description: 'Python + OpenCV web application that analyzes squat form from uploaded videos using MediaPipe pose estimation. Provides detailed ratings (0-100) and actionable feedback on knee tracking, back angle, depth, and alignment.',
-                link: 'https://github.com/ayzxu/squatform',
-                images: [
-                  { src: squatformAnalyze, alt: 'Squat Form Analysis Interface' },
-                  { src: squatformFeedback, alt: 'Detailed Feedback Display' }
-                ],
-                delay: 200
-              },
-              {
-                title: 'Spoiler-block Chrome Extension',
-                date: 'Nov 2024 - Ongoing',
-                description: 'NLP-based Chrome extension that blocks spoilers with 40% efficiency increase.',
-                link: 'https://github.com/ayzxu/spoilerblock',
-                images: [
-                  { src: spoilerblockExtension, alt: 'Extension Interface' },
-                  { src: spoilerblockRedacted, alt: 'Spoiler Redaction Example' },
-                  { src: spoilerblockFurtherRedaction, alt: 'Advanced Redaction Features' }
-                ],
-                delay: 250
-              },
-              {
-                title: 'Brawl Stars Agent - Supercell Game',
-                date: 'Nov 2024 - Ongoing',
-                description: 'AI-powered bot using computer vision and reinforcement learning to play Brawl Stars.',
-                delay: 300
-              },
-              {
-                title: 'ThreeGL Planet – WebGL Game World',
-                date: 'Sep 2025',
-                description: 'Browser-based 3D game world built with React, Three.js, and WebGL. Features an asset pipeline with GLTF + Draco/KTX2 compression.',
-                link: 'https://github.com/ayzxu/threegl-planet',
-                images: [
-                  { src: threeglWorld, alt: '3D Game World Screenshot' }
-                ],
-                delay: 350
-              },
-              {
-                title: 'Chess AI',
-                date: 'Dec 2022',
-                description: 'AI opponent using minimax algorithm with alpha-beta pruning. Supports human vs. human and human vs. AI game modes.',
-                link: 'https://www.github.com/ayzxu/chess',
-                images: [
-                  { src: chessaiGameplay, alt: 'Chess AI Gameplay' }
-                ],
-                delay: 400
-              }
-            ].map((project, index) => (
+            {projects.map((project, index) => (
               <div
                 key={project.title}
                 className={`rounded-2xl p-6 sm:p-8 border border-black/5 dark:border-white/10
@@ -301,6 +304,7 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
                           alt={img.alt}
                           className="w-full h-48 sm:h-56 md:h-64 object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
                           loading="lazy"
+                          style={{ willChange: 'transform' }}
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
                           <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-sm sm:text-base font-medium px-4 text-center">

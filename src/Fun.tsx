@@ -138,6 +138,71 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     navigate('/');
   };
 
+  // Memoize items array to prevent recreation on every render
+  const items = useMemo(() => [
+    {
+      title: 'Art',
+      description: 'I like drawing bald or nearly bald guys and painting shoes.',
+      images: [
+        { src: gusfring, alt: 'Gus Fring' },
+        { src: stevejobs, alt: 'Steve Jobs' },
+        { src: vagabondshoes, alt: 'Vagabond Shoes' },
+        { src: walterwhite, alt: 'Walter White' }
+      ],
+      links: [
+        { name: 'Portfolio', url: 'https://axuportfolio.weebly.com' }
+      ],
+      delay: 200
+    },
+    {
+      title: 'Gym',
+      description: <>
+      Current Lifting Stats: <br />
+      295lbs Bench, <br />
+      385lbs Squat, <br />
+      405lbs Deadlift. <br />
+      Just trying to stay healthy and get stronger!
+      </>,
+      media: [
+        { src: gymVideo1, alt: '365 Squat for 2!', type: 'video' as const },
+        { src: gymVideo2, alt: '295 Bench!', type: 'video' as const }
+      ],
+      delay: 250
+    },
+    {
+      title: 'Volleyball',
+      description: 'Playing competitive volleyball as a captain as part of CMU Men\'s Club Volleyball team. Led the team to top 15 in Division II of National Club Volleyball Foundation in 2023, 2025.',
+      media: [
+        { src: volleyballImage1, alt: 'Phoenix Nationals 2025', type: 'image' as const },
+        { src: volleyballImage2, alt: 'Phoenix Nationals 2025 as well', type: 'image' as const },
+        { src: volleyballVideo1, alt: 'Clip from Phoenix Nationals 2025', type: 'video' as const }
+      ],
+      delay: 300
+    },
+    {
+      title: 'Gaming',
+      description: (
+        <>
+          Previously Immortal 2 in Valorant.<br />
+          Previously top 63 global in Clash Royale.
+        </>
+      ),
+      links: [
+        { name: 'Valorant Tracker', url: 'https://tracker.gg/valorant/profile/riot/nuts%23deep/overview?platform=pc&playlist=competitive', icon: valorantIcon },
+        { name: 'Clash Royale Profile', url: 'https://royaleapi.com/player/8C9QQGVCR', icon: clashRoyaleIcon }
+      ],
+      delay: 350
+    },
+    {
+      title: 'Chess',
+      description: 'Currently rated 1450 Bullet, 1400 Rapid, 1300 Blitz. Just trying to get better at chess!',
+      links: [
+        { name: 'Chess.com Profile', url: 'https://www.chess.com/member/chokeonbanana', icon: chessIcon }
+      ],
+      delay: 400
+    }
+  ], []);
+
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
       <header className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between flex-shrink-0 transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`} style={{ transitionDelay: shouldFadeOut ? '0ms' : '400ms' }}>
@@ -222,69 +287,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
           </section>
 
           <section className="space-y-6 sm:space-y-8">
-            {[
-              {
-                title: 'Art',
-                description: 'I like drawing bald or nearly bald guys and painting shoes.',
-                images: [
-                  { src: gusfring, alt: 'Gus Fring' },
-                  { src: stevejobs, alt: 'Steve Jobs' },
-                  { src: vagabondshoes, alt: 'Vagabond Shoes' },
-                  { src: walterwhite, alt: 'Walter White' }
-                ],
-                links: [
-                  { name: 'Portfolio', url: 'https://axuportfolio.weebly.com' }
-                ],
-                delay: 200
-              },
-              {
-                title: 'Gym',
-                description: <>
-                Current Lifting Stats: <br />
-                295lbs Bench, <br />
-                385lbs Squat, <br />
-                405lbs Deadlift. <br />
-                Just trying to stay healthy and get stronger!
-                </>,
-                media: [
-                  { src: gymVideo1, alt: '365 Squat for 2!', type: 'video' as const },
-                  { src: gymVideo2, alt: '295 Bench!', type: 'video' as const }
-                ],
-                delay: 250
-              },
-              {
-                title: 'Volleyball',
-                description: 'Playing competitive volleyball as a captain as part of CMU Men\'s Club Volleyball team. Led the team to top 15 in Division II of National Club Volleyball Foundation in 2023, 2025.',
-                media: [
-                  { src: volleyballImage1, alt: 'Phoenix Nationals 2025', type: 'image' as const },
-                  { src: volleyballImage2, alt: 'Phoenix Nationals 2025 as well', type: 'image' as const },
-                  { src: volleyballVideo1, alt: 'Clip from Phoenix Nationals 2025', type: 'video' as const }
-                ],
-                delay: 300
-              },
-              {
-                title: 'Gaming',
-                description: (
-                  <>
-                    Previously Immortal 2 in Valorant.<br />
-                    Previously top 63 global in Clash Royale.
-                  </>
-                ),
-                links: [
-                  { name: 'Valorant Tracker', url: 'https://tracker.gg/valorant/profile/riot/nuts%23deep/overview?platform=pc&playlist=competitive', icon: valorantIcon },
-                  { name: 'Clash Royale Profile', url: 'https://royaleapi.com/player/8C9QQGVCR', icon: clashRoyaleIcon }
-                ],
-                delay: 350
-              },
-              {
-                title: 'Chess',
-                description: 'Currently rated 1450 Blitz, 1400 Rapid, 1300 Blitz. Just trying to get better at chess!',
-                links: [
-                  { name: 'Chess.com Profile', url: 'https://www.chess.com/member/chokeonbanana', icon: chessIcon }
-                ],
-                delay: 400
-              }
-            ].map((item, index) => (
+            {items.map((item, index) => (
               <div
                 key={item.title}
                 className={`rounded-2xl p-6 sm:p-8 border border-black/5 dark:border-white/10
@@ -306,6 +309,8 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                           src={img.src}
                           alt={img.alt}
                           className="w-full h-32 sm:h-40 md:h-48 object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75"
+                          loading="lazy"
+                          style={{ willChange: 'transform' }}
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-150 flex items-center justify-center">
                           <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm sm:text-base font-medium px-4 text-center">
@@ -335,6 +340,8 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                               src={media.src}
                               alt={media.alt}
                               className={`w-full ${isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75`}
+                              loading="lazy"
+                              style={{ willChange: 'transform' }}
                             />
                           ) : (
                             <video

@@ -36,6 +36,24 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
   const isAnimatingRef = useRef<boolean>(false);
   const isInitializedRef = useRef<boolean>(false);
 
+  // Memoize image arrays to prevent recreation on every render
+  const ibm1Images = useMemo(() => [
+    { src: ibm21, text: 'Avey and Satvik!' },
+    { src: ibm22, text: 'Boat Cruise Event in SF' },
+    { src: ibm23, text: 'Ping Pong Tournament Champion 😎' }
+  ], []);
+
+  const ibm2Images = useMemo(() => [
+    { src: ibm12, text: 'First day of work at IBM!' },
+    { src: ibm13, text: 'SF Giants Game with interns!' },
+    { src: ibm14, text: 'Escape Room with interns!' }
+  ], []);
+
+  const azukiImages = useMemo(() => [
+    { src: azuki1, text: 'First day of work at Azuki!' },
+    { src: azuki2, text: 'The old office in LA' }
+  ], []);
+
   // Memoize the onComplete callback to prevent re-renders
   const handleAnimationComplete = useMemo(() => () => {
     isAnimatingRef.current = false;
@@ -237,6 +255,8 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                       src={portrait4} 
                       alt="Andy Xu" 
                       className="w-full h-64 sm:h-72 md:h-80 lg:h-96 object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75" 
+                      loading="lazy"
+                      style={{ willChange: 'transform' }}
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-150 flex items-center justify-center">
                       <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm sm:text-base font-medium px-4 text-center">
@@ -252,6 +272,8 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                       src={portrait3} 
                       alt="Andy Xu" 
                       className="w-full h-64 sm:h-72 md:h-80 lg:h-96 object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75" 
+                      loading="lazy"
+                      style={{ willChange: 'transform' }}
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-150 flex items-center justify-center">
                       <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm sm:text-base font-medium px-4 text-center">
@@ -287,11 +309,7 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                         </ul>
                         {/* Experience Images */}
                         <div className="flex gap-2 mt-4">
-                          {[
-                            { src: ibm21, text: 'Avey and Satvik!' },
-                            { src: ibm22, text: 'Boat Cruise Event in SF' },
-                            { src: ibm23, text: 'Ping Pong Tournament Champion 😎' }
-                          ].map((item, idx) => (
+                          {ibm1Images.map((item, idx) => (
                             <div
                               key={idx}
                               className="relative flex-1 h-48 rounded-lg overflow-hidden cursor-pointer group"
@@ -301,6 +319,8 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                                 src={item.src}
                                 alt={`IBM Experience ${idx + 1}`}
                                 className="w-full h-full object-cover transition-all duration-200 group-hover:scale-110 group-hover:brightness-75"
+                                loading="lazy"
+                                style={{ willChange: 'transform' }}
                               />
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
                                 <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm sm:text-base font-medium px-4 text-center">
@@ -332,11 +352,7 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                         </ul>
                         {/* Experience Images */}
                         <div className="flex gap-2 mt-4">
-                          {[
-                            { src: ibm12, text: 'First day of work at IBM!' },
-                            { src: ibm13, text: 'SF Giants Game with interns!' },
-                            { src: ibm14, text: 'Escape Room with interns!' }
-                          ].map((item, idx) => (
+                          {ibm2Images.map((item, idx) => (
                             <div
                               key={idx}
                               className="relative flex-1 h-48 rounded-lg overflow-hidden cursor-pointer group"
@@ -346,6 +362,8 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                                 src={item.src}
                                 alt={`IBM Experience ${idx + 1}`}
                                 className="w-full h-full object-cover transition-all duration-200 group-hover:scale-110 group-hover:brightness-75"
+                                loading="lazy"
+                                style={{ willChange: 'transform' }}
                               />
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
                                 <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm sm:text-base font-medium px-4 text-center">
@@ -375,10 +393,7 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                         </ul>
                         {/* Experience Images */}
                         <div className="flex gap-2 mt-4">
-                          {[
-                            { src: azuki1, text: 'First day of work at Azuki!' },
-                            { src: azuki2, text: 'The old office in LA' }
-                          ].map((item, idx) => (
+                          {azukiImages.map((item, idx) => (
                             <div
                               key={idx}
                               className="relative flex-1 h-48 rounded-lg overflow-hidden cursor-pointer group"
@@ -388,6 +403,8 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                                 src={item.src}
                                 alt={`Azuki Experience ${idx + 1}`}
                                 className="w-full h-full object-cover transition-all duration-200 group-hover:scale-110 group-hover:brightness-75"
+                                loading="lazy"
+                                style={{ willChange: 'transform' }}
                               />
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
                                 <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm sm:text-base font-medium px-4 text-center">
