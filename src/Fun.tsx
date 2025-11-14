@@ -1,20 +1,20 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
 import './App.css';
-import gusfring from './assets/art/gusfring.jpg';
+import gusfring from './assets/art/gusfring.png';
 import stevejobs from './assets/art/stevejobs.png';
 import vagabondshoes from './assets/art/vagabondshoes.png';
-import walterwhite from './assets/art/walterwhite.jpg';
+import walterwhite from './assets/art/walterwhite.png';
 import valorantIcon from './assets/icons/valorant.png';
 import clashRoyaleIcon from './assets/icons/cr.avif';
 import chessIcon from './assets/icons/chess.png';
 import gymVideo1 from './assets/gym/IMG_6232.mov';
 import gymVideo2 from './assets/gym/IMG_6418.MOV';
 import volleyballVideo1 from './assets/volleyball/VB1.mov';
-import volleyballImage1 from './assets/volleyball/HS2A3950_Original.jpg';
-import volleyballImage2 from './assets/volleyball/HS2A4018_Original.jpg';
+import volleyballImage1 from './assets/volleyball/HS2A3950_Original.png';
+import volleyballImage2 from './assets/volleyball/HS2A4018_Original.png';
 
 // Initialize theme synchronously before component renders
 function getInitialTheme(): boolean {
@@ -48,6 +48,15 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
   }, [dark]);
+
+  // Use layout effect to ensure frame is set synchronously before paint
+  useLayoutEffect(() => {
+    if (lottieRef.current && !isInitializedRef.current) {
+      lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+      isInitializedRef.current = true;
+      prevDarkRef.current = dark;
+    }
+  }, []);
 
   // Update Lottie animation when theme changes (but not on initial mount)
   useEffect(() => {
@@ -165,7 +174,19 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                   if (!isInitializedRef.current) {
                     lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                     isInitializedRef.current = true;
+                    prevDarkRef.current = dark;
+                  } else {
+                    // Ensure frame is correct even if already initialized
+                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                   }
+                }
+              }}
+              onDOMLoaded={() => {
+                // Additional callback to ensure frame is set when DOM is ready
+                if (lottieRef.current && !isInitializedRef.current) {
+                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                  isInitializedRef.current = true;
+                  prevDarkRef.current = dark;
                 }
               }}
             />

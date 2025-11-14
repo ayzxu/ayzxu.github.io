@@ -7,6 +7,7 @@ html, body {
   min-height: 100%; 
   overflow: overlay; 
   background-color: #e8e0d5; /* Fallback background color (light mode) to prevent flash */
+  cursor: var(--custom-cursor, auto);
 }
 .dark html, .dark body {
   background-color: #080808; /* Fallback background color (dark mode) to prevent flash */

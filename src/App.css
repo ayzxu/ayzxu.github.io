@@ -122,3 +122,9 @@
   stroke-dashoffset: 180;
   transform: scaleY(-1);
 }
+
+/* Smooth image rendering for thumbnails - prevents pixelated/sharp rendering */
+img {
+  image-rendering: auto;
+  -ms-interpolation-mode: bicubic;
+}

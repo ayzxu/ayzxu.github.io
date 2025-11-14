@@ -7,7 +7,7 @@ import githubIcon from './assets/icons/github.png';
 import githubWhiteIcon from './assets/icons/githubwhite.png';
 import linkedinIcon from './assets/icons/linkedin.png';
 import emailIcon from './assets/icons/email.png';
-import portrait2 from './assets/portraits/portrait2.jpg';
+import portrait2 from './assets/portraits/portrait2.png';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
 import Projects from './Projects';
 import About from './About';
@@ -229,6 +229,15 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
   const initialDarkRef = useRef(dark);
   const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]), []);
 
+  // Use layout effect to ensure frame is set synchronously before paint
+  useLayoutEffect(() => {
+    if (lottieRef.current && !isInitializedRef.current) {
+      lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+      isInitializedRef.current = true;
+      prevDarkRef.current = dark;
+    }
+  }, []);
+
   // Update Lottie animation when theme changes (but not on initial mount)
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -373,7 +382,19 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
                   if (!isInitializedRef.current) {
                     lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                     isInitializedRef.current = true;
+                    prevDarkRef.current = dark;
+                  } else {
+                    // Ensure frame is correct even if already initialized
+                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                   }
+                }
+              }}
+              onDOMLoaded={() => {
+                // Additional callback to ensure frame is set when DOM is ready
+                if (lottieRef.current && !isInitializedRef.current) {
+                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                  isInitializedRef.current = true;
+                  prevDarkRef.current = dark;
                 }
               }}
             />

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useLayoutEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
@@ -44,6 +44,15 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
   }, [dark]);
+
+  // Use layout effect to ensure frame is set synchronously before paint
+  useLayoutEffect(() => {
+    if (lottieRef.current && !isInitializedRef.current) {
+      lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+      isInitializedRef.current = true;
+      prevDarkRef.current = dark;
+    }
+  }, []);
 
   // Update Lottie animation when theme changes (but not on initial mount)
   useEffect(() => {
@@ -168,7 +177,19 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
                   if (!isInitializedRef.current) {
                     lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                     isInitializedRef.current = true;
+                    prevDarkRef.current = dark;
+                  } else {
+                    // Ensure frame is correct even if already initialized
+                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                   }
+                }
+              }}
+              onDOMLoaded={() => {
+                // Additional callback to ensure frame is set when DOM is ready
+                if (lottieRef.current && !isInitializedRef.current) {
+                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                  isInitializedRef.current = true;
+                  prevDarkRef.current = dark;
                 }
               }}
             />

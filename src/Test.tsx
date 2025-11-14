@@ -4,7 +4,7 @@ import githubIcon from './assets/icons/github.png';
 import githubWhiteIcon from './assets/icons/githubwhite.png';
 import linkedinIcon from './assets/icons/linkedin.png';
 import emailIcon from './assets/icons/email.png';
-import portrait2 from './assets/portraits/portrait2.jpg';
+import portrait2 from './assets/portraits/portrait2.png';
 
 type Card = { title: string; desc: string; link?: string };
 

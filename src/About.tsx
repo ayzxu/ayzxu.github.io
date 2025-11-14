@@ -1,11 +1,20 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useLayoutEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
-import portrait3 from './assets/portraits/portrait3.jpg';
-import portrait4 from './assets/portraits/portrait4.JPEG';
-import azukiIcon from './assets/icons/azuki.jpg';
+import portrait3 from './assets/portraits/portrait3.png';
+import portrait4 from './assets/portraits/portrait4.png';
+import azukiIcon from './assets/icons/azuki.png';
 import ibmIcon from './assets/icons/ibm.svg';
+// Experience images
+import azuki1 from './assets/experiencepics/azuki/azuki1.png';
+import azuki2 from './assets/experiencepics/azuki/azuki2.png';
+import ibm12 from './assets/experiencepics/ibm1/ibm12.png';
+import ibm13 from './assets/experiencepics/ibm1/ibm13.png';
+import ibm14 from './assets/experiencepics/ibm1/ibm14.png';
+import ibm21 from './assets/experiencepics/ibm2/ibm21.png';
+import ibm22 from './assets/experiencepics/ibm2/ibm22.png';
+import ibm23 from './assets/experiencepics/ibm2/ibm23.png';
 import './App.css';
 
 // Initialize theme synchronously before component renders
@@ -40,6 +49,15 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
   }, [dark]);
+
+  // Use layout effect to ensure frame is set synchronously before paint
+  useLayoutEffect(() => {
+    if (lottieRef.current && !isInitializedRef.current) {
+      lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+      isInitializedRef.current = true;
+      prevDarkRef.current = dark;
+    }
+  }, []);
 
   // Update Lottie animation when theme changes (but not on initial mount)
   useEffect(() => {
@@ -157,7 +175,19 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                   if (!isInitializedRef.current) {
                     lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                     isInitializedRef.current = true;
+                    prevDarkRef.current = dark;
+                  } else {
+                    // Ensure frame is correct even if already initialized
+                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                   }
+                }
+              }}
+              onDOMLoaded={() => {
+                // Additional callback to ensure frame is set when DOM is ready
+                if (lottieRef.current && !isInitializedRef.current) {
+                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
+                  isInitializedRef.current = true;
+                  prevDarkRef.current = dark;
                 }
               }}
             />
@@ -240,7 +270,9 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                   <div className="space-y-6 sm:space-y-8">
                     {/* AI Engineer Intern - IBM */}
                     <div className="flex items-start gap-3 sm:gap-4">
-                      <img src={ibmIcon} alt="IBM" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0" />
+                      <a href="https://www.ibm.com" target="_blank" rel="noreferrer" className="flex-shrink-0">
+                        <img src={ibmIcon} alt="IBM" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover hover:opacity-80 transition-opacity" />
+                      </a>
                       <div className="flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
                           <h4 className="text-base sm:text-lg font-medium">AI Engineer Intern</h4>
@@ -253,12 +285,39 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                           <li>Engineered full-stack automated recording summarization platform integrating <strong>watsonx.ai</strong> with <strong>Flask</strong> and <strong>ThreadPoolExecutor</strong> parallel processing, achieving <strong>80%</strong> faster transcription and <strong>90%</strong> time savings</li>
                           <li>Built internal AI OneDrive document chat system using <strong>LangChain</strong> and <strong>vectorized Lucene database</strong></li>
                         </ul>
+                        {/* Experience Images */}
+                        <div className="flex gap-2 mt-4">
+                          {[
+                            { src: ibm21, text: 'Avey and Satvik!' },
+                            { src: ibm22, text: 'Boat Cruise Event in SF' },
+                            { src: ibm23, text: 'Ping Pong Tournament Champion 😎' }
+                          ].map((item, idx) => (
+                            <div
+                              key={idx}
+                              className="relative flex-1 h-48 rounded-lg overflow-hidden cursor-pointer group"
+                              onClick={() => setSelectedImage({ src: item.src, alt: `IBM Experience ${idx + 1}` })}
+                            >
+                              <img
+                                src={item.src}
+                                alt={`IBM Experience ${idx + 1}`}
+                                className="w-full h-full object-cover transition-all duration-200 group-hover:scale-110 group-hover:brightness-75"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
+                                <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm sm:text-base font-medium px-4 text-center">
+                                  {item.text}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     
                     {/* Data and AI Specialist Intern - IBM */}
                     <div className="flex items-start gap-3 sm:gap-4">
-                      <img src={ibmIcon} alt="IBM" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0" />
+                      <a href="https://www.ibm.com" target="_blank" rel="noreferrer" className="flex-shrink-0">
+                        <img src={ibmIcon} alt="IBM" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover hover:opacity-80 transition-opacity" />
+                      </a>
                       <div className="flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
                           <h4 className="text-base sm:text-lg font-medium">Data and AI Specialist Intern</h4>
@@ -271,12 +330,39 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                           <li>Built fullstack application with <strong>Node.js, HTML</strong>, and <strong>CSS</strong> for manipulating sales CSV files using <strong>Pandas</strong> in Python</li>
                           <li>Constructed custom Excel spreadsheet with macros to assist sales team with <strong>40+</strong> clients</li>
                         </ul>
+                        {/* Experience Images */}
+                        <div className="flex gap-2 mt-4">
+                          {[
+                            { src: ibm12, text: 'First day of work at IBM!' },
+                            { src: ibm13, text: 'SF Giants Game with interns!' },
+                            { src: ibm14, text: 'Escape Room with interns!' }
+                          ].map((item, idx) => (
+                            <div
+                              key={idx}
+                              className="relative flex-1 h-48 rounded-lg overflow-hidden cursor-pointer group"
+                              onClick={() => setSelectedImage({ src: item.src, alt: `IBM Experience ${idx + 1}` })}
+                            >
+                              <img
+                                src={item.src}
+                                alt={`IBM Experience ${idx + 1}`}
+                                className="w-full h-full object-cover transition-all duration-200 group-hover:scale-110 group-hover:brightness-75"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
+                                <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm sm:text-base font-medium px-4 text-center">
+                                  {item.text}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     
                     {/* Software Engineering and Marketing Intern - Chiru Labs/Azuki */}
                     <div className="flex items-start gap-3 sm:gap-4">
-                      <img src={azukiIcon} alt="Azuki" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0" />
+                      <a href="https://www.azuki.com" target="_blank" rel="noreferrer" className="flex-shrink-0">
+                        <img src={azukiIcon} alt="Azuki" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover hover:opacity-80 transition-opacity" />
+                      </a>
                       <div className="flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
                           <h4 className="text-base sm:text-lg font-medium">Software Engineering and Marketing Intern</h4>
@@ -287,6 +373,30 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                           <li>Built a client-facing website using <strong>React.js</strong> and a <strong>Python</strong> backend, improved UX with responsive animated UI</li>
                           <li>Conducted web3 market research that identified <strong>10+</strong> key customer segments, resulting in a <strong>15%</strong> increase in revenue</li>
                         </ul>
+                        {/* Experience Images */}
+                        <div className="flex gap-2 mt-4">
+                          {[
+                            { src: azuki1, text: 'First day of work at Azuki!' },
+                            { src: azuki2, text: 'The old office in LA' }
+                          ].map((item, idx) => (
+                            <div
+                              key={idx}
+                              className="relative flex-1 h-48 rounded-lg overflow-hidden cursor-pointer group"
+                              onClick={() => setSelectedImage({ src: item.src, alt: `Azuki Experience ${idx + 1}` })}
+                            >
+                              <img
+                                src={item.src}
+                                alt={`Azuki Experience ${idx + 1}`}
+                                className="w-full h-full object-cover transition-all duration-200 group-hover:scale-110 group-hover:brightness-75"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
+                                <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm sm:text-base font-medium px-4 text-center">
+                                  {item.text}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
