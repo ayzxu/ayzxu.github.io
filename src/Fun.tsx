@@ -195,7 +195,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     },
     {
       title: 'Chess',
-      description: 'Currently rated 1450 Bullet, 1400 Rapid, 1300 Blitz. Just trying to get better at chess!',
+      description: 'Currently rated 1500 Bullet, 1400 Rapid, 1400 Blitz. Just trying to get better at chess!',
       links: [
         { name: 'Chess.com Profile', url: 'https://www.chess.com/member/chokeonbanana', icon: chessIcon }
       ],
