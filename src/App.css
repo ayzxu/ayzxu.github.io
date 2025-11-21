@@ -78,7 +78,7 @@
 }
 
 .switch {
-  --a: 0.375s ease-out;
+  --a: 0s;
   cursor: pointer;
   position: relative;
   display: inline-flex;
@@ -87,7 +87,7 @@
   box-shadow: 0 0 0 0.41em #FFB38A;
   aspect-ratio: 212.4992/84.4688;
   background-color: #FFB38A;
-  transition: background-color var(--a), box-shadow var(--a);
+  transition: none;
 }
 
 .dark .switch {
@@ -112,9 +112,7 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 136 224;
-  transition:
-    all var(--a),
-    0s transform;
+  transition: none;
   transform-origin: center;
 }
 

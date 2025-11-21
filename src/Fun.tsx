@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo, useLayoutEffect } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
@@ -17,6 +17,16 @@ import gymVideo2 from './assets/gym/IMG_6418.MOV';
 import volleyballVideo1 from './assets/volleyball/VB1.mov';
 import volleyballImage1 from './assets/volleyball/HS2A3950_Original.png';
 import volleyballImage2 from './assets/volleyball/HS2A4018_Original.png';
+
+// Chessboard wrapper component
+const ChessboardWrapper = ({ options, boardKey }: { options: any; boardKey: string }) => (
+  <div style={{ pointerEvents: 'none', userSelect: 'none' }}>
+    <Chessboard
+      options={options}
+      key={boardKey}
+    />
+  </div>
+);
 
 // Initialize theme synchronously before component renders
 function getInitialTheme(): boolean {
@@ -104,7 +114,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
   const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]) as [number, number], []);
 
   // Apply theme class immediately on mount and when it changes
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
   }, [dark]);
 
@@ -142,20 +152,18 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
       prevDarkRef.current = dark;
       isAnimatingRef.current = true;
 
-      timer = setTimeout(() => {
-        if (lottieRef.current) {
-          // Stop any ongoing animation first
-          lottieRef.current.stop();
-          // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
-          lottieRef.current.setSpeed(1.33);
-          // Set the starting frame
-          const startFrame = dark ? 0 : 14;
-          const endFrame = dark ? 14 : 0;
-          lottieRef.current.goToAndStop(startFrame, true);
-          // Then play the animation
-          lottieRef.current.playSegments([startFrame, endFrame], true);
-        }
-      }, 100);
+      if (lottieRef.current) {
+        // Stop any ongoing animation first
+        lottieRef.current.stop();
+        // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
+        lottieRef.current.setSpeed(1.33);
+        // Set the starting frame
+        const startFrame = dark ? 0 : 14;
+        const endFrame = dark ? 14 : 0;
+        lottieRef.current.goToAndStop(startFrame, true);
+        // Then play the animation
+        lottieRef.current.playSegments([startFrame, endFrame], true);
+      }
     }
 
     return () => {
@@ -410,6 +418,35 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
       });
   }, []);
 
+  // Memoize chess description separately to prevent recreation on theme changes
+  const chessDescription = useMemo(() => (
+    <>
+      <span className="flex items-center gap-2">
+        Currently rated {chessRatings.bullet} Bullet, {chessRatings.rapid} Rapid, {chessRatings.blitz} Blitz.
+        <span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+          LIVE
+        </span>
+      </span>
+      Just trying to get better at chess!
+      {latestGame && (
+        <div className="mt-4 w-full max-w-[300px]">
+          <div className="mb-2 text-sm opacity-90">
+            Most recent game: <a href={latestGame.url} target="_blank" rel="noreferrer" className="underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{latestGame.result} vs {latestGame.opponent}</a>
+          </div>
+          <div className="rounded-lg overflow-hidden shadow-lg border border-black/10 dark:border-white/10" style={{ pointerEvents: 'none' }}>
+            {chessboardOptions && (
+              <ChessboardWrapper 
+                options={chessboardOptions}
+                boardKey={`board-${boardFen}-${latestGame.userColor}`}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  ), [chessRatings, latestGame, boardFen, chessboardOptions]);
+
   // Memoize items array to prevent recreation on every render
   const items = useMemo(() => [
     {
@@ -467,41 +504,13 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     },
     {
       title: 'Chess',
-      description: (
-        <>
-          <span className="flex items-center gap-2">
-            Currently rated {chessRatings.bullet} Bullet, {chessRatings.rapid} Rapid, {chessRatings.blitz} Blitz.
-            <span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full animate-pulse">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-              LIVE
-            </span>
-          </span>
-          Just trying to get better at chess!
-          {latestGame && (
-            <div className="mt-4 w-full max-w-[300px]">
-              <div className="mb-2 text-sm opacity-90">
-                Most recent game: <a href={latestGame.url} target="_blank" rel="noreferrer" className="underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{latestGame.result} vs {latestGame.opponent}</a>
-              </div>
-              <div className="rounded-lg overflow-hidden shadow-lg border border-black/10 dark:border-white/10" style={{ pointerEvents: 'none' }}>
-                {chessboardOptions && (
-                  <div style={{ pointerEvents: 'none', userSelect: 'none' }}>
-                    <Chessboard
-                      options={chessboardOptions}
-                      key={`board-${boardFen}-${latestGame.userColor}`}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </>
-      ),
+      description: chessDescription,
       links: [
         { name: 'Chess.com Profile', url: 'https://www.chess.com/member/chokeonbanana', icon: chessIcon }
       ],
       delay: 400
     }
-  ], [chessRatings, latestGame, boardFen]);
+  ], [chessDescription]);
 
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
@@ -540,18 +549,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                     lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                     isInitializedRef.current = true;
                     prevDarkRef.current = dark;
-                  } else {
-                    // Ensure frame is correct even if already initialized
-                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                   }
-                }
-              }}
-              onDOMLoaded={() => {
-                // Additional callback to ensure frame is set when DOM is ready
-                if (lottieRef.current && !isInitializedRef.current) {
-                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
-                  isInitializedRef.current = true;
-                  prevDarkRef.current = dark;
                 }
               }}
             />
@@ -592,7 +590,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                 key={item.title}
                 className={`rounded-2xl p-6 sm:p-8 border border-black/5 dark:border-white/10
                             bg-white/70
-                            hover:translate-y-[-2px] transition-all duration-[2000ms] ease-in-out transition-opacity duration-300 ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
+                            hover:translate-y-[-2px] transition-opacity duration-300 transition-transform duration-200 ease-in-out ${shouldFadeOut ? 'opacity-0' : (isVisible ? 'opacity-100' : 'opacity-0')}`}
                 style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: shouldFadeOut ? `${item.delay}ms` : `${500 + index * 50}ms` }}
               >
                 <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">{item.title}</h2>

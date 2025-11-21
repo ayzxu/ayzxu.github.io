@@ -79,20 +79,18 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
       prevDarkRef.current = dark;
       isAnimatingRef.current = true;
       
-      timer = setTimeout(() => {
-        if (lottieRef.current) {
-          // Stop any ongoing animation first
-          lottieRef.current.stop();
-          // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
-          lottieRef.current.setSpeed(1.33);
-          // Set the starting frame
-          const startFrame = dark ? 0 : 14;
-          const endFrame = dark ? 14 : 0;
-          lottieRef.current.goToAndStop(startFrame, true);
-          // Then play the animation
-          lottieRef.current.playSegments([startFrame, endFrame], true);
-        }
-      }, 100);
+      if (lottieRef.current) {
+        // Stop any ongoing animation first
+        lottieRef.current.stop();
+        // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
+        lottieRef.current.setSpeed(1.33);
+        // Set the starting frame
+        const startFrame = dark ? 0 : 14;
+        const endFrame = dark ? 14 : 0;
+        lottieRef.current.goToAndStop(startFrame, true);
+        // Then play the animation
+        lottieRef.current.playSegments([startFrame, endFrame], true);
+      }
     }
     
     return () => {
@@ -231,18 +229,7 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
                     lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                     isInitializedRef.current = true;
                     prevDarkRef.current = dark;
-                  } else {
-                    // Ensure frame is correct even if already initialized
-                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                   }
-                }
-              }}
-              onDOMLoaded={() => {
-                // Additional callback to ensure frame is set when DOM is ready
-                if (lottieRef.current && !isInitializedRef.current) {
-                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
-                  isInitializedRef.current = true;
-                  prevDarkRef.current = dark;
                 }
               }}
             />

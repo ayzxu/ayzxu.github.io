@@ -263,20 +263,18 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
       prevDarkRef.current = dark;
       isAnimatingRef.current = true;
       
-      timer = setTimeout(() => {
-        if (lottieRef.current) {
-          // Stop any ongoing animation first
-          lottieRef.current.stop();
-          // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
-          lottieRef.current.setSpeed(1.33);
-          // Set the starting frame
-          const startFrame = dark ? 0 : 14;
-          const endFrame = dark ? 14 : 0;
-          lottieRef.current.goToAndStop(startFrame, true);
-          // Then play the animation
-          lottieRef.current.playSegments([startFrame, endFrame], true);
-        }
-      }, 100);
+      if (lottieRef.current) {
+        // Stop any ongoing animation first
+        lottieRef.current.stop();
+        // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
+        lottieRef.current.setSpeed(1.33);
+        // Set the starting frame
+        const startFrame = dark ? 0 : 14;
+        const endFrame = dark ? 14 : 0;
+        lottieRef.current.goToAndStop(startFrame, true);
+        // Then play the animation
+        lottieRef.current.playSegments([startFrame, endFrame], true);
+      }
     }
     
     return () => {
@@ -383,18 +381,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
                     lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                     isInitializedRef.current = true;
                     prevDarkRef.current = dark;
-                  } else {
-                    // Ensure frame is correct even if already initialized
-                    lottieRef.current.goToAndStop(dark ? 14 : 0, true);
                   }
-                }
-              }}
-              onDOMLoaded={() => {
-                // Additional callback to ensure frame is set when DOM is ready
-                if (lottieRef.current && !isInitializedRef.current) {
-                  lottieRef.current.goToAndStop(dark ? 14 : 0, true);
-                  isInitializedRef.current = true;
-                  prevDarkRef.current = dark;
                 }
               }}
             />
@@ -439,8 +426,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
             <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8 items-start">
               <div className="flex-1 w-full md:w-auto">
                 <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3">Hello, I&apos;m Andy!</h2>
-                <p className="opacity-90 leading-relaxed text-xs sm:text-sm md:text-base">I'm a current CMU senior studying Business + CS. I'm interested in building AI products and working on something meaningful.
-                   <br /> In the past, I've worked as an AI Engineer at IBM.</p>
+                <p className="opacity-90 leading-relaxed text-base sm:text-lg md:text-xl">I'm a current CMU senior studying Business + CS. I'm interested in building AI products and working on something meaningful. In the past, I've worked as an AI Engineer at IBM.</p>
               </div>
               <div className="w-full md:w-auto flex justify-center md:justify-start">
                 <img src={portrait2} alt="Portrait" className="rounded-2xl w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 object-cover" loading="lazy" style={{ willChange: 'transform' }} />
