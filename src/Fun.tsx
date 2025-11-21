@@ -430,8 +430,8 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
       </span>
       Just trying to get better at chess!
       {latestGame && (
-        <div className="mt-4 w-full max-w-[300px]">
-          <div className="mb-2 text-sm opacity-90">
+        <div className="mt-4 w-full max-w-[500px]">
+          <div className="mb-2 text-base sm:text-lg opacity-90">
             Most recent game: <a href={latestGame.url} target="_blank" rel="noreferrer" className="underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{latestGame.result} vs {latestGame.opponent}</a>
           </div>
           <div className="rounded-lg overflow-hidden shadow-lg border border-black/10 dark:border-white/10" style={{ pointerEvents: 'none' }}>
