@@ -10,6 +10,8 @@ import walterwhite from './assets/art/walterwhite.png';
 import valorantIcon from './assets/icons/valorant.png';
 import clashRoyaleIcon from './assets/icons/cr.avif';
 import chessIcon from './assets/icons/chess.png';
+import { Chessboard } from 'react-chessboard';
+import { Chess } from 'chess.js';
 import gymVideo1 from './assets/gym/IMG_6232.mov';
 import gymVideo2 from './assets/gym/IMG_6418.MOV';
 import volleyballVideo1 from './assets/volleyball/VB1.mov';
@@ -25,15 +27,72 @@ function getInitialTheme(): boolean {
   return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
+async function getFinalFenFromGame(lastGame: any): Promise<string> {
+  const chess = new Chess();
+  let finalFen;
+
+  // Strategy 1: Parse PGN directly from API response (like the Python code)
+  // The Chess.com API returns PGN directly in the game object
+  if (lastGame.pgn && typeof lastGame.pgn === 'string') {
+    try {
+      // If it's a URL, fetch it first
+      if (lastGame.pgn.startsWith('http://') || lastGame.pgn.startsWith('https://')) {
+        try {
+          const url = new URL(lastGame.pgn);
+          const pgnResponse = await fetch(url.toString());
+          if (pgnResponse.ok) {
+            const pgnText = await pgnResponse.text();
+            if (pgnText && pgnText.trim()) {
+              chess.loadPgn(pgnText);
+              if (chess.history().length > 0) {
+                finalFen = chess.fen();
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error fetching PGN URL:', e);
+        }
+      } else {
+        // It's PGN text directly from the API
+        try {
+          chess.loadPgn(lastGame.pgn);
+          if (chess.history().length > 0) {
+            finalFen = chess.fen();
+          }
+        } catch (e) {
+          console.error('Error loading PGN from API response:', e);
+        }
+      }
+    } catch (e) {
+      console.error('Error processing PGN:', e);
+    }
+  }
+
+  // Strategy 2: Try Chess.com API-provided FEN (if available)
+  if (!finalFen && lastGame.fen) {
+    finalFen = lastGame.fen;
+  }
+
+  // Final fallback: starting position
+  if (!finalFen) {
+    finalFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  }
+
+  return finalFen;
+}
+
 export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
   const [dark, setDark] = useState(getInitialTheme);
   const [isVisible, setIsVisible] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ src: string; alt: string; type: 'image' | 'video' } | null>(null);
+  const [visibleVideos, setVisibleVideos] = useState<Set<string>>(new Set());
+  const [videoThumbnails, setVideoThumbnails] = useState<Map<string, string>>(new Map());
   const location = useLocation();
   const lottieRef = useRef<any>(null);
   const prevDarkRef = useRef<boolean | null>(null);
   const isAnimatingRef = useRef<boolean>(false);
   const isInitializedRef = useRef<boolean>(false);
+  const videoObserverRef = useRef<IntersectionObserver | null>(null);
 
   // Memoize the onComplete callback to prevent re-renders
   const handleAnimationComplete = useMemo(() => () => {
@@ -42,7 +101,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
 
   // Capture initial dark value and memoize initialSegment to prevent it from changing on re-renders
   const initialDarkRef = useRef(dark);
-  const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]), []);
+  const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]) as [number, number], []);
 
   // Apply theme class immediately on mount and when it changes
   useEffect(() => {
@@ -60,8 +119,8 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
 
   // Update Lottie animation when theme changes (but not on initial mount)
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
+    let timer: ReturnType<typeof setTimeout>;
+
     if (!isInitializedRef.current) {
       // Initial mount - just set the frame without animating
       prevDarkRef.current = dark;
@@ -82,7 +141,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
       // Theme actually changed - play the animation
       prevDarkRef.current = dark;
       isAnimatingRef.current = true;
-      
+
       timer = setTimeout(() => {
         if (lottieRef.current) {
           // Stop any ongoing animation first
@@ -98,7 +157,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
         }
       }, 100);
     }
-    
+
     return () => {
       if (timer) clearTimeout(timer);
     };
@@ -123,6 +182,97 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     };
   }, [selectedMedia]);
 
+  // Generate thumbnails for videos
+  useEffect(() => {
+    const generateThumbnail = (videoSrc: string): Promise<string> => {
+      return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.crossOrigin = 'anonymous';
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        
+        video.onloadedmetadata = () => {
+          video.currentTime = 0.1; // Seek to first frame
+        };
+        
+        video.onseeked = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+            resolve(thumbnail);
+          } else {
+            resolve('');
+          }
+          video.remove();
+        };
+        
+        video.onerror = () => {
+          resolve('');
+          video.remove();
+        };
+        
+        video.src = videoSrc;
+      });
+    };
+
+    // Generate thumbnails for known video sources
+    const videoSources = [
+      gymVideo1,
+      gymVideo2,
+      volleyballVideo1
+    ];
+
+    videoSources.forEach(videoSrc => {
+      if (!videoThumbnails.has(videoSrc)) {
+        generateThumbnail(videoSrc).then(thumbnail => {
+          if (thumbnail) {
+            setVideoThumbnails(prev => new Map(prev).set(videoSrc, thumbnail));
+          }
+        });
+      }
+    });
+  }, [videoThumbnails]);
+
+  // Lazy load videos when they enter viewport
+  useEffect(() => {
+    // Use setTimeout to ensure DOM is updated
+    const timer = setTimeout(() => {
+      const videoElements = document.querySelectorAll('video[data-lazy-video]');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const video = entry.target as HTMLVideoElement;
+            const src = video.getAttribute('data-lazy-video');
+            if (src && !video.src) {
+              video.src = src;
+              video.load();
+              setVisibleVideos(prev => new Set(prev).add(src));
+            }
+            observer.unobserve(video);
+          }
+        });
+      }, { rootMargin: '50px' });
+
+      videoElements.forEach((video) => observer.observe(video));
+      videoObserverRef.current = observer;
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (videoObserverRef.current) {
+        const videoElements = document.querySelectorAll('video[data-lazy-video]');
+        videoElements.forEach((video) => videoObserverRef.current?.unobserve(video));
+        videoObserverRef.current.disconnect();
+        videoObserverRef.current = null;
+      }
+    };
+  });
+
   const toggleTheme = () => {
     setDark(prev => {
       const next = !prev;
@@ -137,6 +287,128 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     e.preventDefault();
     navigate('/');
   };
+
+  const [chessRatings, setChessRatings] = useState({
+    bullet: 1450,
+    rapid: 1400,
+    blitz: 1300
+  });
+
+  const [latestGame, setLatestGame] = useState<{
+    url: string;
+    opponent: string;
+    result: string;
+    fen: string;
+    userColor: 'white' | 'black';
+  } | null>(null);
+  const [boardFen, setBoardFen] = useState<string>('start');
+  
+  // Memoize chessboard options to prevent recreation on every render
+  const chessboardOptions = useMemo(() => {
+    if (!latestGame) return null;
+    
+    const positionToUse = boardFen === 'start' 
+      ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+      : boardFen;
+    
+    return {
+      position: positionToUse,
+      draggable: false,
+      arePiecesDraggable: false,
+      boardOrientation: latestGame.userColor,
+      animationDuration: 0,
+      onPieceClick: () => false,
+      onSquareClick: () => false,
+      onPieceDrop: () => false,
+      onSquareRightClick: () => false
+    };
+  }, [boardFen, latestGame?.userColor]);
+
+  useEffect(() => {
+    fetch('https://api.chess.com/pub/player/chokeonbanana/stats')
+      .then(res => res.json())
+      .then(data => {
+        setChessRatings({
+          bullet: data.chess_bullet?.last?.rating || 1450,
+          rapid: data.chess_rapid?.last?.rating || 1400,
+          blitz: data.chess_blitz?.last?.rating || 1300
+        });
+      })
+      .catch(err => console.error('Failed to fetch chess stats:', err));
+
+    // Get game archives first, then fetch the latest archive (matching Python pattern)
+    fetch('https://api.chess.com/pub/player/chokeonbanana/games/archives')
+      .then(res => res.json())
+      .then(async (archivesData) => {
+        if (archivesData.archives && archivesData.archives.length > 0) {
+          // Get the latest archive URL (last in the array)
+          const latestArchiveUrl = archivesData.archives[archivesData.archives.length - 1];
+          
+          // Fetch games from the latest archive
+          const gamesResponse = await fetch(latestArchiveUrl);
+          const gamesData = await gamesResponse.json();
+          
+          if (gamesData.games && gamesData.games.length > 0) {
+            // Get the most recent game (last in the array, matching Python: games[-1])
+            const lastGame = gamesData.games[gamesData.games.length - 1];
+            
+            const isWhite = lastGame.white.username.toLowerCase() === 'chokeonbanana';
+            const opponent = isWhite ? lastGame.black.username : lastGame.white.username;
+            const myResult = isWhite ? lastGame.white.result : lastGame.black.result;
+
+            let resultText = 'Draw';
+            if (myResult === 'win') resultText = 'Won';
+            else if (['checkmated', 'resigned', 'timeout', 'abandoned'].includes(myResult)) resultText = 'Lost';
+
+            // Get PGN directly from the game object (matching Python: games[-1]['pgn'])
+            const finalFen = await getFinalFenFromGame(lastGame);
+
+            setLatestGame({
+              url: lastGame.url,
+              opponent,
+              result: resultText,
+              fen: finalFen,
+              userColor: isWhite ? 'white' : 'black'
+            });
+            setBoardFen(finalFen);
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch games:', err);
+        // Fallback to current month approach if archives fail
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+
+        fetch(`https://api.chess.com/pub/player/chokeonbanana/games/${year}/${month}`)
+          .then(res => res.json())
+          .then(async (data) => {
+            if (data.games && data.games.length > 0) {
+              const lastGame = data.games[data.games.length - 1];
+              const isWhite = lastGame.white.username.toLowerCase() === 'chokeonbanana';
+              const opponent = isWhite ? lastGame.black.username : lastGame.white.username;
+              const myResult = isWhite ? lastGame.white.result : lastGame.black.result;
+
+              let resultText = 'Draw';
+              if (myResult === 'win') resultText = 'Won';
+              else if (['checkmated', 'resigned', 'timeout', 'abandoned'].includes(myResult)) resultText = 'Lost';
+
+              const finalFen = await getFinalFenFromGame(lastGame);
+
+              setLatestGame({
+                url: lastGame.url,
+                opponent,
+                result: resultText,
+                fen: finalFen,
+                userColor: isWhite ? 'white' : 'black'
+              });
+              setBoardFen(finalFen);
+            }
+          })
+          .catch(fallbackErr => console.error('Failed to fetch games (fallback):', fallbackErr));
+      });
+  }, []);
 
   // Memoize items array to prevent recreation on every render
   const items = useMemo(() => [
@@ -157,11 +429,11 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     {
       title: 'Gym',
       description: <>
-      Current Lifting Stats: <br />
-      295lbs Bench, <br />
-      385lbs Squat, <br />
-      405lbs Deadlift. <br />
-      Just trying to stay healthy and get stronger!
+        Current Lifting Stats: <br />
+        295lbs Bench, <br />
+        385lbs Squat, <br />
+        405lbs Deadlift. <br />
+        Just trying to stay healthy and get stronger!
       </>,
       media: [
         { src: gymVideo1, alt: '365 Squat for 2!', type: 'video' as const },
@@ -195,13 +467,41 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     },
     {
       title: 'Chess',
-      description: 'Currently rated 1450 Bullet, 1400 Rapid, 1300 Blitz. Just trying to get better at chess!',
+      description: (
+        <>
+          <span className="flex items-center gap-2">
+            Currently rated {chessRatings.bullet} Bullet, {chessRatings.rapid} Rapid, {chessRatings.blitz} Blitz.
+            <span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              LIVE
+            </span>
+          </span>
+          Just trying to get better at chess!
+          {latestGame && (
+            <div className="mt-4 w-full max-w-[300px]">
+              <div className="mb-2 text-sm opacity-90">
+                Most recent game: <a href={latestGame.url} target="_blank" rel="noreferrer" className="underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{latestGame.result} vs {latestGame.opponent}</a>
+              </div>
+              <div className="rounded-lg overflow-hidden shadow-lg border border-black/10 dark:border-white/10" style={{ pointerEvents: 'none' }}>
+                {chessboardOptions && (
+                  <div style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                    <Chessboard
+                      options={chessboardOptions}
+                      key={`board-${boardFen}-${latestGame.userColor}`}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      ),
       links: [
         { name: 'Chess.com Profile', url: 'https://www.chess.com/member/chokeonbanana', icon: chessIcon }
       ],
       delay: 400
     }
-  ], []);
+  ], [chessRatings, latestGame, boardFen]);
 
   return (
     <div className="min-h-screen bg-beige-gradient text-beige-text flex flex-col">
@@ -211,7 +511,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
         </a>
 
         <div className="theme-switch-container">
-          <div 
+          <div
             className={`theme-switch-animation ${dark ? 'moon-white' : ''}`}
             onClick={toggleTheme}
             role="button"
@@ -296,7 +596,11 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                 style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transitionDelay: shouldFadeOut ? `${item.delay}ms` : `${500 + index * 50}ms` }}
               >
                 <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">{item.title}</h2>
-                <p className="opacity-80 text-sm sm:text-base mb-3">{item.description}</p>
+                {typeof item.description === 'string' ? (
+                  <p className="opacity-80 text-sm sm:text-base mb-3">{item.description}</p>
+                ) : (
+                  <div className="opacity-80 text-sm sm:text-base mb-3">{item.description}</div>
+                )}
                 {item.images && (
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
                     {item.images.map((img: { src: string; alt: string }, imgIndex: number) => (
@@ -341,15 +645,45 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
                               alt={media.alt}
                               className={`w-full ${isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75`}
                               loading="lazy"
+                              decoding="async"
                               style={{ willChange: 'transform' }}
                             />
                           ) : (
-                            <video
-                              src={media.src}
-                              className={`w-full ${isGymVideo ? 'aspect-square' : isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75`}
-                              muted
-                              playsInline
-                            />
+                            <div className="relative w-full h-full">
+                              {videoThumbnails.has(media.src) ? (
+                                <img
+                                  src={videoThumbnails.get(media.src)}
+                                  alt={media.alt}
+                                  className={`w-full ${isGymVideo ? 'aspect-square' : isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75`}
+                                  style={{ willChange: 'transform' }}
+                                />
+                              ) : (
+                                <div className={`w-full ${isGymVideo ? 'aspect-square' : isLargeItem ? 'h-[268px] sm:h-[336px] md:h-[400px]' : 'h-32 sm:h-40 md:h-48'} bg-gray-200 dark:bg-gray-700 flex items-center justify-center`}>
+                                  <span className="text-gray-400 text-sm">Loading thumbnail...</span>
+                                </div>
+                              )}
+                              <video
+                                data-lazy-video={media.src}
+                                src={visibleVideos.has(media.src) ? media.src : ''}
+                                className={`absolute inset-0 w-full h-full object-cover transition-all duration-150 group-hover:scale-105 group-hover:brightness-75 ${visibleVideos.has(media.src) ? 'opacity-100' : 'opacity-0'}`}
+                                muted
+                                playsInline
+                                preload="none"
+                                onMouseEnter={(e) => {
+                                  // Load video on hover for better UX
+                                  const video = e.currentTarget;
+                                  if (!video.src && video.getAttribute('data-lazy-video')) {
+                                    video.src = video.getAttribute('data-lazy-video') || '';
+                                    video.load();
+                                    setVisibleVideos(prev => new Set(prev).add(media.src));
+                                  }
+                                }}
+                                onLoadedData={(e) => {
+                                  // Fade in video when loaded
+                                  e.currentTarget.style.opacity = '1';
+                                }}
+                              />
+                            </div>
                           )}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-150 flex items-center justify-center">
                             <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm sm:text-base font-medium px-4 text-center">
