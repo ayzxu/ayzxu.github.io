@@ -333,7 +333,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
   }, [boardFen, latestGame?.userColor]);
 
   useEffect(() => {
-    fetch('https://api.chess.com/pub/player/chokeonbanana/stats')
+    fetch('https://api.chess.com/pub/player/mozandyque/stats')
       .then(res => res.json())
       .then(data => {
         setChessRatings({
@@ -345,7 +345,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
       .catch(err => console.error('Failed to fetch chess stats:', err));
 
     // Get game archives first, then fetch the latest archive (matching Python pattern)
-    fetch('https://api.chess.com/pub/player/chokeonbanana/games/archives')
+    fetch('https://api.chess.com/pub/player/mozandyque/games/archives')
       .then(res => res.json())
       .then(async (archivesData) => {
         if (archivesData.archives && archivesData.archives.length > 0) {
@@ -360,7 +360,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
             // Get the most recent game (last in the array, matching Python: games[-1])
             const lastGame = gamesData.games[gamesData.games.length - 1];
             
-            const isWhite = lastGame.white.username.toLowerCase() === 'chokeonbanana';
+            const isWhite = lastGame.white.username.toLowerCase() === 'mozandyque';
             const opponent = isWhite ? lastGame.black.username : lastGame.white.username;
             const myResult = isWhite ? lastGame.white.result : lastGame.black.result;
 
@@ -389,12 +389,12 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
 
-        fetch(`https://api.chess.com/pub/player/chokeonbanana/games/${year}/${month}`)
+        fetch(`https://api.chess.com/pub/player/mozandyque/games/${year}/${month}`)
           .then(res => res.json())
           .then(async (data) => {
             if (data.games && data.games.length > 0) {
               const lastGame = data.games[data.games.length - 1];
-              const isWhite = lastGame.white.username.toLowerCase() === 'chokeonbanana';
+              const isWhite = lastGame.white.username.toLowerCase() === 'mozandyque';
               const opponent = isWhite ? lastGame.black.username : lastGame.white.username;
               const myResult = isWhite ? lastGame.white.result : lastGame.black.result;
 
@@ -506,7 +506,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
       title: 'Chess',
       description: chessDescription,
       links: [
-        { name: 'Chess.com Profile', url: 'https://www.chess.com/member/chokeonbanana', icon: chessIcon }
+        { name: 'Chess.com Profile', url: 'https://www.chess.com/member/mozandyque', icon: chessIcon }
       ],
       delay: 400
     }
