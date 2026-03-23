@@ -96,7 +96,6 @@ img {
   position: relative;
   background-image: var(--theme-bg-gradient);
   background-size: cover;
-  background-attachment: fixed;
   transition: none !important;
 }
 
@@ -104,8 +103,16 @@ img {
   position: relative;
   background-image: var(--theme-bg-gradient);
   background-size: cover;
-  background-attachment: fixed;
   transition: none !important;
+}
+
+@supports (background-attachment: fixed) {
+  @media (hover: hover) {
+    .bg-beige-gradient,
+    .bg-ai-gradient {
+      background-attachment: fixed;
+    }
+  }
 }
 
 /* Apple Liquid Glass Effect */

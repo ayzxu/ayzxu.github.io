@@ -3,10 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
 import './App.css';
+import { useTheme } from './ThemeContext';
 import gusfring from './assets/art/gusfring.png';
 import stevejobs from './assets/art/stevejobs.png';
-import vagabondshoes from './assets/art/vagabondshoes.png';
-import walterwhite from './assets/art/walterwhite.png';
+import vagabondshoes from './assets/art/vagabondshoes.webp';
+import walterwhite from './assets/art/walterwhite.webp';
 import valorantIcon from './assets/icons/valorant.png';
 import clashRoyaleIcon from './assets/icons/cr.avif';
 import chessIcon from './assets/icons/chess.png';
@@ -15,8 +16,8 @@ import { Chess } from 'chess.js';
 import gymVideo1 from './assets/gym/IMG_6232.mov';
 import gymVideo2 from './assets/gym/IMG_6418.MOV';
 import volleyballVideo1 from './assets/volleyball/VB1.mov';
-import volleyballImage1 from './assets/volleyball/HS2A3950_Original.png';
-import volleyballImage2 from './assets/volleyball/HS2A4018_Original.png';
+import volleyballImage1 from './assets/volleyball/HS2A3950_Original.webp';
+import volleyballImage2 from './assets/volleyball/HS2A4018_Original.webp';
 
 // Chessboard wrapper component
 const ChessboardWrapper = ({ options, boardKey }: { options: any; boardKey: string }) => (
@@ -27,15 +28,6 @@ const ChessboardWrapper = ({ options, boardKey }: { options: any; boardKey: stri
     />
   </div>
 );
-
-// Initialize theme synchronously before component renders
-function getInitialTheme(): boolean {
-  if (typeof window === 'undefined') return false;
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark') return true;
-  if (saved === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
 
 async function getFinalFenFromGame(lastGame: any): Promise<string> {
   const chess = new Chess();
@@ -92,7 +84,7 @@ async function getFinalFenFromGame(lastGame: any): Promise<string> {
 }
 
 export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
-  const [dark, setDark] = useState(getInitialTheme);
+  const { dark, toggleTheme } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ src: string; alt: string; type: 'image' | 'video' } | null>(null);
   const [visibleVideos, setVisibleVideos] = useState<Set<string>>(new Set());
@@ -112,11 +104,6 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
   // Capture initial dark value and memoize initialSegment to prevent it from changing on re-renders
   const initialDarkRef = useRef(dark);
   const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]) as [number, number], []);
-
-  // Apply theme class immediately on mount and when it changes
-  useLayoutEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-  }, [dark]);
 
   // Use layout effect to ensure frame is set synchronously before paint
   useLayoutEffect(() => {
@@ -190,7 +177,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
     };
   }, [selectedMedia]);
 
-  // Generate thumbnails for videos
+  // Generate thumbnails for videos (run once on mount)
   useEffect(() => {
     const generateThumbnail = (videoSrc: string): Promise<string> => {
       return new Promise((resolve) => {
@@ -201,7 +188,7 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
         video.playsInline = true;
         
         video.onloadedmetadata = () => {
-          video.currentTime = 0.1; // Seek to first frame
+          video.currentTime = 0.1;
         };
         
         video.onseeked = () => {
@@ -228,23 +215,16 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
       });
     };
 
-    // Generate thumbnails for known video sources
-    const videoSources = [
-      gymVideo1,
-      gymVideo2,
-      volleyballVideo1
-    ];
-
-    videoSources.forEach(videoSrc => {
-      if (!videoThumbnails.has(videoSrc)) {
-        generateThumbnail(videoSrc).then(thumbnail => {
-          if (thumbnail) {
-            setVideoThumbnails(prev => new Map(prev).set(videoSrc, thumbnail));
-          }
-        });
-      }
-    });
-  }, [videoThumbnails]);
+    const videoSources = [gymVideo1, gymVideo2, volleyballVideo1];
+    Promise.all(videoSources.map(src => generateThumbnail(src).then(thumb => [src, thumb] as const)))
+      .then(results => {
+        const map = new Map<string, string>();
+        for (const [src, thumb] of results) {
+          if (thumb) map.set(src, thumb);
+        }
+        setVideoThumbnails(map);
+      });
+  }, []);
 
   // Lazy load videos when they enter viewport
   useEffect(() => {
@@ -280,14 +260,6 @@ export default function Fun({ isTransitioning, shouldFadeOut }: { isTransitionin
       }
     };
   });
-
-  const toggleTheme = () => {
-    setDark(prev => {
-      const next = !prev;
-      localStorage.setItem('theme', next ? 'dark' : 'light');
-      return next;
-    });
-  };
 
   const navigate = useNavigate();
 

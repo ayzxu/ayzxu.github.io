@@ -5,17 +5,40 @@ import './index.css'
 import 'overlayscrollbars/styles/overlayscrollbars.css'
 
 import App from './App'
+import { ThemeProvider } from './ThemeContext'
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 
-// Import Lemon Milk fonts for Vite to process
 import lemonMilkLight from './assets/fonts/LEMONMILK-Light.otf?url'
 import lemonMilkRegular from './assets/fonts/LEMONMILK-Regular.otf?url'
 import cursorImage from './assets/cursor.png'
 
-// Function to create inverted cursor
+// Inject @font-face declarations once (not on every theme change)
+const fontStyle = document.createElement('style')
+fontStyle.id = 'custom-fonts'
+fontStyle.textContent = `
+  @font-face {
+    font-family: 'LemonMilk';
+    src: url('${lemonMilkLight}') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'LemonMilk';
+    src: url('${lemonMilkRegular}') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+`
+document.head.appendChild(fontStyle)
+
+let cachedInvertedCursor: string | null = null
+
 function createInvertedCursor(imageUrl: string): Promise<string> {
+  if (cachedInvertedCursor) return Promise.resolve(cachedInvertedCursor)
   return new Promise((resolve) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
@@ -28,17 +51,14 @@ function createInvertedCursor(imageUrl: string): Promise<string> {
         ctx.drawImage(img, 0, 0)
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
         const data = imageData.data
-        
-        // Invert colors
         for (let i = 0; i < data.length; i += 4) {
-          data[i] = 255 - data[i]     // R
-          data[i + 1] = 255 - data[i + 1] // G
-          data[i + 2] = 255 - data[i + 2] // B
-          // Alpha channel stays the same
+          data[i] = 255 - data[i]
+          data[i + 1] = 255 - data[i + 1]
+          data[i + 2] = 255 - data[i + 2]
         }
-        
         ctx.putImageData(imageData, 0, 0)
-        resolve(canvas.toDataURL())
+        cachedInvertedCursor = canvas.toDataURL()
+        resolve(cachedInvertedCursor)
       } else {
         resolve(imageUrl)
       }
@@ -48,53 +68,22 @@ function createInvertedCursor(imageUrl: string): Promise<string> {
   })
 }
 
-// Set cursor based on theme
 async function setCursor() {
   const isDark = document.documentElement.classList.contains('dark')
-  let cursorUrl = cursorImage
-  
-  if (!isDark) {
-    // Invert cursor for light theme
-    cursorUrl = await createInvertedCursor(cursorImage)
+  const cursorUrl = isDark ? cursorImage : await createInvertedCursor(cursorImage)
+
+  let style = document.getElementById('custom-cursor-style') as HTMLStyleElement | null
+  if (!style) {
+    style = document.createElement('style')
+    style.id = 'custom-cursor-style'
+    document.head.appendChild(style)
   }
-  
-  const style = document.createElement('style')
-  style.id = 'custom-cursor-style'
-  style.textContent = `
-    @font-face {
-      font-family: 'LemonMilk';
-      src: url('${lemonMilkLight}') format('opentype');
-      font-weight: 300;
-      font-style: normal;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'LemonMilk';
-      src: url('${lemonMilkRegular}') format('opentype');
-      font-weight: normal;
-      font-style: normal;
-      font-display: swap;
-    }
-    html, body, * {
-      cursor: url('${cursorUrl}'), auto !important;
-    }
-  `
-  
-  // Remove old style if exists
-  const oldStyle = document.getElementById('custom-cursor-style')
-  if (oldStyle) oldStyle.remove()
-  
-  document.head.appendChild(style)
+  style.textContent = `html, body, * { cursor: url('${cursorUrl}'), auto !important; }`
 }
 
-// Set initial cursor
 setCursor()
 
-// Watch for theme changes
-const observer = new MutationObserver(() => {
-  setCursor()
-})
-
+const observer = new MutationObserver(() => { setCursor() })
 observer.observe(document.documentElement, {
   attributes: true,
   attributeFilter: ['class']
@@ -103,7 +92,9 @@ observer.observe(document.documentElement, {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,
 )

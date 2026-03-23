@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, useLayoutEffect } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, useRef, useLayoutEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react';
 import Lottie from 'lottie-react';
@@ -9,14 +9,12 @@ import linkedinIcon from './assets/icons/linkedin.png';
 import emailIcon from './assets/icons/email.png';
 import portrait2 from './assets/portraits/portrait2.png';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
-import Projects from './Projects';
-import About from './About';
-import Fun from './Fun';
-import Test from './Test';
-// Preload large video files used in Fun page
-import gymVideo1 from './assets/gym/IMG_6232.mov';
-import gymVideo2 from './assets/gym/IMG_6418.MOV';
-import volleyballVideo1 from './assets/volleyball/VB1.mov';
+import { useTheme } from './ThemeContext';
+
+const Projects = lazy(() => import('./Projects'));
+const About = lazy(() => import('./About'));
+const Fun = lazy(() => import('./Fun'));
+const Test = lazy(() => import('./Test'));
 
 type Card = { title: string; desc: string; link?: string };
 
@@ -27,57 +25,8 @@ function scaleFromHorizon(cy: number, horizon: number, height: number) {
   return 0.75 + d * 0.9;
 }
 
-// Initialize theme synchronously before component renders
-function getInitialTheme(): boolean {
-  if (typeof window === 'undefined') return true;
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark') return true;
-  if (saved === 'light') return false;
-  return true; // Default to dark mode
-}
-
 export default function App() {
-  const [dark, setDark] = useState(getInitialTheme);
-
-  // Preload large video files when app loads
-  useEffect(() => {
-    const videos = [gymVideo1, gymVideo2, volleyballVideo1];
-    videos.forEach((videoSrc) => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'video';
-      link.href = videoSrc;
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-    });
-  }, []);
-
-  // Reflect state to <html> class
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-  }, [dark]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) return;
-    
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('theme')) {
-        setDark(e.matches);
-      }
-    };
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, []);
-
-  const toggleTheme = () => {
-    setDark(prev => {
-      const next = !prev;
-      localStorage.setItem('theme', next ? 'dark' : 'light');
-      return next;
-    });
-  };
+  const { dark, toggleTheme } = useTheme();
 
   const cards: Card[] = [
     { title: 'Projects', desc: 'AI sidequests from IBM and personal side projects.', link: '/projects' },
@@ -93,17 +42,6 @@ export default function App() {
   const [shouldZoomOut, setShouldZoomOut] = useState(false);
   const [isZoomingIn, setIsZoomingIn] = useState(false);
   const [isZoomingOut, setIsZoomingOut] = useState(false);
-
-  // Sync theme state when navigating back to home from other pages
-  useEffect(() => {
-    if (location.pathname === '/') {
-      const saved = localStorage.getItem('theme');
-      const currentDark = saved === 'dark' ? true : saved === 'light' ? false : true; // Default to dark mode
-      if (currentDark !== dark) {
-        setDark(currentDark);
-      }
-    }
-  }, [location.pathname, dark]);
 
   useEffect(() => {
     if (location.pathname !== displayLocation) {
@@ -161,13 +99,15 @@ export default function App() {
   return (
     <OverlayScrollbarsComponent options={scrollbarOptions} className="h-screen">
       <div className="page-transition-container bg-beige-gradient min-h-screen">
-        <Routes location={{ pathname: displayLocation } as any} key={displayLocation}>
-          <Route path="/projects" element={<Projects isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
-          <Route path="/fun" element={<Fun isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
-          <Route path="/about" element={<About isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
-          <Route path="/test" element={<Test />} />
-          <Route path="/" element={<Home dark={dark} toggleTheme={toggleTheme} cards={cards} year={year} isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} isZoomingIn={isZoomingIn} isZoomingOut={isZoomingOut} />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes location={{ pathname: displayLocation } as any} key={displayLocation}>
+            <Route path="/projects" element={<Projects isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
+            <Route path="/fun" element={<Fun isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
+            <Route path="/about" element={<About isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} />} />
+            <Route path="/test" element={<Test />} />
+            <Route path="/" element={<Home dark={dark} toggleTheme={toggleTheme} cards={cards} year={year} isTransitioning={isTransitioning} shouldFadeOut={shouldZoomOut} isZoomingIn={isZoomingIn} isZoomingOut={isZoomingOut} />} />
+          </Routes>
+        </Suspense>
       </div>
     </OverlayScrollbarsComponent>
   );
@@ -311,16 +251,17 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
     };
   }, []);
 
-  // Track mouse position globally
+  // Track mouse position globally, throttled via rAF
   useEffect(() => {
+    let rafId = 0;
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({
-        x: e.clientX,
-        y: e.clientY,
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        setMousePos({ x: e.clientX, y: e.clientY });
+        rafId = 0;
       });
     };
 
-    // Initialize to center of screen
     setMousePos({
       x: typeof window !== 'undefined' ? window.innerWidth / 2 : 0,
       y: typeof window !== 'undefined' ? window.innerHeight / 2 : 0,
@@ -329,6 +270,7 @@ function Home({ dark, toggleTheme, cards, year, isTransitioning, shouldFadeOut, 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 

@@ -1,28 +1,19 @@
 import { useEffect, useState, useRef, useMemo, useLayoutEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
 import './App.css';
-// Project images
+import { useTheme } from './ThemeContext';
 import squatformAnalyze from './assets/projectpics/squatform/analyze.png';
 import squatformFeedback from './assets/projectpics/squatform/feedback.png';
 import spoilerblockExtension from './assets/projectpics/spoilerblock/extension.png';
 import spoilerblockRedacted from './assets/projectpics/spoilerblock/redacted.png';
 import spoilerblockFurtherRedaction from './assets/projectpics/spoilerblock/furtherredaction.png';
-import threeglWorld from './assets/projectpics/threegl/world.png';
+import threeglWorld from './assets/projectpics/threegl/world.webp';
 import chessaiGameplay from './assets/projectpics/chessai/gameplay.png';
 
-// Initialize theme synchronously before component renders
-function getInitialTheme(): boolean {
-  if (typeof window === 'undefined') return false;
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark') return true;
-  if (saved === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
 export default function Projects({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
-  const [dark, setDark] = useState(getInitialTheme);
+  const { dark, toggleTheme } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
   const location = useLocation();
@@ -31,21 +22,13 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
   const isAnimatingRef = useRef<boolean>(false);
   const isInitializedRef = useRef<boolean>(false);
 
-  // Memoize the onComplete callback to prevent re-renders
   const handleAnimationComplete = useMemo(() => () => {
     isAnimatingRef.current = false;
   }, []);
 
-  // Capture initial dark value and memoize initialSegment to prevent it from changing on re-renders
   const initialDarkRef = useRef(dark);
   const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]), []);
 
-  // Apply theme class immediately on mount and when it changes
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-  }, [dark]);
-
-  // Use layout effect to ensure frame is set synchronously before paint
   useLayoutEffect(() => {
     if (lottieRef.current && !isInitializedRef.current) {
       lottieRef.current.goToAndStop(dark ? 14 : 0, true);
@@ -54,19 +37,15 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
     }
   }, []);
 
-  // Update Lottie animation when theme changes (but not on initial mount)
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     
     if (!isInitializedRef.current) {
-      // Initial mount - just set the frame without animating
       prevDarkRef.current = dark;
-      // Try to set frame immediately if animation is already loaded
       if (lottieRef.current) {
         lottieRef.current.goToAndStop(dark ? 14 : 0, true);
         isInitializedRef.current = true;
       } else {
-        // If not loaded yet, wait a bit and try again
         timer = setTimeout(() => {
           if (lottieRef.current) {
             lottieRef.current.goToAndStop(dark ? 14 : 0, true);
@@ -75,20 +54,15 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
         }, 50);
       }
     } else if (prevDarkRef.current !== dark) {
-      // Theme actually changed - play the animation
       prevDarkRef.current = dark;
       isAnimatingRef.current = true;
       
       if (lottieRef.current) {
-        // Stop any ongoing animation first
         lottieRef.current.stop();
-        // Set animation speed to 1.33x (0.75x duration = 1/0.75 speed)
         lottieRef.current.setSpeed(1.33);
-        // Set the starting frame
         const startFrame = dark ? 0 : 14;
         const endFrame = dark ? 14 : 0;
         lottieRef.current.goToAndStop(startFrame, true);
-        // Then play the animation
         lottieRef.current.playSegments([startFrame, endFrame], true);
       }
     }
@@ -123,14 +97,6 @@ export default function Projects({ isTransitioning, shouldFadeOut }: { isTransit
       document.body.style.overflow = '';
     }
   }, [selectedImage]);
-
-  const toggleTheme = () => {
-    setDark(prev => {
-      const next = !prev;
-      localStorage.setItem('theme', next ? 'dark' : 'light');
-      return next;
-    });
-  };
 
   const navigate = useNavigate();
 

@@ -5,6 +5,7 @@ import githubWhiteIcon from './assets/icons/githubwhite.png';
 import linkedinIcon from './assets/icons/linkedin.png';
 import emailIcon from './assets/icons/email.png';
 import portrait2 from './assets/portraits/portrait2.png';
+import { useTheme } from './ThemeContext';
 
 type Card = { title: string; desc: string; link?: string };
 
@@ -52,44 +53,8 @@ function shadowFor(
   return { offsetX, offsetY, blur, alpha };
 }
 
-// Initialize theme synchronously before component renders
-function getInitialTheme(): boolean {
-  if (typeof window === 'undefined') return false;
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark') return true;
-  if (saved === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
 export default function Test() {
-  const [dark, setDark] = useState(getInitialTheme);
-
-  // Reflect state to <html> class
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-  }, [dark]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) return;
-    
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('theme')) {
-        setDark(e.matches);
-      }
-    };
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, []);
-
-  const toggleTheme = () => {
-    setDark(prev => {
-      const next = !prev;
-      localStorage.setItem('theme', next ? 'dark' : 'light');
-      return next;
-    });
-  };
+  const { dark, toggleTheme } = useTheme();
 
   const cards: Card[] = [
     { title: 'Projects', desc: 'AI sidequests from IBM and personal side projects.', link: '/projects' },

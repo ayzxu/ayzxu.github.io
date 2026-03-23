@@ -1,33 +1,25 @@
 import { useEffect, useState, useRef, useMemo, useLayoutEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import sunMoonAnimation from './assets/icons/icons8-sun.json';
-import portrait3 from './assets/portraits/portrait3.png';
-import portrait4 from './assets/portraits/portrait4.png';
+import portrait3 from './assets/portraits/portrait3.webp';
+import portrait4 from './assets/portraits/portrait4.webp';
 import azukiIcon from './assets/icons/azuki.png';
 import ibmIcon from './assets/icons/ibm.svg';
 // Experience images
-import azuki1 from './assets/experiencepics/azuki/azuki1.png';
-import azuki2 from './assets/experiencepics/azuki/azuki2.png';
-import ibm12 from './assets/experiencepics/ibm1/ibm12.png';
-import ibm13 from './assets/experiencepics/ibm1/ibm13.png';
-import ibm14 from './assets/experiencepics/ibm1/ibm14.png';
-import ibm21 from './assets/experiencepics/ibm2/ibm21.png';
-import ibm22 from './assets/experiencepics/ibm2/ibm22.png';
-import ibm23 from './assets/experiencepics/ibm2/ibm23.png';
+import azuki1 from './assets/experiencepics/azuki/azuki1.webp';
+import azuki2 from './assets/experiencepics/azuki/azuki2.webp';
+import ibm12 from './assets/experiencepics/ibm1/ibm12.webp';
+import ibm13 from './assets/experiencepics/ibm1/ibm13.webp';
+import ibm14 from './assets/experiencepics/ibm1/ibm14.webp';
+import ibm21 from './assets/experiencepics/ibm2/ibm21.webp';
+import ibm22 from './assets/experiencepics/ibm2/ibm22.webp';
+import ibm23 from './assets/experiencepics/ibm2/ibm23.webp';
 import './App.css';
-
-// Initialize theme synchronously before component renders
-function getInitialTheme(): boolean {
-  if (typeof window === 'undefined') return true;
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark') return true;
-  if (saved === 'light') return false;
-  return true; // Default to dark mode
-}
+import { useTheme } from './ThemeContext';
 
 export default function About({ isTransitioning, shouldFadeOut }: { isTransitioning: boolean; shouldFadeOut: boolean }) {
-  const [dark, setDark] = useState(getInitialTheme);
+  const { dark, toggleTheme } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
   const location = useLocation();
@@ -62,11 +54,6 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
   // Capture initial dark value and memoize initialSegment to prevent it from changing on re-renders
   const initialDarkRef = useRef(dark);
   const initialSegment = useMemo(() => (initialDarkRef.current ? [14, 14] : [0, 0]), []);
-
-  // Apply theme class immediately on mount and when it changes
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-  }, [dark]);
 
   // Use layout effect to ensure frame is set synchronously before paint
   useLayoutEffect(() => {
@@ -139,14 +126,6 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
       document.body.style.overflow = '';
     };
   }, [selectedImage]);
-
-  const toggleTheme = () => {
-    setDark(prev => {
-      const next = !prev;
-      localStorage.setItem('theme', next ? 'dark' : 'light');
-      return next;
-    });
-  };
 
   const navigate = useNavigate();
 
