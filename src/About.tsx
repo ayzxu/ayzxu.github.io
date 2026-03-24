@@ -260,7 +260,7 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                     {/* Forward Deployed Engineer - Endeavor AI */}
                     <div className="flex items-start gap-3 sm:gap-4">
                       <a href="https://www.endeavor-ai.com" target="_blank" rel="noreferrer" className="flex-shrink-0">
-                        <img src={endeavorIcon} alt="Endeavor AI" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover hover:opacity-80 transition-opacity" />
+                        <img src={endeavorIcon} alt="Endeavor AI" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover hover:opacity-80 transition-opacity bg-white p-1.5" />
                       </a>
                       <div className="flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
