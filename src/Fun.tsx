@@ -6,8 +6,8 @@ import './App.css';
 import { useTheme } from './ThemeContext';
 import gusfring from './assets/art/gusfring.png';
 import stevejobs from './assets/art/stevejobs.png';
-import vagabondshoes from './assets/art/vagabondshoes.webp';
-import walterwhite from './assets/art/walterwhite.webp';
+import vagabondshoes from './assets/art/vagabondshoes.png';
+import walterwhite from './assets/art/walterwhite.png';
 import valorantIcon from './assets/icons/valorant.png';
 import clashRoyaleIcon from './assets/icons/cr.avif';
 import chessIcon from './assets/icons/chess.png';
@@ -17,7 +17,7 @@ import gymVideo1 from './assets/gym/IMG_6232.mov';
 import gymVideo2 from './assets/gym/IMG_6418.MOV';
 import volleyballVideo1 from './assets/volleyball/VB1.mov';
 import volleyballImage1 from './assets/volleyball/HS2A3950_Original.webp';
-import volleyballImage2 from './assets/volleyball/HS2A4018_Original.webp';
+import volleyballImage2 from './assets/volleyball/HS2A4018_Original.png';
 
 // Chessboard wrapper component
 const ChessboardWrapper = ({ options, boardKey }: { options: any; boardKey: string }) => (
