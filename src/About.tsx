@@ -6,6 +6,7 @@ import portrait3 from './assets/portraits/portrait3.webp';
 import portrait4 from './assets/portraits/portrait4.webp';
 import azukiIcon from './assets/icons/azuki.png';
 import ibmIcon from './assets/icons/ibm.svg';
+import endeavorIcon from './assets/icons/endeavor-logo-2026.png';
 // Experience images
 import azuki1 from './assets/experiencepics/azuki/azuki1.webp';
 import azuki2 from './assets/experiencepics/azuki/azuki2.webp';
@@ -256,6 +257,26 @@ export default function About({ isTransitioning, shouldFadeOut }: { isTransition
                   
                   <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Work Experience</h3>
                   <div className="space-y-6 sm:space-y-8">
+                    {/* Forward Deployed Engineer - Endeavor AI */}
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <a href="https://www.endeavor-ai.com" target="_blank" rel="noreferrer" className="flex-shrink-0">
+                        <img src={endeavorIcon} alt="Endeavor AI" className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover hover:opacity-80 transition-opacity" />
+                      </a>
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
+                          <h4 className="text-base sm:text-lg font-medium">Forward Deployed Engineer</h4>
+                          <span className="text-xs sm:text-sm opacity-60">Mar 2026 - Present</span>
+                        </div>
+                        <p className="text-sm sm:text-base opacity-70 mb-3">Endeavor AI • San Francisco, CA</p>
+                        <ul className="space-y-2 opacity-80 text-sm sm:text-base list-disc list-inside">
+                          <li>Engineered consumer integrations and internal platform tooling for <strong>AI-assisted order entry</strong> and <strong>ERP automation</strong> workflows</li>
+                          <li>Built backend services using <strong>FastAPI</strong> and cloud-native data pipelines with <strong>AWS Lambda</strong>, <strong>S3</strong>, and <strong>Terraform</strong></li>
+                          <li>Automated ingestion of product catalogs and customer records for scheduled syncs and downstream upload workflows</li>
+                          <li>Diagnosed data quality issues in customer environments, designing reliable workarounds for production systems</li>
+                        </ul>
+                      </div>
+                    </div>
+                    
                     {/* AI Engineer Intern - IBM */}
                     <div className="flex items-start gap-3 sm:gap-4">
                       <a href="https://www.ibm.com" target="_blank" rel="noreferrer" className="flex-shrink-0">
