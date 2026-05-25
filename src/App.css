@@ -1,97 +1,278 @@
-/* Theme Switch Styles */
-.theme-switch-container {
+/* ==========================================================================
+   System 1 UI chrome — menu bar, windows, desktop icons, controls
+   ========================================================================== */
+
+/* --- Menu bar ------------------------------------------------------------- */
+.menu-bar {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25em;
-  flex-shrink: 0;
-  margin-top: 0.25em;
+  align-items: stretch;
+  height: 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #000000;
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  user-select: none;
+  position: relative;
+  z-index: 1000;
 }
 
-.theme-switch-label {
-  font-size: 0.7rem;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
+.menu-title {
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
   white-space: nowrap;
 }
 
-.theme-switch-animation {
+.menu-title:hover,
+.menu-title.open {
+  background: #000000;
+  color: #ffffff;
+}
+
+.menu-clock {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+/* --- Menu dropdowns ------------------------------------------------------- */
+.menu-dropdown {
+  position: absolute;
+  top: 22px;
+  background: #ffffff;
+  border: 1px solid #000000;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.5);
+  min-width: 168px;
+  padding: 2px 0;
+  z-index: 1001;
+}
+
+.menu-item {
+  font-family: "VT323", monospace;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 18px 4px 22px;
+  white-space: nowrap;
+}
+
+.menu-item:not(.disabled):hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.menu-item.disabled {
+  color: #999999;
+}
+
+.menu-separator {
+  height: 1px;
+  margin: 3px 0;
+  background: #000000;
+  opacity: 0.35;
+}
+
+/* --- Desktop ------------------------------------------------------------- */
+/* Fills the Macintosh screen; icons and windows are absolutely positioned
+   children so dragging math stays in simple screen coordinates. */
+.desktop-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* --- Windows ------------------------------------------------------------- */
+.mac-window {
+  position: absolute;
+  background: #ffffff;
+  border: 2px solid #000000;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  border-bottom: 2px solid #000000;
+  background: #ffffff;
+  padding: 0 6px;
+  user-select: none;
+}
+
+/* Active window: title bar shows the classic six "racing stripes" */
+.title-bar.active {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #000000 0 1px,
+    #ffffff 1px 3px
+  );
+}
+
+.close-box {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #000000;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.close-box:active {
+  background: #000000;
+}
+
+.title-bar-text {
+  flex: 1;
+  text-align: center;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: #000000;
+}
+
+/* White lozenge keeps the title legible above the striped bar */
+.title-bar-text span {
+  background: #ffffff;
+  padding: 3px 10px;
+}
+
+.window-body {
+  flex: 1;
+  overflow: auto;
+  background: #ffffff;
+  color: #000000;
+  font-family: "VT323", monospace;
+  font-size: 19px;
+  line-height: 1.25;
+  padding: 16px 18px;
+}
+
+/* --- Desktop icons ------------------------------------------------------- */
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 86px;
+  user-select: none;
+}
+
+.icon-art {
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  margin-bottom: -0.5em;
-  margin-left: 0.1em;
-  cursor: pointer;
 }
 
-.theme-switch-animation.moon-white svg {
-  filter: brightness(0) invert(1);
+.icon-label {
+  margin-top: 3px;
+  font-family: "VT323", monospace;
+  font-size: 16px;
+  line-height: 1;
+  color: #000000;
+  background: #ffffff;
+  padding: 1px 4px;
+  text-align: center;
 }
 
-.theme-switch-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  flex-shrink: 0;
-  margin-top: 0.8em;
-  margin-left: -0.5em;
+/* Selected icon: art and label invert, just like System 1 */
+.desktop-icon.selected .icon-art {
+  filter: invert(1);
 }
 
-.switch {
-  --a: 0s;
-  cursor: pointer;
-  position: relative;
-  display: inline-flex;
-  height: 1.2em;
-  border-radius: 1.2em;
-  box-shadow: 0 0 0 0.41em #FFB38A;
-  aspect-ratio: 212.4992/84.4688;
-  background-color: #FFB38A;
-  transition: none;
+.desktop-icon.selected .icon-label {
+  background: #000000;
+  color: #ffffff;
 }
 
-.dark .switch {
-  background-color: #333;
-  box-shadow: 0 0 0 0.41em #333;
+/* --- Buttons ------------------------------------------------------------- */
+.mac-button {
+  font-family: "VT323", monospace;
+  font-size: 17px;
+  line-height: 1;
+  padding: 4px 14px;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  border-radius: 8px;
 }
 
-/* Hide default HTML checkbox */
-.theme-checkbox {
-  opacity: 0;
-  width: 0;
-  height: 0;
+/* The default button carries an extra ring, as in classic dialogs */
+.mac-button.default {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #000000;
 }
 
-.switch svg {
-  height: 100%;
+.mac-button:active {
+  background: #000000;
+  color: #ffffff;
 }
 
-.switch svg path {
-  color: #fff;
-  stroke-width: 16;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 136 224;
-  transition: none;
-  transform-origin: center;
+/* --- Window content ------------------------------------------------------ */
+/* Pixel-font headings used inside window bodies */
+.win-h {
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 0 0 10px;
 }
 
-.theme-checkbox:checked + .switch svg path {
-  stroke-dashoffset: 180;
-  transform: scaleY(-1);
+.win-sub {
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  line-height: 1.6;
 }
 
-/* Smooth image rendering for thumbnails - prevents pixelated/sharp rendering */
-img {
-  image-rendering: auto;
-  -ms-interpolation-mode: bicubic;
+/* Small caps-y meta line (dates, locations) */
+.win-meta {
+  font-family: "VT323", monospace;
+  font-size: 16px;
+  opacity: 0.75;
 }
 
-/* Performance optimization for image hover effects */
-.group {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
+/* 1-bit photo thumbnails — bordered, hand-cursor, click to enlarge */
+.thumb-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.thumb {
+  width: 116px;
+  height: 88px;
+  object-fit: cover;
+  border: 2px solid #000000;
+  display: block;
+}
+
+.thumb:hover {
+  outline: 2px solid #000000;
+  outline-offset: 1px;
+}
+
+/* A content block separated from the next by breathing room */
+.win-block + .win-block {
+  margin-top: 14px;
+}
+
+/* --- Misc ---------------------------------------------------------------- */
+/* Hard 1-bit divider used inside window content */
+.mac-rule {
+  height: 2px;
+  background: #000000;
+  border: 0;
+  margin: 14px 0;
+}
+
+/* Links inside window bodies stay readable and obviously clickable */
+.window-body a {
+  color: #000000;
+  text-decoration: underline;
+}
+
+.window-body a:hover {
+  background: #000000;
+  color: #ffffff;
+  text-decoration: none;
 }

@@ -1,34 +1,26 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       fontFamily: {
-        'lemonmilk': ['LemonMilk', 'sans-serif'],
+        // Press Start 2P for chrome/headings, VT323 for readable body copy
+        'pixel': ['"Press Start 2P"', 'monospace'],
+        'mac': ['"VT323"', 'monospace'],
       },
       colors: {
-        // Light mode palette
-        "beige-text": "#1f1b16",
-        "beige-surface": "#fffaf3",
-
-        // Dark mode palette
-        "ai-surface": "#111418",
-      },
-      backgroundImage: {
-        "beige-gradient":
-          "radial-gradient(1200px 800px at 20% -10%, #f7f1e8, #e9e2d6)",
-
-        // Dark gradient background (OpenAI grey aesthetic)
-        "ai-gradient":
-          "radial-gradient(1200px 800px at 20% -10%, #101214, #181a1f)",
+        // 1-bit Macintosh System display palette
+        "mac-black": "#000000",
+        "mac-white": "#ffffff",
+        // Exterior chassis palette (original Macintosh 128K beige)
+        "mac-beige": "#d6cfb8",
+        "mac-beige-dark": "#a89f82",
+        "mac-beige-light": "#e8e2cd",
       },
       borderRadius: {
-        card: "1.25rem",
-      },
-      boxShadow: {
-        "soft": "0 8px 30px rgba(0,0,0,0.12)",
+        // The original Macintosh UI uses hard, square corners
+        none: "0",
       },
     },
   },
