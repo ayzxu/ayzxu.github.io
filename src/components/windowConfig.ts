@@ -10,7 +10,8 @@ export type WindowId =
   | 'fun'
   | 'about'
   | 'aboutmac'
-  | 'trash';
+  | 'trash'
+  | 'dropguard';
 
 export type WindowMeta = {
   title: string;
@@ -29,6 +30,7 @@ export const WINDOW_META: Record<WindowId, WindowMeta> = {
   about: { title: 'About Me', w: 720, h: 620 },
   aboutmac: { title: 'About This Macintosh', w: 475, h: 300 },
   trash: { title: 'Trash', w: 375, h: 188 },
+  dropguard: { title: 'System Notice', w: 440, h: 200 },
 };
 
 /* The three content windows that map to deep-link routes. The Read Me window

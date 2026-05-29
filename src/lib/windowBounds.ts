@@ -117,7 +117,12 @@ export function getCascadeOffset(viewport: Viewport): number {
   return Math.min(35, Math.round(viewport.w * 0.04));
 }
 
-/** Compact bottom icon strip on narrow or short viewports */
-export function useCompactIcons(viewport: Viewport): boolean {
+/** Compact bottom icon row on narrow or short viewports */
+export function isCompactIcons(viewport: Viewport): boolean {
   return viewport.w < 768 || viewport.h < 520;
+}
+
+/** @deprecated Use isCompactIcons — kept as alias for call sites */
+export function useCompactIcons(viewport: Viewport): boolean {
+  return isCompactIcons(viewport);
 }

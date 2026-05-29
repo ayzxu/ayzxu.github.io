@@ -4,7 +4,7 @@
    and URL sync (deep links /projects, /fun, /about; otherwise /desktop).
    ========================================================================== */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import MenuBar from './MenuBar';
@@ -21,8 +21,17 @@ import {
   getDefaultWindowSize,
   getMaxWindowSize,
   getViewport,
-  useCompactIcons,
+  isCompactIcons,
 } from '../lib/windowBounds';
+import {
+  DESKTOP_ICON_IDS,
+  getDefaultIconPositions,
+  clampIconPosition,
+  type DesktopIconId,
+  type IconPositions,
+} from '../lib/iconLayout';
+import { useIconDrag } from './useIconDrag';
+import { useMarqueeSelect } from './useMarqueeSelect';
 
 import ReadMeWindow from '../windows/ReadMeWindow';
 import ProjectsWindow from '../windows/ProjectsWindow';
@@ -38,14 +47,17 @@ type DesktopProps = {
   onShutDown: () => void;
 };
 
-const ICONS: { id: WindowId; label: string; icon: React.ReactNode }[] = [
+const DESKTOP_ICONS: {
+  id: DesktopIconId;
+  label: string;
+  icon: React.ReactNode;
+}[] = [
   { id: 'readme', label: 'Read Me', icon: <DocumentIcon className="w-full h-full" /> },
   { id: 'projects', label: 'Projects', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'fun', label: 'Fun', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'about', label: 'About Me', icon: <FolderIcon className="w-full h-full" /> },
+  { id: 'trash', label: 'Trash', icon: <TrashIcon className="w-full h-full" /> },
 ];
-
-const ICON_COLUMN_TOPS = ['10%', '28%', '46%', '64%'] as const;
 
 function buildInitialWindows(initialWindow?: WindowId): OpenWin[] {
   const viewport = getViewport();
@@ -67,26 +79,46 @@ function buildInitialWindows(initialWindow?: WindowId): OpenWin[] {
   return wins;
 }
 
+function iconIdToWindow(id: DesktopIconId): WindowId {
+  return id;
+}
+
 export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const navigate = useNavigate();
   const viewport = useViewport();
-  const compactIcons = useCompactIcons(viewport);
+  const compactIcons = isCompactIcons(viewport);
   const maxWindowSize = getMaxWindowSize(viewport);
+  const prevCompact = useRef(compactIcons);
 
   const [openWins, setOpenWins] = useState<OpenWin[]>(() =>
     buildInitialWindows(initialWindow),
   );
-  const [selectedIcon, setSelectedIcon] = useState<WindowId | null>(null);
+  const [selectedIcons, setSelectedIcons] = useState<Set<DesktopIconId>>(
+    () => new Set(),
+  );
+  const [iconPositions, setIconPositions] = useState<IconPositions>(() => {
+    const vp = getViewport();
+    return getDefaultIconPositions(vp, isCompactIcons(vp));
+  });
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(
     null,
   );
 
-  /* Keep the URL in step with the topmost window so links stay shareable */
+  /* Re-layout icons when switching column ↔ compact; clamp on mere resize */
   useEffect(() => {
-    const top = openWins[openWins.length - 1];
-    const route = top ? ROUTE_FOR_WINDOW[top.id] : undefined;
-    navigate(route ?? '/desktop', { replace: true });
-  }, [openWins, navigate]);
+    if (prevCompact.current !== compactIcons) {
+      setIconPositions(getDefaultIconPositions(viewport, compactIcons));
+      prevCompact.current = compactIcons;
+      return;
+    }
+    setIconPositions((prev) => {
+      const next = { ...prev };
+      for (const id of DESKTOP_ICON_IDS) {
+        next[id] = clampIconPosition(prev[id], viewport);
+      }
+      return next;
+    });
+  }, [compactIcons, viewport]);
 
   const openWindow = (id: WindowId) => {
     setOpenWins((wins) => {
@@ -111,6 +143,50 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     });
   };
 
+  const openDropGuard = () => {
+    const size = getDefaultWindowSize(WINDOW_META.dropguard, viewport);
+    const pos = centerWindowPosition(size, viewport);
+    setOpenWins((wins) => {
+      const rest = wins.filter((w) => w.id !== 'dropguard');
+      return [...rest, { id: 'dropguard', ...pos }];
+    });
+  };
+
+  const {
+    draggingIds,
+    onIconPointerDown,
+    onIconPointerMove,
+    onIconPointerUp,
+  } = useIconDrag({
+    positions: iconPositions,
+    setPositions: setIconPositions,
+    viewport,
+    selectedIcons,
+    onSelectSingle: (id) => setSelectedIcons(new Set([id])),
+    onOpen: (id) => openWindow(iconIdToWindow(id)),
+    onDropOnTarget: () => openDropGuard(),
+  });
+
+  const {
+    layerRef,
+    marquee,
+    marqueeActive,
+    onSurfacePointerDown,
+  } = useMarqueeSelect({
+    iconPositions,
+    onSelectionChange: setSelectedIcons,
+    disabled: draggingIds.size > 0,
+  });
+
+  const iconLayerActive = draggingIds.size > 0 || marqueeActive;
+
+  /* Keep the URL in step with the topmost window so links stay shareable */
+  useEffect(() => {
+    const top = openWins[openWins.length - 1];
+    const route = top ? ROUTE_FOR_WINDOW[top.id] : undefined;
+    navigate(route ?? '/desktop', { replace: true });
+  }, [openWins, navigate]);
+
   const closeWindow = (id: WindowId) =>
     setOpenWins((wins) => wins.filter((w) => w.id !== id));
 
@@ -132,7 +208,6 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     <div
       className="desktop-root mac-desktop-surface"
       style={{ '--desktop-bg': `url(${desktopBg})` } as React.CSSProperties}
-      onClick={() => setSelectedIcon(null)}
     >
       <MenuBar
         onOpenWindow={openWindow}
@@ -142,35 +217,44 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
       />
 
       <div
+        ref={layerRef}
         className={
-          compactIcons
-            ? 'desktop-icons desktop-icons--compact'
-            : 'desktop-icons desktop-icons--column'
+          iconLayerActive
+            ? 'desktop-icons-layer desktop-icons-layer--active'
+            : 'desktop-icons-layer'
         }
       >
-        {ICONS.map((ic, i) => (
+        <div
+          className="desktop-surface"
+          onPointerDown={onSurfacePointerDown}
+          aria-hidden
+        />
+        {marquee && marquee.width + marquee.height > 0 && (
+          <div
+            className="selection-marquee"
+            style={{
+              left: marquee.left,
+              top: marquee.top,
+              width: marquee.width,
+              height: marquee.height,
+            }}
+          />
+        )}
+        {DESKTOP_ICONS.map((ic) => (
           <DesktopIcon
             key={ic.id}
+            id={ic.id}
             label={ic.label}
             icon={ic.icon}
-            selected={selectedIcon === ic.id}
-            onSelect={() => setSelectedIcon(ic.id)}
-            onOpen={() => openWindow(ic.id)}
-            style={
-              compactIcons
-                ? undefined
-                : { top: ICON_COLUMN_TOPS[i], right: 28 }
-            }
+            x={iconPositions[ic.id].x}
+            y={iconPositions[ic.id].y}
+            selected={selectedIcons.has(ic.id)}
+            dragging={draggingIds.has(ic.id)}
+            onPointerDown={onIconPointerDown}
+            onPointerMove={onIconPointerMove}
+            onPointerUp={onIconPointerUp}
           />
         ))}
-        <DesktopIcon
-          label="Trash"
-          icon={<TrashIcon className="w-full h-full" />}
-          selected={selectedIcon === 'trash'}
-          onSelect={() => setSelectedIcon('trash')}
-          onOpen={() => openWindow('trash')}
-          style={compactIcons ? undefined : { bottom: 33, right: 28 }}
-        />
       </div>
 
       {openWins.map((win, i) => {
@@ -206,7 +290,6 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   );
 }
 
-/* Map a window id to its content. */
 function renderWindow(
   id: WindowId,
   onOpenImage: (src: string, alt: string) => void,
@@ -224,6 +307,8 @@ function renderWindow(
       return <AboutMacContent />;
     case 'trash':
       return <TrashContent />;
+    case 'dropguard':
+      return <DropGuardContent />;
   }
 }
 
@@ -244,4 +329,12 @@ function AboutMacContent() {
 
 function TrashContent() {
   return <p>The Trash is empty.</p>;
+}
+
+function DropGuardContent() {
+  return (
+    <p style={{ margin: 0 }}>
+      Don&apos;t do that, I didn&apos;t think that far yet.
+    </p>
+  );
 }

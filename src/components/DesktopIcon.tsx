@@ -1,37 +1,41 @@
 /* ==========================================================================
-   DesktopIcon — a selectable / double-clickable icon on the System 1 desktop.
-   Single click selects (art + label invert); double click opens the window.
+   DesktopIcon — a selectable, draggable, double-clickable desktop icon.
    ========================================================================== */
 
+import type { DesktopIconId } from '../lib/iconLayout';
+
 type DesktopIconProps = {
+  id: DesktopIconId;
   label: string;
   icon: React.ReactNode;
+  x: number;
+  y: number;
   selected: boolean;
-  onSelect: () => void;
-  onOpen: () => void;
-  style?: React.CSSProperties;
+  dragging: boolean;
+  onPointerDown: (id: DesktopIconId, e: React.PointerEvent) => void;
+  onPointerMove: (id: DesktopIconId, e: React.PointerEvent) => void;
+  onPointerUp: (id: DesktopIconId, e: React.PointerEvent) => void;
 };
 
 export default function DesktopIcon({
+  id,
   label,
   icon,
+  x,
+  y,
   selected,
-  onSelect,
-  onOpen,
-  style,
+  dragging,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
 }: DesktopIconProps) {
   return (
     <div
-      className={`desktop-icon${selected ? ' selected' : ''}`}
-      style={{ position: 'absolute', ...style }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect();
-      }}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        onOpen();
-      }}
+      className={`desktop-icon${selected ? ' selected' : ''}${dragging ? ' dragging' : ''}`}
+      style={{ left: x, top: y }}
+      onPointerDown={(e) => onPointerDown(id, e)}
+      onPointerMove={(e) => onPointerMove(id, e)}
+      onPointerUp={(e) => onPointerUp(id, e)}
       role="button"
       aria-label={label}
     >
