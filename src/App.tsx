@@ -33,21 +33,25 @@ const GLASS_W = 302;
 const GLASS_H = 168;
 const GLASS_CX = 235; // SVG x of glass centre
 const GLASS_CY = 140; // SVG y of glass centre
-const SVG_VH = 0.9;   // matches Macintosh.tsx style height: 90vh
 
 /* Glass-centre as a percentage of the wrapper (which is sized to the SVG) —
    used directly as the transform-origin so scaling pivots on the glass centre. */
 const GLASS_ORIGIN_X_PCT = (GLASS_CX / SVG_VIEW_W) * 100;            // 50%
 const GLASS_ORIGIN_Y_PCT = (GLASS_CY / SVG_VIEW_H) * 100;            // ≈26.92%
-/* Once flex-centred at height 90vh, the wrapper's top sits at (100-90)/2 = 5vh,
-   so the glass centre is at 5vh + 0.9 × 26.92% = 29.23vh from the viewport top.
-   To land the glass centre at viewport centre (50vh) we translate by the gap. */
-const WRAPPER_TOP_VH = (100 - SVG_VH * 100) / 2;                     // 5
-const GLASS_CENTER_VH = WRAPPER_TOP_VH + SVG_VH * GLASS_ORIGIN_Y_PCT; // ≈29.23
-const ZOOM_TRANSLATE_Y_VH = 50 - GLASS_CENTER_VH;                    // ≈20.77
 
-function computeFitScale(): number {
-  const svgHpx = SVG_VH * window.innerHeight;
+function getSvgVh(): number {
+  if (typeof window === 'undefined') return 0.9;
+  return window.innerWidth < 480 ? 0.85 : 0.9;
+}
+
+function getZoomTranslateYVh(svgVh: number): number {
+  const wrapperTop = (100 - svgVh * 100) / 2;
+  const glassCenter = wrapperTop + svgVh * GLASS_ORIGIN_Y_PCT;
+  return 50 - glassCenter;
+}
+
+function computeFitScale(svgVh: number): number {
+  const svgHpx = svgVh * window.innerHeight;
   const svgWpx = svgHpx * (SVG_VIEW_W / SVG_VIEW_H);
   const glassWpx = svgWpx * (GLASS_W / SVG_VIEW_W);
   const glassHpx = svgHpx * (GLASS_H / SVG_VIEW_H);
@@ -71,14 +75,30 @@ export default function App() {
   );
   const [zoom, setZoom] = useState(false);
 
-  // Dynamic zoom scale — recomputed on resize so the glass always fits
-  const [fitScale, setFitScale] = useState(() =>
-    typeof window === 'undefined' ? 6 : computeFitScale(),
-  );
+  // Dynamic zoom scale and exterior Mac height — recomputed on resize
+  const [exteriorLayout, setExteriorLayout] = useState(() => {
+    const svgVh = typeof window === 'undefined' ? 0.9 : getSvgVh();
+    return {
+      svgVh,
+      fitScale: typeof window === 'undefined' ? 6 : computeFitScale(svgVh),
+      zoomTranslateY: getZoomTranslateYVh(svgVh),
+    };
+  });
   useEffect(() => {
-    const onResize = () => setFitScale(computeFitScale());
+    const onResize = () => {
+      const svgVh = getSvgVh();
+      setExteriorLayout({
+        svgVh,
+        fitScale: computeFitScale(svgVh),
+        zoomTranslateY: getZoomTranslateYVh(svgVh),
+      });
+    };
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    window.visualViewport?.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.visualViewport?.removeEventListener('resize', onResize);
+    };
   }, []);
 
   // Crossfade flag — flips true a tick after entering 'settling'
@@ -191,7 +211,7 @@ export default function App() {
           <div
             style={{
               transform: zoom
-                ? `translate(0, ${ZOOM_TRANSLATE_Y_VH}vh) scale(${fitScale})`
+                ? `translate(0, ${exteriorLayout.zoomTranslateY}vh) scale(${exteriorLayout.fitScale})`
                 : 'translate(0, 0) scale(1)',
               transformOrigin: `${GLASS_ORIGIN_X_PCT}% ${GLASS_ORIGIN_Y_PCT}%`,
               transition: 'transform 1150ms ease-in-out',
@@ -202,6 +222,7 @@ export default function App() {
               screen={phase === 'exterior' ? 'off' : 'boot'}
               showPrompt={phase === 'exterior'}
               onPowerClick={phase === 'exterior' ? powerOn : undefined}
+              svgVh={exteriorLayout.svgVh}
             />
           </div>
         </div>

@@ -8,12 +8,15 @@
 
 import { useDraggable, type Point } from './useDraggable';
 import { useResizable } from './useResizable';
+import type { Size, Viewport } from '../lib/windowBounds';
 
 type MacWindowProps = {
   title: string;
   initial: Point;
   width: number;
   height: number;
+  maxSize: Size;
+  viewport: Viewport;
   z: number;
   active: boolean;
   onClose: () => void;
@@ -26,14 +29,19 @@ export default function MacWindow({
   initial,
   width,
   height,
+  maxSize,
+  viewport,
   z,
   active,
   onClose,
   onFocus,
   children,
 }: MacWindowProps) {
-  const { pos, onPointerDown } = useDraggable(initial);
-  const { size, onResizeStart } = useResizable({ w: width, h: height });
+  const { size, onResizeStart } = useResizable(
+    { w: width, h: height },
+    maxSize,
+  );
+  const { pos, onPointerDown } = useDraggable(initial, size, viewport);
 
   return (
     <div
@@ -45,7 +53,6 @@ export default function MacWindow({
         className={`title-bar${active ? ' active' : ''}`}
         onPointerDown={onPointerDown}
       >
-        {/* Close box — stopPropagation so closing never starts a drag */}
         <div
           className="close-box"
           onPointerDown={(e) => e.stopPropagation()}
@@ -56,13 +63,11 @@ export default function MacWindow({
         <div className="title-bar-text">
           <span>{title}</span>
         </div>
-        {/* Spacer balances the close box so the title stays centred */}
         <div style={{ width: 15, flexShrink: 0 }} />
       </div>
 
       <div className="window-body mac-scroll">{children}</div>
 
-      {/* Size box — drag the bottom-right corner to resize */}
       <div
         className="resize-handle"
         onPointerDown={onResizeStart}

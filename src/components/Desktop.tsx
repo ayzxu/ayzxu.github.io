@@ -13,6 +13,16 @@ import DesktopIcon from './DesktopIcon';
 import Lightbox from './Lightbox';
 import { DocumentIcon, FolderIcon, TrashIcon } from './PixelIcons';
 import { WINDOW_META, ROUTE_FOR_WINDOW, type WindowId } from './windowConfig';
+import { useViewport } from '../hooks/useViewport';
+import {
+  centerWindowPosition,
+  clampWindowPosition,
+  getCascadeOffset,
+  getDefaultWindowSize,
+  getMaxWindowSize,
+  getViewport,
+  useCompactIcons,
+} from '../lib/windowBounds';
 
 import ReadMeWindow from '../windows/ReadMeWindow';
 import ProjectsWindow from '../windows/ProjectsWindow';
@@ -28,34 +38,44 @@ type DesktopProps = {
   onShutDown: () => void;
 };
 
-/* Desktop icons down the right edge, classic Macintosh layout
-   (positions scaled 1.25× to match the chrome) */
-const ICONS: { id: WindowId; label: string; icon: React.ReactNode; top: number }[] =
-  [
-    { id: 'readme', label: 'Read Me', icon: <DocumentIcon className="w-full h-full" />, top: 50 },
-    { id: 'projects', label: 'Projects', icon: <FolderIcon className="w-full h-full" />, top: 168 },
-    { id: 'fun', label: 'Fun', icon: <FolderIcon className="w-full h-full" />, top: 285 },
-    { id: 'about', label: 'About Me', icon: <FolderIcon className="w-full h-full" />, top: 403 },
-  ];
+const ICONS: { id: WindowId; label: string; icon: React.ReactNode }[] = [
+  { id: 'readme', label: 'Read Me', icon: <DocumentIcon className="w-full h-full" /> },
+  { id: 'projects', label: 'Projects', icon: <FolderIcon className="w-full h-full" /> },
+  { id: 'fun', label: 'Fun', icon: <FolderIcon className="w-full h-full" /> },
+  { id: 'about', label: 'About Me', icon: <FolderIcon className="w-full h-full" /> },
+];
+
+const ICON_COLUMN_TOPS = ['10%', '28%', '46%', '64%'] as const;
+
+function buildInitialWindows(initialWindow?: WindowId): OpenWin[] {
+  const viewport = getViewport();
+  const readmeSize = getDefaultWindowSize(WINDOW_META.readme, viewport);
+  const readmePos = centerWindowPosition(readmeSize, viewport);
+  const wins: OpenWin[] = [{ id: 'readme', ...readmePos }];
+  if (initialWindow && initialWindow !== 'readme') {
+    const off = getCascadeOffset(viewport);
+    const size = getDefaultWindowSize(WINDOW_META[initialWindow], viewport);
+    wins.push({
+      id: initialWindow,
+      ...clampWindowPosition(
+        { x: readmePos.x + off, y: readmePos.y + Math.round(off * 0.6) },
+        size,
+        viewport,
+      ),
+    });
+  }
+  return wins;
+}
 
 export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const navigate = useNavigate();
+  const viewport = useViewport();
+  const compactIcons = useCompactIcons(viewport);
+  const maxWindowSize = getMaxWindowSize(viewport);
 
-  // Read Me opens by default, centred in the viewport so it greets the user
-  // squarely on screen. A deep-link window stacks on top with a small offset.
-  const [openWins, setOpenWins] = useState<OpenWin[]>(() => {
-    const meta = WINDOW_META.readme;
-    const w = Math.min(meta.w, window.innerWidth - 50);
-    const h = Math.min(meta.h, window.innerHeight - 88);
-    const x = Math.max(0, Math.round((window.innerWidth - w) / 2));
-    // Keep the title bar clear of the 28px menu bar
-    const y = Math.max(29, Math.round((window.innerHeight - h) / 2));
-    const wins: OpenWin[] = [{ id: 'readme', x, y }];
-    if (initialWindow && initialWindow !== 'readme') {
-      wins.push({ id: initialWindow, x: x + 50, y: y + 43 });
-    }
-    return wins;
-  });
+  const [openWins, setOpenWins] = useState<OpenWin[]>(() =>
+    buildInitialWindows(initialWindow),
+  );
   const [selectedIcon, setSelectedIcon] = useState<WindowId | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(
     null,
@@ -72,12 +92,22 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     setOpenWins((wins) => {
       const existing = wins.find((w) => w.id === id);
       if (existing) {
-        // Already open — just bring it to the front
         return [...wins.filter((w) => w.id !== id), existing];
       }
-      // Cascade new windows so they never land exactly on top of each other
       const n = wins.length;
-      return [...wins, { id, x: 88 + n * 35, y: 70 + n * 35 }];
+      const off = getCascadeOffset(viewport);
+      const size = getDefaultWindowSize(WINDOW_META[id], viewport);
+      return [
+        ...wins,
+        {
+          id,
+          ...clampWindowPosition(
+            { x: 88 + n * off, y: 70 + n * off },
+            size,
+            viewport,
+          ),
+        },
+      ];
     });
   };
 
@@ -111,39 +141,50 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
         hasActiveWindow={openWins.length > 0}
       />
 
-      {/* Folder + document icons */}
-      {ICONS.map((ic) => (
+      <div
+        className={
+          compactIcons
+            ? 'desktop-icons desktop-icons--compact'
+            : 'desktop-icons desktop-icons--column'
+        }
+      >
+        {ICONS.map((ic, i) => (
+          <DesktopIcon
+            key={ic.id}
+            label={ic.label}
+            icon={ic.icon}
+            selected={selectedIcon === ic.id}
+            onSelect={() => setSelectedIcon(ic.id)}
+            onOpen={() => openWindow(ic.id)}
+            style={
+              compactIcons
+                ? undefined
+                : { top: ICON_COLUMN_TOPS[i], right: 28 }
+            }
+          />
+        ))}
         <DesktopIcon
-          key={ic.id}
-          label={ic.label}
-          icon={ic.icon}
-          selected={selectedIcon === ic.id}
-          onSelect={() => setSelectedIcon(ic.id)}
-          onOpen={() => openWindow(ic.id)}
-          style={{ top: ic.top, right: 28 }}
+          label="Trash"
+          icon={<TrashIcon className="w-full h-full" />}
+          selected={selectedIcon === 'trash'}
+          onSelect={() => setSelectedIcon('trash')}
+          onOpen={() => openWindow('trash')}
+          style={compactIcons ? undefined : { bottom: 33, right: 28 }}
         />
-      ))}
+      </div>
 
-      {/* Trash always sits in the bottom-right corner */}
-      <DesktopIcon
-        label="Trash"
-        icon={<TrashIcon className="w-full h-full" />}
-        selected={selectedIcon === 'trash'}
-        onSelect={() => setSelectedIcon('trash')}
-        onOpen={() => openWindow('trash')}
-        style={{ bottom: 33, right: 28 }}
-      />
-
-      {/* Open windows — array order is z-order, last entry is on top */}
       {openWins.map((win, i) => {
         const meta = WINDOW_META[win.id];
+        const size = getDefaultWindowSize(meta, viewport);
         return (
           <MacWindow
             key={win.id}
             title={meta.title}
             initial={{ x: win.x, y: win.y }}
-            width={Math.min(meta.w, window.innerWidth - 50)}
-            height={Math.min(meta.h, window.innerHeight - 88)}
+            width={size.w}
+            height={size.h}
+            maxSize={maxWindowSize}
+            viewport={viewport}
             z={10 + i}
             active={i === openWins.length - 1}
             onClose={() => closeWindow(win.id)}
@@ -186,7 +227,6 @@ function renderWindow(
   }
 }
 
-/* "About This Macintosh" — a small spec sheet, period-accurate spirit */
 function AboutMacContent() {
   return (
     <>
@@ -202,7 +242,6 @@ function AboutMacContent() {
   );
 }
 
-/* The Trash — always empty */
 function TrashContent() {
   return <p>The Trash is empty.</p>;
 }

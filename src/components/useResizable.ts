@@ -9,12 +9,31 @@ export type Size = { w: number; h: number };
 
 const DEFAULT_MIN: Size = { w: 240, h: 160 };
 
-export function useResizable(initial: Size, min: Size = DEFAULT_MIN) {
-  const [size, setSize] = useState<Size>(initial);
+function clampSize(size: Size, min: Size, max: Size): Size {
+  return {
+    w: Math.min(max.w, Math.max(min.w, size.w)),
+    h: Math.min(max.h, Math.max(min.h, size.h)),
+  };
+}
+
+export function useResizable(
+  initial: Size,
+  maxSize: Size,
+  min: Size = DEFAULT_MIN,
+) {
+  const [size, setSize] = useState<Size>(() =>
+    clampSize(initial, min, maxSize),
+  );
   const [resizing, setResizing] = useState(false);
 
   // Pointer + size at grab time, so the drag is anchored to the corner
   const start = useRef({ mouseX: 0, mouseY: 0, w: 0, h: 0 });
+
+  // Shrink (or grow max) when the viewport changes — never expand past new max
+  useEffect(() => {
+    setSize((s) => clampSize(s, min, maxSize));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- w/h fields only
+  }, [maxSize.w, maxSize.h, min.w, min.h]);
 
   const onResizeStart = useCallback(
     (e: React.PointerEvent) => {
@@ -33,20 +52,21 @@ export function useResizable(initial: Size, min: Size = DEFAULT_MIN) {
   useEffect(() => {
     if (!resizing) return;
 
-    // Suppress text-selection on the whole document while we drag the corner —
-    // otherwise the browser will start grabbing text in any window we cross.
     document.body.classList.add('no-select');
 
     const onMove = (e: PointerEvent) => {
       const dw = e.clientX - start.current.mouseX;
       const dh = e.clientY - start.current.mouseY;
-      // Clamp to a sensible minimum and the current viewport
-      const maxW = window.innerWidth - 16;
-      const maxH = window.innerHeight - 16;
-      setSize({
-        w: Math.min(maxW, Math.max(min.w, start.current.w + dw)),
-        h: Math.min(maxH, Math.max(min.h, start.current.h + dh)),
-      });
+      setSize(
+        clampSize(
+          {
+            w: start.current.w + dw,
+            h: start.current.h + dh,
+          },
+          min,
+          maxSize,
+        ),
+      );
     };
     const onUp = () => setResizing(false);
 
@@ -57,7 +77,8 @@ export function useResizable(initial: Size, min: Size = DEFAULT_MIN) {
       window.removeEventListener('pointerup', onUp);
       document.body.classList.remove('no-select');
     };
-  }, [resizing, min.w, min.h]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- w/h fields only
+  }, [resizing, min.w, min.h, maxSize.w, maxSize.h]);
 
   return { size, onResizeStart, resizing };
 }

@@ -229,7 +229,7 @@ export const experience: ExperienceItem[] = [
     org: 'Endeavor AI',
     location: 'San Francisco, CA',
     dates: 'Mar 2026 - Present',
-    url: 'https://www.endeavor-ai.com',
+    url: 'https://www.endeavor.ai',
     bullets: [
       'Engineered consumer integrations and internal platform tooling for ' +
         'AI-assisted order entry and ERP automation workflows',

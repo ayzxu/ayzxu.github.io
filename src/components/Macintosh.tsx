@@ -16,12 +16,15 @@ type MacintoshProps = {
   onPowerClick?: () => void;
   /** Show the blinking "click to start" prompt on the off screen */
   showPrompt?: boolean;
+  /** SVG height as a fraction of the viewport (default 0.9) */
+  svgVh?: number;
 };
 
 export default function Macintosh({
   screen,
   onPowerClick,
   showPrompt = true,
+  svgVh = 0.9,
 }: MacintoshProps) {
   const off = screen === 'off';
   const interactive = off && !!onPowerClick;
@@ -32,7 +35,7 @@ export default function Macintosh({
       shapeRendering="crispEdges"
       onClick={interactive ? onPowerClick : undefined}
       style={{
-        height: '90vh',
+        height: `${svgVh * 100}vh`,
         width: 'auto',
         display: 'block',
         cursor: 'inherit',

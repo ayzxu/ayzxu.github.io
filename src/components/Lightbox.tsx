@@ -36,8 +36,8 @@ export default function Lightbox({ src, alt, onClose }: LightboxProps) {
       }}
     >
       <div
-        className="mac-window"
-        style={{ position: 'static', maxWidth: '80%', maxHeight: '80%' }}
+        className="mac-window lightbox-window"
+        style={{ position: 'static' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="title-bar active">
@@ -59,12 +59,7 @@ export default function Lightbox({ src, alt, onClose }: LightboxProps) {
           <img
             src={src}
             alt={alt}
-            className="bw-img pixelated"
-            style={{
-              maxWidth: '70vw',
-              maxHeight: '64vh',
-              objectFit: 'contain',
-            }}
+            className="bw-img pixelated lightbox-image"
           />
         </div>
       </div>

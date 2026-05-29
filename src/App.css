@@ -318,3 +318,143 @@
   color: #ffffff;
   text-decoration: none;
 }
+
+/* --- Desktop icon regions ------------------------------------------------ */
+.desktop-icons {
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Right column — must fill the desktop so % tops resolve correctly */
+.desktop-icons--column {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.desktop-icons .desktop-icon {
+  pointer-events: auto;
+}
+
+/* Narrow / short viewports: horizontal strip along the bottom */
+.desktop-icons--compact {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 4px 10px;
+  padding: 6px 8px 10px;
+  z-index: 5;
+}
+
+.desktop-icons--compact .desktop-icon {
+  position: static !important;
+  width: 72px;
+}
+
+.desktop-icons--compact .icon-art {
+  width: 48px;
+  height: 48px;
+}
+
+.desktop-icons--compact .icon-label {
+  font-size: clamp(14px, 3.5vw, 18px);
+}
+
+/* --- Responsive typography & media ----------------------------------------- */
+.window-body {
+  font-size: clamp(18px, 2.4vw, 24px);
+  padding: clamp(12px, 2.5vw, 20px) clamp(14px, 2.8vw, 22px);
+}
+
+.win-h {
+  font-size: clamp(11px, 1.6vw, 14px);
+}
+
+.win-sub {
+  font-size: clamp(9px, 1.3vw, 11px);
+}
+
+.win-meta {
+  font-size: clamp(16px, 2.1vw, 20px);
+}
+
+.menu-item {
+  font-size: clamp(16px, 2.2vw, 20px);
+}
+
+.icon-label {
+  font-size: clamp(16px, 2.1vw, 20px);
+}
+
+.thumb {
+  width: min(145px, 42vw);
+  height: auto;
+  aspect-ratio: 4 / 3;
+}
+
+.media-video {
+  width: min(200px, 100%);
+  max-width: 100%;
+  border: 2px solid #000000;
+}
+
+.chess-board-wrap {
+  width: min(256px, 100%);
+  max-width: 100%;
+  border: 2px solid #000000;
+  margin-top: 8px;
+  filter: grayscale(1) contrast(1.1);
+}
+
+.readme-portrait {
+  width: min(168px, 45%);
+  height: auto;
+  aspect-ratio: 168 / 138;
+  object-fit: cover;
+  border: 2px solid #000000;
+  margin-left: 12px;
+  margin-bottom: 8px;
+  float: right;
+}
+
+.lightbox-window {
+  max-width: min(80%, 92vw) !important;
+  max-height: min(80%, 88vh) !important;
+}
+
+.lightbox-image {
+  max-width: min(70vw, 92vw);
+  max-height: min(64vh, 78vh);
+  object-fit: contain;
+}
+
+@media (max-width: 519px) {
+  .readme-portrait {
+    float: none;
+    display: block;
+    width: min(168px, 70%);
+    margin: 0 auto 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-title {
+    padding: 0 7px;
+  }
+
+  .menu-clock {
+    padding: 0 8px;
+    font-size: 8px;
+  }
+
+  .menu-dropdown {
+    min-width: min(210px, 92vw);
+  }
+}

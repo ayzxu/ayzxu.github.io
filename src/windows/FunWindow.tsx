@@ -61,14 +61,7 @@ export default function FunWindow({ onOpenImage }: FunWindowProps) {
                 Currently rated {ratings.bullet} Bullet, {ratings.rapid}{' '}
                 Rapid, {ratings.blitz} Blitz.
               </p>
-              <div
-                style={{
-                  width: 256,
-                  border: '2px solid #000000',
-                  marginTop: 8,
-                  filter: 'grayscale(1) contrast(1.1)',
-                }}
-              >
+              <div className="chess-board-wrap">
                 <Chessboard
                   key={`board-${boardFen}`}
                   options={chessOptions}
@@ -111,11 +104,7 @@ export default function FunWindow({ onOpenImage }: FunWindowProps) {
                     controls
                     muted
                     playsInline
-                    className="bw-img"
-                    style={{
-                      width: 200,
-                      border: '2px solid #000000',
-                    }}
+                    className="bw-img media-video"
                   />
                 ) : (
                   <img
