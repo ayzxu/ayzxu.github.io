@@ -90,6 +90,11 @@
   overflow: hidden;
 }
 
+/* Keep menu bar above the photo/dither layers */
+.mac-desktop-surface > .menu-bar {
+  z-index: 1000;
+}
+
 /* --- Windows ------------------------------------------------------------- */
 .mac-window {
   position: absolute;

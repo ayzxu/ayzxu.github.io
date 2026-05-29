@@ -18,6 +18,7 @@ import ReadMeWindow from '../windows/ReadMeWindow';
 import ProjectsWindow from '../windows/ProjectsWindow';
 import FunWindow from '../windows/FunWindow';
 import AboutWindow from '../windows/AboutWindow';
+import desktopBg from '../assets/bg.jpg';
 
 type OpenWin = { id: WindowId; x: number; y: number };
 
@@ -99,7 +100,8 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
 
   return (
     <div
-      className="desktop-root bg-mac-desktop"
+      className="desktop-root mac-desktop-surface"
+      style={{ '--desktop-bg': `url(${desktopBg})` } as React.CSSProperties}
       onClick={() => setSelectedIcon(null)}
     >
       <MenuBar
