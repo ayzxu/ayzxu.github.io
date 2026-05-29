@@ -42,6 +42,15 @@ html, body {
   color: #ffffff;
 }
 
+/* While a window is being dragged or resized we suppress text selection on
+   the entire document — otherwise fast pointer motion can grab text in any
+   window the cursor crosses. The class is toggled by useDraggable / useResizable. */
+.no-select,
+.no-select * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
 /* --------------------------------------------------------------------------
    Dither / texture utilities
    -------------------------------------------------------------------------- */
@@ -62,9 +71,10 @@ html, body {
   );
 }
 
-/* Photographs rendered as if displayed on a 1-bit Macintosh screen */
+/* Photographs displayed with a faded Game Boy Color look — color is retained
+   but washed out, with a slight warm tint to evoke a plastic-screen LCD. */
 @utility bw-img {
-  filter: grayscale(1) contrast(1.45) brightness(1.05);
+  filter: saturate(0.55) contrast(0.92) brightness(1.06) sepia(0.18) hue-rotate(-8deg);
 }
 
 /* --------------------------------------------------------------------------
@@ -103,8 +113,8 @@ html, body {
 }
 
 .mac-scroll::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 }
 
 .mac-scroll::-webkit-scrollbar-track {

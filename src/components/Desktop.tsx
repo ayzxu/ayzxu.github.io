@@ -27,23 +27,31 @@ type DesktopProps = {
   onShutDown: () => void;
 };
 
-/* Desktop icons down the right edge, classic Macintosh layout */
+/* Desktop icons down the right edge, classic Macintosh layout
+   (positions scaled 1.25× to match the chrome) */
 const ICONS: { id: WindowId; label: string; icon: React.ReactNode; top: number }[] =
   [
-    { id: 'readme', label: 'Read Me', icon: <DocumentIcon className="w-full h-full" />, top: 40 },
-    { id: 'projects', label: 'Projects', icon: <FolderIcon className="w-full h-full" />, top: 134 },
-    { id: 'fun', label: 'Fun', icon: <FolderIcon className="w-full h-full" />, top: 228 },
-    { id: 'about', label: 'About Me', icon: <FolderIcon className="w-full h-full" />, top: 322 },
+    { id: 'readme', label: 'Read Me', icon: <DocumentIcon className="w-full h-full" />, top: 50 },
+    { id: 'projects', label: 'Projects', icon: <FolderIcon className="w-full h-full" />, top: 168 },
+    { id: 'fun', label: 'Fun', icon: <FolderIcon className="w-full h-full" />, top: 285 },
+    { id: 'about', label: 'About Me', icon: <FolderIcon className="w-full h-full" />, top: 403 },
   ];
 
 export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const navigate = useNavigate();
 
-  // Read Me opens by default; a deep-link window stacks on top of it
+  // Read Me opens by default, centred in the viewport so it greets the user
+  // squarely on screen. A deep-link window stacks on top with a small offset.
   const [openWins, setOpenWins] = useState<OpenWin[]>(() => {
-    const wins: OpenWin[] = [{ id: 'readme', x: 70, y: 56 }];
+    const meta = WINDOW_META.readme;
+    const w = Math.min(meta.w, window.innerWidth - 50);
+    const h = Math.min(meta.h, window.innerHeight - 88);
+    const x = Math.max(0, Math.round((window.innerWidth - w) / 2));
+    // Keep the title bar clear of the 28px menu bar
+    const y = Math.max(29, Math.round((window.innerHeight - h) / 2));
+    const wins: OpenWin[] = [{ id: 'readme', x, y }];
     if (initialWindow && initialWindow !== 'readme') {
-      wins.push({ id: initialWindow, x: 110, y: 90 });
+      wins.push({ id: initialWindow, x: x + 50, y: y + 43 });
     }
     return wins;
   });
@@ -68,7 +76,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
       }
       // Cascade new windows so they never land exactly on top of each other
       const n = wins.length;
-      return [...wins, { id, x: 70 + n * 28, y: 56 + n * 28 }];
+      return [...wins, { id, x: 88 + n * 35, y: 70 + n * 35 }];
     });
   };
 
@@ -110,7 +118,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
           selected={selectedIcon === ic.id}
           onSelect={() => setSelectedIcon(ic.id)}
           onOpen={() => openWindow(ic.id)}
-          style={{ top: ic.top, right: 22 }}
+          style={{ top: ic.top, right: 28 }}
         />
       ))}
 
@@ -121,7 +129,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
         selected={selectedIcon === 'trash'}
         onSelect={() => setSelectedIcon('trash')}
         onOpen={() => openWindow('trash')}
-        style={{ bottom: 26, right: 22 }}
+        style={{ bottom: 33, right: 28 }}
       />
 
       {/* Open windows — array order is z-order, last entry is on top */}
@@ -132,8 +140,8 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
             key={win.id}
             title={meta.title}
             initial={{ x: win.x, y: win.y }}
-            width={Math.min(meta.w, window.innerWidth - 40)}
-            height={Math.min(meta.h, window.innerHeight - 70)}
+            width={Math.min(meta.w, window.innerWidth - 50)}
+            height={Math.min(meta.h, window.innerHeight - 88)}
             z={10 + i}
             active={i === openWins.length - 1}
             onClose={() => closeWindow(win.id)}

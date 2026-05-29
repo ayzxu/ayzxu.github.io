@@ -1,11 +1,13 @@
 /* ==========================================================================
-   MacWindow — a draggable, closable System 1 window shell.
-   Wraps any content in the classic chrome: striped title bar, close box and an
-   internally scrolling body. Position is owned here via useDraggable; z-order,
-   focus and lifecycle are owned by the Desktop.
+   MacWindow — a draggable, resizable, closable System 1 window shell.
+   Wraps any content in the classic chrome: striped title bar, close box,
+   bottom-right size box and an internally scrolling body. Position is owned
+   here via useDraggable; size via useResizable; z-order, focus and lifecycle
+   are owned by the Desktop.
    ========================================================================== */
 
 import { useDraggable, type Point } from './useDraggable';
+import { useResizable } from './useResizable';
 
 type MacWindowProps = {
   title: string;
@@ -31,11 +33,12 @@ export default function MacWindow({
   children,
 }: MacWindowProps) {
   const { pos, onPointerDown } = useDraggable(initial);
+  const { size, onResizeStart } = useResizable({ w: width, h: height });
 
   return (
     <div
       className="mac-window"
-      style={{ left: pos.x, top: pos.y, width, height, zIndex: z }}
+      style={{ left: pos.x, top: pos.y, width: size.w, height: size.h, zIndex: z }}
       onPointerDown={onFocus}
     >
       <div
@@ -54,10 +57,18 @@ export default function MacWindow({
           <span>{title}</span>
         </div>
         {/* Spacer balances the close box so the title stays centred */}
-        <div style={{ width: 12, flexShrink: 0 }} />
+        <div style={{ width: 15, flexShrink: 0 }} />
       </div>
 
       <div className="window-body mac-scroll">{children}</div>
+
+      {/* Size box — drag the bottom-right corner to resize */}
+      <div
+        className="resize-handle"
+        onPointerDown={onResizeStart}
+        role="button"
+        aria-label="Resize window"
+      />
     </div>
   );
 }

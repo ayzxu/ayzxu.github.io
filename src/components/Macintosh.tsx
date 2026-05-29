@@ -1,7 +1,11 @@
 /* ==========================================================================
-   Macintosh — pixel-art Macintosh 128K exterior, rendered as a single SVG.
-   The App component zooms into the screen glass (centred at viewBox 180,140 →
-   transform-origin "50% 27%") to transition into the interactive desktop.
+   Macintosh — pixel-art Macintosh exterior, rendered as a single SVG.
+   The App component zooms into the screen glass (centred at viewBox 235,140 →
+   transform-origin "50% ~27%") to transition into the interactive desktop.
+
+   The chassis is intentionally wider than the historical Mac 128K so that the
+   screen-glass aspect (~16:9) matches modern viewports — when zoomed it can
+   fill the screen on BOTH axes rather than letterboxing horizontally.
 
      screen 'off'  → dark glass + blinking "click to start" prompt
      screen 'boot' → white glass + Happy Mac welcome
@@ -24,7 +28,7 @@ export default function Macintosh({
 
   return (
     <svg
-      viewBox="0 0 360 520"
+      viewBox="0 0 470 520"
       shapeRendering="crispEdges"
       onClick={interactive ? onPowerClick : undefined}
       style={{
@@ -34,14 +38,14 @@ export default function Macintosh({
         cursor: 'inherit',
       }}
     >
-      {/* carry-handle slot on top */}
-      <rect x="148" y="16" width="64" height="9" fill="#b3ab8e" />
+      {/* carry-handle slot on top — centred on chassis */}
+      <rect x="203" y="16" width="64" height="9" fill="#b3ab8e" />
 
       {/* main chassis */}
       <rect
         x="42"
         y="24"
-        width="276"
+        width="386"
         height="392"
         fill="#d6cfb8"
         stroke="#000000"
@@ -51,7 +55,7 @@ export default function Macintosh({
       <rect
         x="54"
         y="36"
-        width="252"
+        width="362"
         height="368"
         fill="#e8e2cd"
         stroke="#000000"
@@ -62,20 +66,20 @@ export default function Macintosh({
       <rect
         x="74"
         y="50"
-        width="212"
+        width="322"
         height="182"
         fill="#4a4a44"
         stroke="#000000"
         strokeWidth="2"
       />
-      {/* screen glass — 84..276 x, 56..224 y → centre (180,140) */}
-      <rect x="84" y="56" width="192" height="168" fill={off ? '#1a1a1a' : '#ffffff'} />
+      {/* screen glass — 84..386 × 56..224 → centre (235,140), aspect ≈ 16:9 */}
+      <rect x="84" y="56" width="302" height="168" fill={off ? '#1a1a1a' : '#ffffff'} />
 
       {/* --- screen contents ------------------------------------------------ */}
       {off ? (
         showPrompt && (
           <text
-            x="180"
+            x="235"
             y="146"
             textAnchor="middle"
             className="animate-blink"
@@ -88,8 +92,9 @@ export default function Macintosh({
         )
       ) : (
         <g>
-          {/* Happy Mac — drawn inline so it scales with the screen */}
-          <g transform="translate(152,92) scale(1.15)">
+          {/* Happy Mac — drawn inline so it scales with the screen
+              (centred on glass: glass cx 235 - happy half-width 23 ≈ 207) */}
+          <g transform="translate(207,92) scale(1.15)">
             <rect
               x="4"
               y="2"
@@ -120,19 +125,19 @@ export default function Macintosh({
             <rect x="13" y="45" width="10" height="3" fill="#000000" />
           </g>
           <text
-            x="180"
+            x="235"
             y="196"
             textAnchor="middle"
             fill="#000000"
             fontFamily='"VT323", monospace'
             fontSize="18"
           >
-            Welcome to Macintosh
+            Welcome to AndyOS
           </text>
         </g>
       )}
 
-      {/* Apple badge below the screen */}
+      {/* Apple badge below the screen, left bezel */}
       <g transform="translate(76,244) scale(0.6)">
         <path d="M17 3 Q22 3 21 9 Q16 9 17 3 Z" fill="#000000" />
         <path
@@ -149,18 +154,18 @@ export default function Macintosh({
         fontFamily='"Press Start 2P", monospace'
         fontSize="11"
       >
-        Macintosh
+        AndyOS
       </text>
 
-      {/* floppy disk drive slot */}
-      <rect x="196" y="300" width="88" height="11" fill="#2a2a26" />
-      <rect x="232" y="296" width="16" height="4" fill="#2a2a26" />
+      {/* floppy disk drive slot — right bezel */}
+      <rect x="306" y="300" width="88" height="11" fill="#2a2a26" />
+      <rect x="342" y="296" width="16" height="4" fill="#2a2a26" />
 
       {/* base / foot */}
       <rect
         x="42"
         y="416"
-        width="276"
+        width="386"
         height="88"
         fill="#d6cfb8"
         stroke="#000000"
@@ -169,7 +174,7 @@ export default function Macintosh({
       <rect
         x="66"
         y="432"
-        width="228"
+        width="338"
         height="56"
         fill="#cdc6ac"
         stroke="#000000"

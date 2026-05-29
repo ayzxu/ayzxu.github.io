@@ -27,12 +27,16 @@ export function useDraggable(initial: Point) {
   useEffect(() => {
     if (!dragging) return;
 
+    // Mirror useResizable: kill text selection globally for the duration of
+    // the drag so window-body content never gets accidentally highlighted.
+    document.body.classList.add('no-select');
+
     const onMove = (e: PointerEvent) => {
       const maxX = window.innerWidth - 64;
       const maxY = window.innerHeight - 40;
       const nextX = Math.min(Math.max(e.clientX - offset.current.x, 0), maxX);
-      // 23px keeps the title bar clear of the menu bar
-      const nextY = Math.min(Math.max(e.clientY - offset.current.y, 23), maxY);
+      // 29px keeps the title bar clear of the (now 28px) menu bar
+      const nextY = Math.min(Math.max(e.clientY - offset.current.y, 29), maxY);
       setPos({ x: nextX, y: nextY });
     };
     const onUp = () => setDragging(false);
@@ -42,6 +46,7 @@ export function useDraggable(initial: Point) {
     return () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
+      document.body.classList.remove('no-select');
     };
   }, [dragging]);
 

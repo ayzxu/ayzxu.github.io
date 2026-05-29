@@ -1,16 +1,18 @@
 /* ==========================================================================
    System 1 UI chrome — menu bar, windows, desktop icons, controls
+   All sizes are scaled 1.25× from the original Macintosh dimensions for
+   easier reading on modern displays.
    ========================================================================== */
 
 /* --- Menu bar ------------------------------------------------------------- */
 .menu-bar {
   display: flex;
   align-items: stretch;
-  height: 22px;
+  height: 28px;
   background: #ffffff;
   border-bottom: 1px solid #000000;
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 9px;
   user-select: none;
   position: relative;
   z-index: 1000;
@@ -19,7 +21,7 @@
 .menu-title {
   display: flex;
   align-items: center;
-  padding: 0 9px;
+  padding: 0 11px;
   white-space: nowrap;
 }
 
@@ -33,27 +35,33 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 13px;
 }
 
 /* --- Menu dropdowns ------------------------------------------------------- */
+/* Explicit color resets are important: the dropdown is rendered inside the
+   .menu-title.open element, which sets color:#fff. Without these the items
+   inherit white-on-white and become invisible. */
 .menu-dropdown {
   position: absolute;
-  top: 22px;
+  top: 28px;
   background: #ffffff;
+  color: #000000;
   border: 1px solid #000000;
-  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.5);
-  min-width: 168px;
-  padding: 2px 0;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.5);
+  min-width: 210px;
+  padding: 3px 0;
   z-index: 1001;
 }
 
 .menu-item {
   font-family: "VT323", monospace;
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1;
-  padding: 4px 18px 4px 22px;
+  padding: 5px 22px 5px 28px;
   white-space: nowrap;
+  color: #000000;
+  background: #ffffff;
 }
 
 .menu-item:not(.disabled):hover {
@@ -67,7 +75,7 @@
 
 .menu-separator {
   height: 1px;
-  margin: 3px 0;
+  margin: 4px 0;
   background: #000000;
   opacity: 0.35;
 }
@@ -87,7 +95,7 @@
   position: absolute;
   background: #ffffff;
   border: 2px solid #000000;
-  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.45);
+  box-shadow: 5px 5px 0 0 rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
 }
@@ -95,10 +103,10 @@
 .title-bar {
   display: flex;
   align-items: center;
-  height: 20px;
+  height: 25px;
   border-bottom: 2px solid #000000;
   background: #ffffff;
-  padding: 0 6px;
+  padding: 0 8px;
   user-select: none;
 }
 
@@ -112,8 +120,8 @@
 }
 
 .close-box {
-  width: 12px;
-  height: 12px;
+  width: 15px;
+  height: 15px;
   border: 1px solid #000000;
   background: #ffffff;
   flex-shrink: 0;
@@ -127,14 +135,14 @@
   flex: 1;
   text-align: center;
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 10px;
   color: #000000;
 }
 
 /* White lozenge keeps the title legible above the striped bar */
 .title-bar-text span {
   background: #ffffff;
-  padding: 3px 10px;
+  padding: 4px 13px;
 }
 
 .window-body {
@@ -143,9 +151,38 @@
   background: #ffffff;
   color: #000000;
   font-family: "VT323", monospace;
-  font-size: 19px;
+  font-size: 24px;
   line-height: 1.25;
-  padding: 16px 18px;
+  padding: 20px 22px;
+}
+
+/* Bottom-right size box — classic Mac two-stripe hash. The 1px borders join
+   it to the window chrome so it reads as part of the frame. */
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  background-image: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 25%,
+    #000000 25%,
+    #000000 35%,
+    transparent 35%,
+    transparent 60%,
+    #000000 60%,
+    #000000 70%,
+    transparent 70%
+  );
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  cursor: nwse-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 /* --- Desktop icons ------------------------------------------------------- */
@@ -153,26 +190,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 86px;
+  width: 108px;
   user-select: none;
 }
 
 .icon-art {
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .icon-label {
-  margin-top: 3px;
+  margin-top: 4px;
   font-family: "VT323", monospace;
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1;
   color: #000000;
   background: #ffffff;
-  padding: 1px 4px;
+  padding: 2px 5px;
   text-align: center;
 }
 
@@ -189,18 +226,18 @@
 /* --- Buttons ------------------------------------------------------------- */
 .mac-button {
   font-family: "VT323", monospace;
-  font-size: 17px;
+  font-size: 21px;
   line-height: 1;
-  padding: 4px 14px;
+  padding: 5px 18px;
   background: #ffffff;
   color: #000000;
   border: 1px solid #000000;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 /* The default button carries an extra ring, as in classic dialogs */
 .mac-button.default {
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #000000;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #000000;
 }
 
 .mac-button:active {
@@ -212,21 +249,21 @@
 /* Pixel-font headings used inside window bodies */
 .win-h {
   font-family: "Press Start 2P", monospace;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.6;
-  margin: 0 0 10px;
+  margin: 0 0 13px;
 }
 
 .win-sub {
   font-family: "Press Start 2P", monospace;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
 /* Small caps-y meta line (dates, locations) */
 .win-meta {
   font-family: "VT323", monospace;
-  font-size: 16px;
+  font-size: 20px;
   opacity: 0.75;
 }
 
@@ -234,13 +271,13 @@
 .thumb-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .thumb {
-  width: 116px;
-  height: 88px;
+  width: 145px;
+  height: 110px;
   object-fit: cover;
   border: 2px solid #000000;
   display: block;
@@ -253,7 +290,7 @@
 
 /* A content block separated from the next by breathing room */
 .win-block + .win-block {
-  margin-top: 14px;
+  margin-top: 18px;
 }
 
 /* --- Misc ---------------------------------------------------------------- */
@@ -262,7 +299,7 @@
   height: 2px;
   background: #000000;
   border: 0;
-  margin: 14px 0;
+  margin: 18px 0;
 }
 
 /* Links inside window bodies stay readable and obviously clickable */

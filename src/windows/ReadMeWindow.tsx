@@ -15,8 +15,8 @@ export default function ReadMeWindow() {
         alt="Andy Xu"
         className="bw-img pixelated"
         style={{
-          width: 116,
-          height: 116,
+          width: 168,
+          height: 138,
           objectFit: 'cover',
           border: '2px solid #000000',
           float: 'right',
