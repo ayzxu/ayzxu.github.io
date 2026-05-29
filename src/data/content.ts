@@ -75,9 +75,9 @@ export type ExperienceItem = {
 export const intro = {
   heading: "Hello, I'm Andy!",
   body:
-    "I'm a current CMU senior studying Business + CS. I'm interested in " +
+    "I'm a recent graduate of Carnegie Mellon University studying Business + CS. I'm interested in " +
     "building AI products and working on something meaningful. In the past, " +
-    "I've worked as an AI Engineer at IBM.",
+    "I've worked as a Forward Deployed Engineer at Endeavor AI and an AI Engineer Intern at IBM.",
   portrait: portrait2,
 };
 
@@ -146,6 +146,12 @@ export const projects: Project[] = [
 
 export const funItems: FunItem[] = [
   {
+    title: 'Chess',
+    description: ['Just trying to get better at chess!'],
+    links: [{ name: 'Chess.com Profile', url: 'https://www.chess.com/member/mozandyque' }],
+    live: true,
+  },
+  {
     title: 'Art',
     description: ['I like drawing bald or nearly bald guys and painting shoes.'],
     images: [
@@ -155,20 +161,6 @@ export const funItems: FunItem[] = [
       { src: walterwhite, alt: 'Walter White' },
     ],
     links: [{ name: 'Portfolio', url: 'https://axuportfolio.weebly.com' }],
-  },
-  {
-    title: 'Gym',
-    description: [
-      'Current Lifting Stats:',
-      '295lbs Bench',
-      '385lbs Squat',
-      '405lbs Deadlift',
-      'Just trying to stay healthy and get stronger!',
-    ],
-    media: [
-      { src: gymVideo1, alt: '365 Squat for 2!', type: 'video' },
-      { src: gymVideo2, alt: '295 Bench!', type: 'video' },
-    ],
   },
   {
     title: 'Volleyball',
@@ -198,10 +190,18 @@ export const funItems: FunItem[] = [
     ],
   },
   {
-    title: 'Chess',
-    description: ['Just trying to get better at chess!'],
-    links: [{ name: 'Chess.com Profile', url: 'https://www.chess.com/member/mozandyque' }],
-    live: true,
+    title: 'Gym',
+    description: [
+      'Current Lifting Stats:',
+      '295lbs Bench',
+      '385lbs Squat',
+      '405lbs Deadlift',
+      'Just trying to stay healthy and get stronger!',
+    ],
+    media: [
+      { src: gymVideo1, alt: '365 Squat for 2!', type: 'video' },
+      { src: gymVideo2, alt: '295 Bench!', type: 'video' },
+    ],
   },
 ];
 
@@ -228,7 +228,7 @@ export const experience: ExperienceItem[] = [
     role: 'Forward Deployed Engineer',
     org: 'Endeavor AI',
     location: 'San Francisco, CA',
-    dates: 'Mar 2026 - Present',
+    dates: 'Mar 2026 - Jun 2026',
     url: 'https://www.endeavor.ai',
     bullets: [
       'Engineered consumer integrations and internal platform tooling for ' +
