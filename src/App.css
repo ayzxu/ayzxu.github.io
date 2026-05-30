@@ -125,6 +125,7 @@
 }
 
 .close-box {
+  position: relative;
   width: 15px;
   height: 15px;
   border: 1px solid #000000;
@@ -132,8 +133,34 @@
   flex-shrink: 0;
 }
 
+/* The "X" — two crossed 1-bit strokes centred in the close box */
+.close-box::before,
+.close-box::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 11px;
+  height: 2px;
+  background: #000000;
+}
+
+.close-box::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.close-box::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 .close-box:active {
   background: #000000;
+}
+
+/* Keep the X legible when the box inverts on press */
+.close-box:active::before,
+.close-box:active::after {
+  background: #ffffff;
 }
 
 .title-bar-text {
@@ -159,6 +186,9 @@
   font-size: 24px;
   line-height: 1.25;
   padding: 20px 22px;
+  /* Establish a container so window media (thumbnails, portrait, video, board)
+     can size relative to the window itself and grow as the window enlarges. */
+  container-type: inline-size;
 }
 
 /* Bottom-right size box — classic Mac two-stripe hash. The 1px borders join
@@ -345,8 +375,8 @@
   border: 1px dashed #000000;
   background: repeating-conic-gradient(
     from 0deg,
-    rgba(0, 0, 0, 0.12) 0% 25%,
-    rgba(255, 255, 255, 0.08) 0% 50%
+    rgba(0, 0, 0, 0.5) 0% 25%,
+    rgba(255, 255, 255, 0.06) 0% 50%
   );
   background-size: 4px 4px;
   box-shadow: inset 0 0 0 1px #ffffff;
@@ -394,19 +424,20 @@
 }
 
 .thumb {
-  width: min(145px, 42vw);
+  /* Scales with the window width (cqw), capped so it never gets unwieldy */
+  width: clamp(120px, 26cqw, 320px);
   height: auto;
   aspect-ratio: 4 / 3;
 }
 
 .media-video {
-  width: min(200px, 100%);
+  width: clamp(160px, 34cqw, 380px);
   max-width: 100%;
   border: 2px solid #000000;
 }
 
 .chess-board-wrap {
-  width: min(256px, 100%);
+  width: clamp(200px, 40cqw, 420px);
   max-width: 100%;
   border: 2px solid #000000;
   margin-top: 8px;
@@ -414,7 +445,7 @@
 }
 
 .readme-portrait {
-  width: min(168px, 45%);
+  width: clamp(140px, 30cqw, 300px);
   height: auto;
   aspect-ratio: 168 / 138;
   object-fit: cover;

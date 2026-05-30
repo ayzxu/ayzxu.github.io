@@ -16,45 +16,72 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 import Macintosh from './components/Macintosh';
+import OldIPhone from './components/OldIPhone';
 import Desktop from './components/Desktop';
+import { isMobileDevice } from './lib/windowBounds';
 import { WINDOW_FOR_ROUTE, type WindowId } from './components/windowConfig';
 
 type Phase = 'exterior' | 'booting' | 'settling' | 'desktop' | 'shutdown';
 
 const DESKTOP_PATHS = ['/projects', '/fun', '/about', '/desktop'];
 
-/* Macintosh.tsx renders the SVG at height: 90vh, viewBox 470×520.
-   The widened "screen glass" occupies SVG-coords (84..386, 56..224) → 302×168
-   → centre at (235, 140), aspect ≈ 16:9. These constants let us compute the
-   precise zoom transform that perfectly snaps the glass to the viewport. */
-const SVG_VIEW_W = 470;
-const SVG_VIEW_H = 520;
-const GLASS_W = 302;
-const GLASS_H = 168;
-const GLASS_CX = 235; // SVG x of glass centre
-const GLASS_CY = 140; // SVG y of glass centre
+/* A "device profile" describes the startup hardware (Macintosh on desktop, old
+   iPhone on mobile). Each SVG is rendered at height: svgVh, and exposes a
+   "screen glass" rectangle that the boot animation zooms into. The glass is
+   always centred horizontally (glass cx = viewW / 2) so the zoom only needs a
+   vertical translate. These geometry numbers let us compute the precise zoom
+   transform that snaps the glass to the viewport. */
+type DeviceProfile = {
+  Component: typeof Macintosh;
+  viewW: number;
+  viewH: number;
+  glassW: number;
+  glassH: number;
+  glassCy: number;
+};
 
-/* Glass-centre as a percentage of the wrapper (which is sized to the SVG) —
-   used directly as the transform-origin so scaling pivots on the glass centre. */
-const GLASS_ORIGIN_X_PCT = (GLASS_CX / SVG_VIEW_W) * 100;            // 50%
-const GLASS_ORIGIN_Y_PCT = (GLASS_CY / SVG_VIEW_H) * 100;            // ≈26.92%
+/* Macintosh.tsx: viewBox 470×520, glass (84..386, 56..224) → 302×168, cy 140 */
+const MAC_PROFILE: DeviceProfile = {
+  Component: Macintosh,
+  viewW: 470,
+  viewH: 520,
+  glassW: 302,
+  glassH: 168,
+  glassCy: 140,
+};
+
+/* OldIPhone.tsx: viewBox 320×640, glass (72..248, 120..384) → 176×264, cy 252 */
+const IPHONE_PROFILE: DeviceProfile = {
+  Component: OldIPhone,
+  viewW: 320,
+  viewH: 640,
+  glassW: 176,
+  glassH: 264,
+  glassCy: 252,
+};
 
 function getSvgVh(): number {
   if (typeof window === 'undefined') return 0.9;
   return window.innerWidth < 480 ? 0.85 : 0.9;
 }
 
-function getZoomTranslateYVh(svgVh: number): number {
+/* Glass-centre Y as a percentage of the wrapper (sized to the SVG) — used as
+   the transform-origin so scaling pivots on the glass centre. */
+function glassOriginYPct(device: DeviceProfile): number {
+  return (device.glassCy / device.viewH) * 100;
+}
+
+function getZoomTranslateYVh(svgVh: number, originYPct: number): number {
   const wrapperTop = (100 - svgVh * 100) / 2;
-  const glassCenter = wrapperTop + svgVh * GLASS_ORIGIN_Y_PCT;
+  const glassCenter = wrapperTop + svgVh * originYPct;
   return 50 - glassCenter;
 }
 
-function computeFitScale(svgVh: number): number {
+function computeFitScale(svgVh: number, device: DeviceProfile): number {
   const svgHpx = svgVh * window.innerHeight;
-  const svgWpx = svgHpx * (SVG_VIEW_W / SVG_VIEW_H);
-  const glassWpx = svgWpx * (GLASS_W / SVG_VIEW_W);
-  const glassHpx = svgHpx * (GLASS_H / SVG_VIEW_H);
+  const svgWpx = svgHpx * (device.viewW / device.viewH);
+  const glassWpx = svgWpx * (device.glassW / device.viewW);
+  const glassHpx = svgHpx * (device.glassH / device.viewH);
   // Fit the screen-glass *just inside* the viewport — pick the smaller axis
   // so neither dimension overshoots (which would crop the Happy Mac logo).
   return Math.min(
@@ -66,6 +93,13 @@ function computeFitScale(svgVh: number): number {
 export default function App() {
   const navigate = useNavigate();
 
+  // Startup hardware is chosen once at mount: an old iPhone on mobile browsers,
+  // the Macintosh 128K otherwise. Device class doesn't change for the session.
+  const device = useMemo<DeviceProfile>(
+    () => (isMobileDevice() ? IPHONE_PROFILE : MAC_PROFILE),
+    [],
+  );
+
   // Route is read once at mount — deep links jump straight to the desktop
   const [initialWindow] = useState<WindowId | undefined>(
     () => WINDOW_FOR_ROUTE[window.location.pathname],
@@ -75,13 +109,14 @@ export default function App() {
   );
   const [zoom, setZoom] = useState(false);
 
-  // Dynamic zoom scale and exterior Mac height — recomputed on resize
+  // Dynamic zoom scale and exterior device height — recomputed on resize
   const [exteriorLayout, setExteriorLayout] = useState(() => {
     const svgVh = typeof window === 'undefined' ? 0.9 : getSvgVh();
+    const originY = glassOriginYPct(device);
     return {
       svgVh,
-      fitScale: typeof window === 'undefined' ? 6 : computeFitScale(svgVh),
-      zoomTranslateY: getZoomTranslateYVh(svgVh),
+      fitScale: typeof window === 'undefined' ? 6 : computeFitScale(svgVh, device),
+      zoomTranslateY: getZoomTranslateYVh(svgVh, originY),
     };
   });
   useEffect(() => {
@@ -89,8 +124,8 @@ export default function App() {
       const svgVh = getSvgVh();
       setExteriorLayout({
         svgVh,
-        fitScale: computeFitScale(svgVh),
-        zoomTranslateY: getZoomTranslateYVh(svgVh),
+        fitScale: computeFitScale(svgVh, device),
+        zoomTranslateY: getZoomTranslateYVh(svgVh, glassOriginYPct(device)),
       });
     };
     window.addEventListener('resize', onResize);
@@ -99,7 +134,7 @@ export default function App() {
       window.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [device]);
 
   // Crossfade flag — flips true a tick after entering 'settling'
   const [crossfaded, setCrossfaded] = useState(false);
@@ -213,12 +248,12 @@ export default function App() {
               transform: zoom
                 ? `translate(0, ${exteriorLayout.zoomTranslateY}vh) scale(${exteriorLayout.fitScale})`
                 : 'translate(0, 0) scale(1)',
-              transformOrigin: `${GLASS_ORIGIN_X_PCT}% ${GLASS_ORIGIN_Y_PCT}%`,
+              transformOrigin: `50% ${glassOriginYPct(device)}%`,
               transition: 'transform 1150ms ease-in-out',
               willChange: 'transform',
             }}
           >
-            <Macintosh
+            <device.Component
               screen={phase === 'exterior' ? 'off' : 'boot'}
               showPrompt={phase === 'exterior'}
               onPowerClick={phase === 'exterior' ? powerOn : undefined}

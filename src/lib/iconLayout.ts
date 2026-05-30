@@ -62,16 +62,30 @@ function columnIconPositions(viewport: Viewport): IconPositions {
 function compactIconPositions(viewport: Viewport): IconPositions {
   const containerH = viewport.h - MENU_TOP;
   const gap = 10;
-  const rowW =
-    DESKTOP_ICON_IDS.length * ICON_W +
-    (DESKTOP_ICON_IDS.length - 1) * gap;
-  let x = Math.max(8, Math.round((viewport.w - rowW) / 2));
-  const y = Math.max(8, containerH - ICON_H - gap);
+  const count = DESKTOP_ICON_IDS.length;
+
+  // How many icons fit across the viewport without overlapping. On phones this
+  // wraps the row into a grid so icons never collide; on wider compact screens
+  // it still resolves to a single bottom row.
+  const cols = Math.max(
+    1,
+    Math.min(count, Math.floor((viewport.w - gap) / (ICON_W + gap))),
+  );
+  const rows = Math.ceil(count / cols);
+
+  const gridW = cols * ICON_W + (cols - 1) * gap;
+  const gridH = rows * ICON_H + (rows - 1) * gap;
+  const startX = Math.max(8, Math.round((viewport.w - gridW) / 2));
+  const startY = Math.max(8, containerH - gridH - gap);
 
   const positions = {} as IconPositions;
-  DESKTOP_ICON_IDS.forEach((id) => {
-    positions[id] = { x, y };
-    x += ICON_W + gap;
+  DESKTOP_ICON_IDS.forEach((id, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    positions[id] = {
+      x: startX + col * (ICON_W + gap),
+      y: startY + row * (ICON_H + gap),
+    };
   });
   return positions;
 }

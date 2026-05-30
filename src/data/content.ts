@@ -215,8 +215,8 @@ export const about = {
   background:
     'I grew up in the Bay Area, California, and attended Lynbrook High School. ' +
     "I'm currently a senior at Carnegie Mellon University studying Business + " +
-    'Computer Science, with a passion for building AI products and working on ' +
-    'meaningful projects. I also scooter around campus sometimes, so there\u2019s that.',
+    'Computer Science, with a passion for building AI products and constant ' +
+    'improvement. I also scooter around campus sometimes, so there\u2019s that.',
   closing:
     "I'm always looking for opportunities to combine my technical skills with " +
     'my business acumen to create impactful products! Contact me if you\u2019d ' +

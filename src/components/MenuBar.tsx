@@ -52,6 +52,8 @@ export default function MenuBar({
             label: 'Read Me',
             onClick: () => onOpenWindow('readme'),
           },
+          { kind: 'sep' },
+          { kind: 'item', label: 'Shut Down', onClick: onShutDown },
         ],
       },
       {
@@ -99,16 +101,6 @@ export default function MenuBar({
         entries: [
           { kind: 'item', label: 'by Icon', disabled: true },
           { kind: 'item', label: 'by Name', disabled: true },
-        ],
-      },
-      {
-        key: 'Special',
-        label: 'Special',
-        entries: [
-          { kind: 'item', label: 'Clean Up Desktop', disabled: true },
-          { kind: 'item', label: 'Empty Trash', disabled: true },
-          { kind: 'sep' },
-          { kind: 'item', label: 'Shut Down', onClick: onShutDown },
         ],
       },
     ];
