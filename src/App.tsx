@@ -8,6 +8,10 @@
      desktop  → the live, interactive desktop (windows, menus, icons)
      shutdown → the screen blacks out and the camera pulls back to exterior
 
+   The Macintosh is used on every device — on mobile it is simply scaled to fit
+   the screen (see getSvgVh, which caps the height so the chassis never spills
+   past a narrow viewport's width).
+
    The zoom scale is computed dynamically so that the Mac's screen-glass lands
    exactly fitted to the viewport — never so big the Happy Mac logo is cropped.
    ========================================================================== */
@@ -16,21 +20,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 import Macintosh from './components/Macintosh';
-import OldIPhone from './components/OldIPhone';
 import Desktop from './components/Desktop';
-import { isMobileDevice } from './lib/windowBounds';
 import { WINDOW_FOR_ROUTE, type WindowId } from './components/windowConfig';
 
 type Phase = 'exterior' | 'booting' | 'settling' | 'desktop' | 'shutdown';
 
 const DESKTOP_PATHS = ['/projects', '/fun', '/about', '/desktop'];
 
-/* A "device profile" describes the startup hardware (Macintosh on desktop, old
-   iPhone on mobile). Each SVG is rendered at height: svgVh, and exposes a
-   "screen glass" rectangle that the boot animation zooms into. The glass is
-   always centred horizontally (glass cx = viewW / 2) so the zoom only needs a
-   vertical translate. These geometry numbers let us compute the precise zoom
-   transform that snaps the glass to the viewport. */
+/* A "device profile" describes the startup hardware. The SVG is rendered at
+   height: svgVh, and exposes a "screen glass" rectangle that the boot animation
+   zooms into. The glass is always centred horizontally (glass cx = viewW / 2)
+   so the zoom only needs a vertical translate. These geometry numbers let us
+   compute the precise zoom transform that snaps the glass to the viewport. */
 type DeviceProfile = {
   Component: typeof Macintosh;
   viewW: number;
@@ -40,29 +41,28 @@ type DeviceProfile = {
   glassCy: number;
 };
 
-/* Macintosh.tsx: viewBox 470×520, glass (84..386, 56..224) → 302×168, cy 140 */
+/* Macintosh.tsx: viewBox 620×650; the Mac sits on a desk and the screen glass
+   is centred at (310,160) → 302×168 (the Mac group is translated by 75,20). */
 const MAC_PROFILE: DeviceProfile = {
   Component: Macintosh,
-  viewW: 470,
-  viewH: 520,
+  viewW: 620,
+  viewH: 650,
   glassW: 302,
   glassH: 168,
-  glassCy: 140,
+  glassCy: 160,
 };
 
-/* OldIPhone.tsx: viewBox 320×640, glass (72..248, 120..384) → 176×264, cy 252 */
-const IPHONE_PROFILE: DeviceProfile = {
-  Component: OldIPhone,
-  viewW: 320,
-  viewH: 640,
-  glassW: 176,
-  glassH: 264,
-  glassCy: 252,
-};
+const MAC_ASPECT = MAC_PROFILE.viewW / MAC_PROFILE.viewH;
 
 function getSvgVh(): number {
   if (typeof window === 'undefined') return 0.9;
-  return window.innerWidth < 480 ? 0.85 : 0.9;
+  const base = window.innerWidth < 480 ? 0.85 : 0.9;
+  // On narrow / portrait screens the Mac is sized by height (width: auto), so a
+  // tall viewport would push the chassis wider than the screen. Cap the height
+  // so the rendered width stays within ~94% of the viewport width.
+  const maxVhForWidth =
+    (0.94 * window.innerWidth) / (window.innerHeight * MAC_ASPECT);
+  return Math.min(base, maxVhForWidth);
 }
 
 /* Glass-centre Y as a percentage of the wrapper (sized to the SVG) — used as
@@ -93,12 +93,8 @@ function computeFitScale(svgVh: number, device: DeviceProfile): number {
 export default function App() {
   const navigate = useNavigate();
 
-  // Startup hardware is chosen once at mount: an old iPhone on mobile browsers,
-  // the Macintosh 128K otherwise. Device class doesn't change for the session.
-  const device = useMemo<DeviceProfile>(
-    () => (isMobileDevice() ? IPHONE_PROFILE : MAC_PROFILE),
-    [],
-  );
+  // The Macintosh is the startup hardware on every device.
+  const device = MAC_PROFILE;
 
   // Route is read once at mount — deep links jump straight to the desktop
   const [initialWindow] = useState<WindowId | undefined>(
