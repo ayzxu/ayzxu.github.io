@@ -37,6 +37,7 @@ import ReadMeWindow from '../windows/ReadMeWindow';
 import ProjectsWindow from '../windows/ProjectsWindow';
 import FunWindow from '../windows/FunWindow';
 import AboutWindow from '../windows/AboutWindow';
+import TrashWindow from '../windows/TrashWindow';
 import desktopBg from '../assets/bg.jpg';
 
 type OpenWin = { id: WindowId; x: number; y: number };
@@ -308,7 +309,7 @@ function renderWindow(
     case 'aboutmac':
       return <AboutMacContent />;
     case 'trash':
-      return <TrashContent />;
+      return <TrashWindow />;
     case 'dropguard':
       return <DropGuardContent />;
   }
@@ -327,10 +328,6 @@ function AboutMacContent() {
       </p>
     </>
   );
-}
-
-function TrashContent() {
-  return <p>The Trash is empty.</p>;
 }
 
 function DropGuardContent() {

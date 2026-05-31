@@ -258,6 +258,52 @@
   color: #ffffff;
 }
 
+/* --- Trash window -------------------------------------------------------- */
+/* Fills the window body so the canvas has a definite height to clamp against */
+.trash-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Intro line scales with the window (cqw = 1% of window-body width) */
+.trash-intro {
+  margin: 0 0 10px;
+  font-size: clamp(13px, 3cqw, 21px);
+}
+
+/* The interior of the can: items are absolutely placed and cannot escape it */
+.trash-canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.trash-item {
+  position: absolute;
+  width: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.trash-item:active {
+  cursor: grabbing;
+}
+
+/* Icon label scales with the window; wraps so larger text never overflows */
+.trash-item .icon-label {
+  margin-top: 4px;
+  font-size: clamp(13px, 3.4cqw, 23px);
+  text-align: center;
+  word-break: break-word;
+}
+
 /* --- Buttons ------------------------------------------------------------- */
 .mac-button {
   font-family: "VT323", monospace;

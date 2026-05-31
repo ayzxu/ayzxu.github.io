@@ -29,7 +29,7 @@ export const WINDOW_META: Record<WindowId, WindowMeta> = {
   fun: { title: 'Fun', w: 980, h: 740 },
   about: { title: 'About Me', w: 720, h: 620 },
   aboutmac: { title: 'About This Macintosh', w: 475, h: 300 },
-  trash: { title: 'Trash', w: 375, h: 188 },
+  trash: { title: 'Trash', w: 560, h: 420 },
   dropguard: { title: 'System Notice', w: 440, h: 200 },
 };
 
