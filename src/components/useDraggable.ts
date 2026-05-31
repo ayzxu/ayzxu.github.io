@@ -8,7 +8,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   clampWindowPosition,
-  MENU_TOP,
   type Point,
   type Size,
   type Viewport,
@@ -73,5 +72,3 @@ export function useDraggable(
 
   return { pos, setPos, dragging, onPointerDown };
 }
-
-export { MENU_TOP };

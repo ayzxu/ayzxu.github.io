@@ -140,11 +140,7 @@ export function useIconDrag({
     [positions, setPositions, onOpen, onDropOnTarget],
   );
 
-  const draggingId =
-    draggingIds.size > 0 ? [...draggingIds][0] : null;
-
   return {
-    draggingId,
     draggingIds,
     onIconPointerDown,
     onIconPointerMove,

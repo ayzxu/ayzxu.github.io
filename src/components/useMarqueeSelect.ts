@@ -95,7 +95,6 @@ export function useMarqueeSelect({
   return {
     layerRef,
     marquee,
-    marqueeActive: marquee !== null,
     onSurfacePointerDown,
   };
 }

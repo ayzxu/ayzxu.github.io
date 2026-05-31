@@ -121,25 +121,3 @@ export function getCascadeOffset(viewport: Viewport): number {
 export function isCompactIcons(viewport: Viewport): boolean {
   return viewport.w < 768 || viewport.h < 520;
 }
-
-/**
- * Heuristic mobile-browser detection. Used to swap the startup hardware from a
- * Macintosh 128K to an old iPhone. Evaluated once at startup; device class does
- * not change for the life of the session.
- */
-export function isMobileDevice(): boolean {
-  if (typeof navigator === 'undefined' || typeof window === 'undefined') {
-    return false;
-  }
-  const ua = navigator.userAgent || '';
-  const mobileUA =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-  const coarse = window.matchMedia?.('(pointer: coarse)')?.matches ?? false;
-  const narrow = window.innerWidth < 768;
-  return mobileUA || (coarse && narrow);
-}
-
-/** @deprecated Use isCompactIcons — kept as alias for call sites */
-export function useCompactIcons(viewport: Viewport): boolean {
-  return isCompactIcons(viewport);
-}

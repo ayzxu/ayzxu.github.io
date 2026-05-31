@@ -10,7 +10,6 @@ import { DocumentIcon, FolderIcon } from '../components/PixelIcons';
 type TrashItem = {
   id: string;
   label: string;
-  /** Hover blurb — the joke */
   note: string;
   kind: 'doc' | 'folder';
 };
@@ -54,40 +53,47 @@ function clamp(p: Pos, canvasW: number, canvasH: number): Pos {
 export default function TrashWindow() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const drag = useRef<DragState | null>(null);
+  /* `positions` holds each item's *intended* spot. We never overwrite it on
+     resize — we only clamp it at render. So shrinking the window tucks icons
+     in, and enlarging restores them to exactly where they were dropped. */
   const [positions, setPositions] = useState<Record<string, Pos>>({});
+  const [canvas, setCanvas] = useState<{ w: number; h: number }>({
+    w: 0,
+    h: 0,
+  });
 
-  /* Lay items out in a grid once we know the canvas size, then re-clamp them
-     into view whenever the window (and thus the canvas) is resized. */
+  /* Track the canvas size so render-time clamping always uses live bounds. */
   useLayoutEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
-
-    const layout = () => {
-      const w = el.clientWidth;
-      const h = el.clientHeight;
-      const cols = Math.max(1, Math.floor((w + GAP) / (ITEM_W + GAP)));
-      setPositions((prev) => {
-        const next: Record<string, Pos> = { ...prev };
-        TRASH_ITEMS.forEach((it, i) => {
-          if (!next[it.id]) {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            next[it.id] = {
-              x: col * (ITEM_W + GAP),
-              y: row * (ITEM_H + GAP),
-            };
-          }
-          next[it.id] = clamp(next[it.id], w, h);
-        });
-        return next;
-      });
-    };
-
-    layout();
-    const ro = new ResizeObserver(layout);
+    const measure = () =>
+      setCanvas({ w: el.clientWidth, h: el.clientHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  /* Lay items out in a grid the first time we know the canvas width. */
+  useLayoutEffect(() => {
+    if (canvas.w === 0) return;
+    setPositions((prev) => {
+      if (Object.keys(prev).length === TRASH_ITEMS.length) return prev;
+      const cols = Math.max(1, Math.floor((canvas.w + GAP) / (ITEM_W + GAP)));
+      const next: Record<string, Pos> = { ...prev };
+      TRASH_ITEMS.forEach((it, i) => {
+        if (!next[it.id]) {
+          const col = i % cols;
+          const row = Math.floor(i / cols);
+          next[it.id] = {
+            x: col * (ITEM_W + GAP),
+            y: row * (ITEM_H + GAP),
+          };
+        }
+      });
+      return next;
+    });
+  }, [canvas.w]);
 
   const onPointerDown = useCallback(
     (id: string, e: React.PointerEvent) => {
@@ -96,7 +102,13 @@ export default function TrashWindow() {
       const el = canvasRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
-      const p = positions[id] ?? { x: 0, y: 0 };
+      /* Use the clamped (on-screen) position so the icon doesn't jump if the
+         window had been shrunk away from its intended spot. */
+      const p = clamp(
+        positions[id] ?? { x: 0, y: 0 },
+        el.clientWidth,
+        el.clientHeight,
+      );
       drag.current = {
         id,
         offX: e.clientX - rect.left - p.x,
@@ -135,8 +147,11 @@ export default function TrashWindow() {
       </p>
       <div ref={canvasRef} className="trash-canvas">
         {TRASH_ITEMS.map((it) => {
-          const p = positions[it.id];
-          if (!p) return null;
+          const intended = positions[it.id];
+          if (!intended) return null;
+          /* Clamp only for display — the stored position is left intact so it
+             returns to place when the window is enlarged again. */
+          const p = clamp(intended, canvas.w, canvas.h);
           return (
             <div
               key={it.id}
