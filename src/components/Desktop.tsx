@@ -170,7 +170,6 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const {
     layerRef,
     marquee,
-    marqueeActive,
     onSurfacePointerDown,
   } = useMarqueeSelect({
     iconPositions,
@@ -178,7 +177,10 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     disabled: draggingIds.size > 0,
   });
 
-  const iconLayerActive = draggingIds.size > 0 || marqueeActive;
+  /* Only float the icon layer above windows while *dragging* an icon. During a
+     marquee selection the layer (and its rubber-band) must stay below the open
+     windows, preserving the on-screen stacking order. */
+  const iconLayerActive = draggingIds.size > 0;
 
   /* Keep the URL in step with the topmost window so links stay shareable */
   useEffect(() => {
