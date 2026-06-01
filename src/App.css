@@ -113,6 +113,8 @@
   background: #ffffff;
   padding: 0 8px;
   user-select: none;
+  /* Dragging the bar by touch must move the window, not scroll/zoom the page */
+  touch-action: none;
 }
 
 /* Active window: title bar shows the classic six "racing stripes" */
@@ -186,6 +188,9 @@
   font-size: 24px;
   line-height: 1.25;
   padding: 20px 22px;
+  /* Momentum scroll on iOS; don't let body scroll chain to the page */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   /* Establish a container so window media (thumbnails, portrait, video, board)
      can size relative to the window itself and grow as the window enlarges. */
   container-type: inline-size;
@@ -218,6 +223,100 @@
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  z-index: 3;
+}
+
+/* Invisible grab strips along the edges and corners so a window can be
+   resized from any side, not just the bottom-right size box. */
+.resize-edge,
+.resize-corner {
+  position: absolute;
+  z-index: 2;
+  touch-action: none;
+}
+
+.resize-n {
+  top: -3px;
+  left: 10px;
+  right: 10px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.resize-s {
+  bottom: -3px;
+  left: 10px;
+  right: 10px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.resize-e {
+  top: 10px;
+  bottom: 10px;
+  right: -3px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.resize-w {
+  top: 10px;
+  bottom: 10px;
+  left: -3px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.resize-corner {
+  width: 16px;
+  height: 16px;
+}
+
+.resize-ne {
+  top: -3px;
+  right: -3px;
+  cursor: nesw-resize;
+}
+
+.resize-nw {
+  top: -3px;
+  left: -3px;
+  cursor: nwse-resize;
+}
+
+.resize-sw {
+  bottom: -3px;
+  left: -3px;
+  cursor: nesw-resize;
+}
+
+/* Coarse pointers (touch): widen every grab zone so edges are reachable */
+@media (pointer: coarse) {
+  .resize-edge.resize-n,
+  .resize-edge.resize-s {
+    height: 16px;
+  }
+
+  .resize-edge.resize-e,
+  .resize-edge.resize-w {
+    width: 16px;
+  }
+
+  .resize-corner {
+    width: 26px;
+    height: 26px;
+  }
+
+  .resize-handle {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* Enlarge the close box to a finger-friendly target on touch devices */
+  .close-box {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 /* --- Desktop icons ------------------------------------------------------- */
@@ -302,6 +401,34 @@
   font-size: clamp(13px, 3.4cqw, 23px);
   text-align: center;
   word-break: break-word;
+}
+
+/* --- Résumé window ------------------------------------------------------- */
+.resume-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Toolbar above the embedded PDF: title on the left, actions on the right */
+.resume-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  font-size: clamp(14px, 3cqw, 20px);
+}
+
+.resume-bar span {
+  flex: 1;
+}
+
+.resume-frame {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 2px solid #000000;
+  background: #ffffff;
 }
 
 /* --- Buttons ------------------------------------------------------------- */

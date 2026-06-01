@@ -13,6 +13,7 @@ export default function ReadMeWindow() {
       <img
         src={intro.portrait}
         alt="Andy Xu"
+        decoding="async"
         className="bw-img pixelated readme-portrait"
       />
 

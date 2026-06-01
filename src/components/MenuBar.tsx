@@ -75,6 +75,11 @@ export default function MenuBar({
             label: 'Open About Me',
             onClick: () => onOpenWindow('about'),
           },
+          {
+            kind: 'item',
+            label: 'Open Résumé',
+            onClick: () => onOpenWindow('resume'),
+          },
           { kind: 'sep' },
           {
             kind: 'item',

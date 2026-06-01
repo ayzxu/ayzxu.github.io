@@ -59,6 +59,7 @@ export default function Lightbox({ src, alt, onClose }: LightboxProps) {
           <img
             src={src}
             alt={alt}
+            decoding="async"
             className="bw-img pixelated lightbox-image"
           />
         </div>

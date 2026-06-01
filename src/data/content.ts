@@ -4,19 +4,19 @@
    ========================================================================== */
 
 // Project assets
-import squatformAnalyze from '../assets/projectpics/squatform/analyze.png';
+import squatformAnalyze from '../assets/projectpics/squatform/analyze.webp';
 import squatformFeedback from '../assets/projectpics/squatform/feedback.png';
 import spoilerblockExtension from '../assets/projectpics/spoilerblock/extension.png';
 import spoilerblockRedacted from '../assets/projectpics/spoilerblock/redacted.png';
-import spoilerblockFurtherRedaction from '../assets/projectpics/spoilerblock/furtherredaction.png';
+import spoilerblockFurtherRedaction from '../assets/projectpics/spoilerblock/furtherredaction.webp';
 import threeglWorld from '../assets/projectpics/threegl/world.webp';
 import chessaiGameplay from '../assets/projectpics/chessai/gameplay.png';
 
 // Fun assets
-import gusfring from '../assets/art/gusfring.png';
+import gusfring from '../assets/art/gusfring.webp';
 import stevejobs from '../assets/art/stevejobs.png';
-import vagabondshoes from '../assets/art/vagabondshoes.png';
-import walterwhite from '../assets/art/walterwhite.png';
+import vagabondshoes from '../assets/art/vagabondshoes.webp';
+import walterwhite from '../assets/art/walterwhite.webp';
 import gymVideo1 from '../assets/gym/IMG_6232.mov';
 import gymVideo2 from '../assets/gym/IMG_6418.MOV';
 import volleyballVideo1 from '../assets/volleyball/VB1.mov';
@@ -25,7 +25,7 @@ import volleyballImage1 from '../assets/volleyball/HS2A3950_Original.webp';
 import volleyballImage2 from '../assets/volleyball/HS2A4018_Original.webp';
 
 // About assets
-import portrait2 from '../assets/portraits/portrait2.png';
+import portrait2 from '../assets/portraits/portrait2.webp';
 import portrait3 from '../assets/portraits/portrait3.webp';
 import portrait4 from '../assets/portraits/portrait4.webp';
 import azuki1 from '../assets/experiencepics/azuki/azuki1.webp';

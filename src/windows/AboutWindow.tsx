@@ -20,6 +20,8 @@ export default function AboutWindow({ onOpenImage }: AboutWindowProps) {
             key={img.src}
             src={img.src}
             alt={img.alt}
+            loading="lazy"
+            decoding="async"
             className="thumb bw-img pixelated"
             onClick={() => onOpenImage(img.src, img.alt)}
           />
@@ -59,6 +61,8 @@ export default function AboutWindow({ onOpenImage }: AboutWindowProps) {
                   key={img.src}
                   src={img.src}
                   alt={img.alt}
+                  loading="lazy"
+                  decoding="async"
                   className="thumb bw-img pixelated"
                   onClick={() => onOpenImage(img.src, img.alt)}
                 />

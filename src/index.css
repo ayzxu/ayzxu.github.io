@@ -16,6 +16,10 @@ html, body {
   font-family: "VT323", monospace;
   /* Classic Macintosh black arrow pointer */
   cursor: url('/cursor.svg') 2 2, auto;
+  /* Mobile: keep our pixel sizes, stop iOS auto-inflation and rubber-banding */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: none;
 }
 
 *, *::before, *::after {
@@ -44,7 +48,7 @@ html, body {
 
 /* While a window is being dragged or resized we suppress text selection on
    the entire document — otherwise fast pointer motion can grab text in any
-   window the cursor crosses. The class is toggled by useDraggable / useResizable. */
+   window the cursor crosses. The class is toggled by useWindowGeometry. */
 .no-select,
 .no-select * {
   user-select: none !important;

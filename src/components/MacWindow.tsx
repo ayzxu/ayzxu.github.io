@@ -1,13 +1,12 @@
 /* ==========================================================================
    MacWindow — a draggable, resizable, closable System 1 window shell.
    Wraps any content in the classic chrome: striped title bar, close box,
-   bottom-right size box and an internally scrolling body. Position is owned
-   here via useDraggable; size via useResizable; z-order, focus and lifecycle
-   are owned by the Desktop.
+   bottom-right size box and an internally scrolling body. Position and size
+   are owned together by useWindowGeometry so the window can be resized from
+   any edge or corner; z-order, focus and lifecycle are owned by the Desktop.
    ========================================================================== */
 
-import { useDraggable, type Point } from './useDraggable';
-import { useResizable } from './useResizable';
+import { useWindowGeometry, type Point } from './useWindowGeometry';
 import type { Size, Viewport } from '../lib/windowBounds';
 
 type MacWindowProps = {
@@ -37,11 +36,12 @@ export default function MacWindow({
   onFocus,
   children,
 }: MacWindowProps) {
-  const { size, onResizeStart } = useResizable(
+  const { pos, size, onDragStart, onResizeStart } = useWindowGeometry(
+    initial,
     { w: width, h: height },
     maxSize,
+    viewport,
   );
-  const { pos, onPointerDown } = useDraggable(initial, size, viewport);
 
   return (
     <div
@@ -51,7 +51,7 @@ export default function MacWindow({
     >
       <div
         className={`title-bar${active ? ' active' : ''}`}
-        onPointerDown={onPointerDown}
+        onPointerDown={onDragStart}
       >
         <div
           className="close-box"
@@ -68,9 +68,18 @@ export default function MacWindow({
 
       <div className="window-body mac-scroll">{children}</div>
 
+      {/* Resize zones: four edges + four corners. The bottom-right keeps the
+          classic visible "size box"; the rest are invisible grab strips. */}
+      <div className="resize-edge resize-n" onPointerDown={onResizeStart('n')} />
+      <div className="resize-edge resize-s" onPointerDown={onResizeStart('s')} />
+      <div className="resize-edge resize-e" onPointerDown={onResizeStart('e')} />
+      <div className="resize-edge resize-w" onPointerDown={onResizeStart('w')} />
+      <div className="resize-corner resize-ne" onPointerDown={onResizeStart('ne')} />
+      <div className="resize-corner resize-nw" onPointerDown={onResizeStart('nw')} />
+      <div className="resize-corner resize-sw" onPointerDown={onResizeStart('sw')} />
       <div
         className="resize-handle"
-        onPointerDown={onResizeStart}
+        onPointerDown={onResizeStart('se')}
         role="button"
         aria-label="Resize window"
       />

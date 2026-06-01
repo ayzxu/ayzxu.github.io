@@ -9,6 +9,7 @@ export const DESKTOP_ICON_IDS = [
   'projects',
   'fun',
   'about',
+  'resume',
   'trash',
 ] as const;
 

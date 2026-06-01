@@ -86,6 +86,8 @@ export default function FunWindow({ onOpenImage }: FunWindowProps) {
                   key={img.src}
                   src={img.src}
                   alt={img.alt}
+                  loading="lazy"
+                  decoding="async"
                   className="thumb bw-img pixelated"
                   onClick={() => onOpenImage(img.src, img.alt)}
                 />
@@ -104,6 +106,7 @@ export default function FunWindow({ onOpenImage }: FunWindowProps) {
                     controls
                     muted
                     playsInline
+                    preload="none"
                     className="bw-img media-video"
                   />
                 ) : (
@@ -111,6 +114,8 @@ export default function FunWindow({ onOpenImage }: FunWindowProps) {
                     key={m.src}
                     src={m.src}
                     alt={m.alt}
+                    loading="lazy"
+                    decoding="async"
                     className="thumb bw-img pixelated"
                     onClick={() => onOpenImage(m.src, m.alt)}
                   />

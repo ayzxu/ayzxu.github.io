@@ -37,6 +37,7 @@ import ReadMeWindow from '../windows/ReadMeWindow';
 import ProjectsWindow from '../windows/ProjectsWindow';
 import FunWindow from '../windows/FunWindow';
 import AboutWindow from '../windows/AboutWindow';
+import ResumeWindow from '../windows/ResumeWindow';
 import TrashWindow from '../windows/TrashWindow';
 import desktopBg from '../assets/bg.jpg';
 
@@ -57,6 +58,7 @@ const DESKTOP_ICONS: {
   { id: 'projects', label: 'Projects', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'fun', label: 'Fun', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'about', label: 'About Me', icon: <FolderIcon className="w-full h-full" /> },
+  { id: 'resume', label: 'Résumé', icon: <DocumentIcon className="w-full h-full" /> },
   { id: 'trash', label: 'Trash', icon: <TrashIcon className="w-full h-full" /> },
 ];
 
@@ -306,6 +308,8 @@ function renderWindow(
       return <FunWindow onOpenImage={onOpenImage} />;
     case 'about':
       return <AboutWindow onOpenImage={onOpenImage} />;
+    case 'resume':
+      return <ResumeWindow />;
     case 'aboutmac':
       return <AboutMacContent />;
     case 'trash':
