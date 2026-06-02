@@ -43,6 +43,11 @@ import desktopBg from '../assets/bg.jpg';
 
 type OpenWin = { id: WindowId; x: number; y: number };
 
+/** Brief, randomized "loading" beat (with the hourglass cursor) before a
+   window mounts — varying it slightly makes the "loading" feel less robotic. */
+const OPEN_DELAY_MIN_MS = 150;
+const OPEN_DELAY_MAX_MS = 350;
+
 type DesktopProps = {
   /** Window to open on top at boot, derived from a deep-link route */
   initialWindow?: WindowId;
@@ -106,6 +111,21 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(
     null,
   );
+  const [busy, setBusy] = useState(false);
+  const busyTimer = useRef<number | null>(null);
+
+  /* Toggle the hourglass cursor on <body> while a window is "loading" */
+  useEffect(() => {
+    document.body.classList.toggle('mac-busy', busy);
+  }, [busy]);
+
+  /* Clear any pending open timer on unmount */
+  useEffect(
+    () => () => {
+      if (busyTimer.current !== null) window.clearTimeout(busyTimer.current);
+    },
+    [],
+  );
 
   /* Re-layout icons when switching column ↔ compact; clamp on mere resize */
   useEffect(() => {
@@ -123,12 +143,9 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     });
   }, [compactIcons, viewport]);
 
-  const openWindow = (id: WindowId) => {
+  const mountWindow = (id: WindowId) =>
     setOpenWins((wins) => {
-      const existing = wins.find((w) => w.id === id);
-      if (existing) {
-        return [...wins.filter((w) => w.id !== id), existing];
-      }
+      if (wins.some((w) => w.id === id)) return wins;
       const n = wins.length;
       const off = getCascadeOffset(viewport);
       const size = getDefaultWindowSize(WINDOW_META[id], viewport);
@@ -144,6 +161,28 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
         },
       ];
     });
+
+  const openWindow = (id: WindowId) => {
+    // Already open → bring it to the front instantly, no "loading".
+    if (openWins.some((w) => w.id === id)) {
+      setOpenWins((wins) => {
+        const w = wins.find((x) => x.id === id);
+        if (!w) return wins;
+        return [...wins.filter((x) => x.id !== id), w];
+      });
+      return;
+    }
+    // New window → flash the hourglass for a beat, then mount it.
+    if (busyTimer.current !== null) return; // one open at a time
+    setBusy(true);
+    const delay =
+      OPEN_DELAY_MIN_MS +
+      Math.random() * (OPEN_DELAY_MAX_MS - OPEN_DELAY_MIN_MS);
+    busyTimer.current = window.setTimeout(() => {
+      busyTimer.current = null;
+      setBusy(false);
+      mountWindow(id);
+    }, delay);
   };
 
   const openDropGuard = () => {

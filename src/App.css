@@ -133,6 +133,9 @@
   border: 1px solid #000000;
   background: #ffffff;
   flex-shrink: 0;
+  cursor: pointer;
+  /* Tapping the close box must register as a tap, not a scroll/zoom gesture */
+  touch-action: none;
 }
 
 /* The "X" — two crossed 1-bit strokes centred in the close box */
@@ -429,6 +432,18 @@
   width: 100%;
   border: 2px solid #000000;
   background: #ffffff;
+}
+
+/* Shown when a browser can't render the PDF inline (e.g. mobile Safari) */
+.resume-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
 }
 
 /* --- Buttons ------------------------------------------------------------- */

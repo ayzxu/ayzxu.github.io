@@ -55,8 +55,22 @@ export default function MacWindow({
       >
         <div
           className="close-box"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={onClose}
+          // Drive the close from pointer events directly rather than a synthetic
+          // click: iOS Safari fires `click` on plain <div>s unreliably. stopping
+          // propagation keeps the title-bar drag from starting, and capturing the
+          // pointer guarantees the matching pointerup lands on this tiny target
+          // even if the finger drifts a pixel or two.
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerUp={(e) => {
+            e.stopPropagation();
+            if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+              e.currentTarget.releasePointerCapture(e.pointerId);
+            }
+            onClose();
+          }}
           role="button"
           aria-label={`Close ${title}`}
         />

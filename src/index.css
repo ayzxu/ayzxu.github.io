@@ -28,6 +28,13 @@ html, body {
   cursor: inherit;
 }
 
+/* "Busy" — the classic watch/hourglass cursor, shown for a beat while a
+   window opens so it feels like System 1 is loading. Toggled on <body>. */
+body.mac-busy,
+body.mac-busy * {
+  cursor: url('/hourglass.png') 16 16, wait !important;
+}
+
 #root {
   height: 100vh;
   width: 100vw;

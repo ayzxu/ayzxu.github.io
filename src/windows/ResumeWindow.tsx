@@ -1,10 +1,11 @@
 /* ==========================================================================
    ResumeWindow — shows Andy's résumé inside a System 1 window. The PDF is
-   embedded for desktop browsers (which have built-in viewers); a clear
-   open / download link is always available as the mobile-friendly fallback.
+   embedded with <object> so browsers that can render PDFs inline do so, while
+   those that can't (notably most mobile browsers) fall back to a clear
+   open / download prompt instead of a blank or broken frame.
    ========================================================================== */
 
-import resumeUrl from '../assets/Xu_Andy Resume.pdf';
+import resumeUrl from '../assets/Andy_Xu_Resume.pdf';
 
 const DOWNLOAD_NAME = 'Andy_Xu_Resume.pdf';
 
@@ -20,11 +21,26 @@ export default function ResumeWindow() {
           Open in new tab
         </a>
       </div>
-      <iframe
+      <object
         className="resume-frame"
-        src={`${resumeUrl}#toolbar=0&view=FitH`}
-        title="Andy Xu résumé"
-      />
+        data={`${resumeUrl}#toolbar=0&view=FitH`}
+        type="application/pdf"
+        aria-label="Andy Xu résumé"
+      >
+        <div className="resume-fallback">
+          <p>This browser can&apos;t show the PDF inline.</p>
+          <p>
+            <a href={resumeUrl} target="_blank" rel="noreferrer">
+              Open the résumé in a new tab
+            </a>{' '}
+            or{' '}
+            <a href={resumeUrl} download={DOWNLOAD_NAME}>
+              download it
+            </a>
+            .
+          </p>
+        </div>
+      </object>
     </div>
   );
 }
