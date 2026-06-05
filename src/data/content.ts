@@ -84,7 +84,7 @@ export const intro = {
 export const socials: LinkItem[] = [
   { name: 'GitHub', url: 'https://github.com/ayzxu' },
   { name: 'LinkedIn', url: 'https://www.linkedin.com/in/ayzxu/' },
-  { name: 'Email', url: 'mailto:andyxu@cmu.edu' },
+  { name: 'Email', url: 'mailto:andyxu.sanjose@gmail.com' },
 ];
 
 /* --- Projects window ----------------------------------------------------- */
@@ -167,7 +167,7 @@ export const funItems: FunItem[] = [
     description: [
       "Playing competitive volleyball as a captain as part of CMU Men's Club " +
         'Volleyball team. Led the team to top 15 in Division II of National ' +
-        'Club Volleyball Foundation in 2023, 2025.',
+        'Club Volleyball Foundation in 2023, 2024, 2025, as well as the 2026 Runner Ups.',
     ],
     media: [
       { src: volleyballImage1, alt: 'Phoenix Nationals 2025', type: 'image' },
@@ -228,7 +228,7 @@ export const experience: ExperienceItem[] = [
     role: 'Forward Deployed Engineer',
     org: 'Endeavor AI',
     location: 'San Francisco, CA',
-    dates: 'Mar 2026 - Jun 2026',
+    dates: 'Mar 2026 - Present',
     url: 'https://www.endeavor.ai',
     bullets: [
       'Engineered consumer integrations and internal platform tooling for ' +

@@ -41,15 +41,17 @@ type DeviceProfile = {
   glassCy: number;
 };
 
-/* Macintosh.tsx: viewBox 620×650; the Mac sits on a desk and the screen glass
-   is centred at (310,160) → 302×168 (the Mac group is translated by 75,20). */
+/* Macintosh.tsx: viewBox 620×650; the Mac (clipart PNG) sits on a desk and its
+   screen glass is centred at (≈310,175) → 239×158. Keep these in sync with the
+   GLASS_* constants in Macintosh.tsx so the boot-zoom snaps the screen exactly
+   into the viewport. */
 const MAC_PROFILE: DeviceProfile = {
   Component: Macintosh,
   viewW: 620,
   viewH: 650,
-  glassW: 302,
-  glassH: 168,
-  glassCy: 160,
+  glassW: 295,
+  glassH: 195,
+  glassCy: 198,
 };
 
 const MAC_ASPECT = MAC_PROFILE.viewW / MAC_PROFILE.viewH;
