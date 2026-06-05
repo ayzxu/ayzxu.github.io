@@ -8,10 +8,11 @@
 
    IMPORTANT — boot-zoom contract (see App.tsx MAC_PROFILE):
    The PNG is drawn at (IMG_X, IMG_Y)→IMG_W×IMG_H within the 620×650 viewBox.
-   The clipart's screen occupies PNG pixels (212,96)→336×222, which lands at the
-   GLASS rect below — centred at (≈310,≈175). The glass is kept centred
-   horizontally (cx ≈ 310 = viewW/2) so the boot-zoom stays a simple vertical
-   translate. These GLASS numbers must match MAC_PROFILE in App.tsx.
+   The clipart's screen occupies PNG pixels (211,93)→338×228, which lands just
+   inside the GLASS rect below — centred at (310,198). The glass is sized a hair
+   larger than the clipart's blue screen so the dark CRT fully covers it, and is
+   kept centred horizontally (cx = 310 = viewW/2) so the boot-zoom stays a simple
+   vertical translate. These GLASS numbers must match MAC_PROFILE in App.tsx.
 
      screen 'off'  → dark CRT glass with a soft phosphor glow + blinking prompt
      screen 'boot' → lit glass with the Happy Mac welcome
@@ -19,22 +20,25 @@
 
 import macClipart from '../assets/mac-clipart.png';
 
-/* PNG → viewBox placement. The clipart has been pre-trimmed to just the chassis
-   (its 472×616 bounding box, with the baked-in drop shadow removed) so we fully
-   control the grounding. Scale 0.877 makes it ~414 wide; the offsets centre it
-   on x=310 and rest the flat foot on the desk at viewBox y≈560. */
+/* PNG → viewBox placement. The clipart is the shadow-free "better" Mac, trimmed
+   to its content bounding box (473×641 — chassis incl. the lower base/foot, no
+   drop shadow at all) so we fully control the grounding. Scale ≈0.875 makes it
+   ~414 wide; the offsets centre it on x=310 and rest the foot on the desk at
+   viewBox y≈580. */
 const IMG_X = 103;
-const IMG_Y = 19.7;
-const IMG_W = 414; // 472 * 0.877
-const IMG_H = 540.3; // 616 * 0.877
+const IMG_Y = 18.9;
+const IMG_W = 414; // 473 * 0.875
+const IMG_H = 561; // 641 * 0.875
 
-/* Screen glass in viewBox coords (trimmed screen 68..404 × 92..314 @ scale). */
-const GLASS_X = 163;
-const GLASS_Y = 100;
-const GLASS_W = 295;
-const GLASS_H = 195;
-const GLASS_CX = GLASS_X + GLASS_W / 2; // ≈ 310.5
-const GLASS_CY = GLASS_Y + GLASS_H / 2; // ≈ 197.5
+/* Screen glass in viewBox coords — sized a touch larger than the clipart's blue
+   screen (which lands at ≈161.6..457.5 × 97.7..297.2) so the dark CRT fully
+   covers it with no blue halo. Centred at (310,198). */
+const GLASS_X = 157;
+const GLASS_Y = 94;
+const GLASS_W = 306;
+const GLASS_H = 208;
+const GLASS_CX = GLASS_X + GLASS_W / 2; // = 310
+const GLASS_CY = GLASS_Y + GLASS_H / 2; // = 198
 
 type MacintoshProps = {
   screen: 'off' | 'boot';
@@ -134,16 +138,22 @@ export default function Macintosh({
         <line x1="-60" y1="534" x2="680" y2="530" />
         <line x1="-60" y1="582" x2="680" y2="586" />
       </g>
-      <ellipse cx="310" cy="520" rx="300" ry="110" fill="url(#deskPool)" />
+      <ellipse cx="310" cy="540" rx="300" ry="115" fill="url(#deskPool)" />
 
-      {/* dissolve the desk into darkness at its edges — no hard cut anywhere */}
-      <rect x="-60" y="425" width="250" height="240" fill="url(#fadeL)" />
-      <rect x="430" y="425" width="250" height="240" fill="url(#fadeR)" />
-      <rect x="-60" y="556" width="740" height="110" fill="url(#fadeB)" />
+      {/* Dissolve the whole scene into pure black at the left/right edges — the
+          fades run the FULL height and reach solid black exactly at the viewBox
+          boundary (x=0 / x=620), so on any window width the desk melts into the
+          black room with no hard horizontal cut. Drawn before the Mac, so they
+          never darken the chassis itself. */}
+      <rect x="0" y="-60" width="200" height="770" fill="url(#fadeL)" />
+      <rect x="420" y="-60" width="200" height="770" fill="url(#fadeR)" />
+      {/* Only the very front lip of the desk fades out, leaving lit wood in
+          front of the Mac so its full bottom bezel reads as resting on the desk */}
+      <rect x="-60" y="622" width="740" height="60" fill="url(#fadeB)" />
 
-      {/* single tight grounding shadow right at the flat foot (y≈560) so the
+      {/* single tight grounding shadow right at the foot (y≈580) so the
           Mac reads as resting on the desk, not floating */}
-      <ellipse cx="310" cy="561" rx="176" ry="11" fill="#000000" opacity="0.5" />
+      <ellipse cx="310" cy="580" rx="176" ry="11" fill="#000000" opacity="0.42" />
 
       {/* ===== Macintosh clipart ========================================== */}
       <image
@@ -214,8 +224,10 @@ export default function Macintosh({
         </g>
       )}
 
-      {/* ===== AndyOS wordmark on the front face (below the screen) ======= */}
-      <g transform="translate(150,332) scale(0.62)">
+      {/* ===== AndyOS wordmark on the front face (below the screen) =======
+          Seated low on the lit front panel — clear of the shaded bezel band
+          just under the screen — with the wordmark tucked up to the badge. */}
+      <g transform="translate(150,354) scale(0.62)">
         <path d="M17 3 Q22 3 21 9 Q16 9 17 3 Z" fill="#4a4438" />
         <path
           d="M16 9 C10 7 4 11 5 19 C6 27 11 30 14 28 C15 27 17 27 18 28
@@ -225,8 +237,8 @@ export default function Macintosh({
         />
       </g>
       <text
-        x="194"
-        y="349"
+        x="172"
+        y="371"
         fill="#4a4438"
         fontFamily='"Press Start 2P", monospace'
         fontSize="11"

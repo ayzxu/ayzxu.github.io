@@ -49,8 +49,8 @@ const MAC_PROFILE: DeviceProfile = {
   Component: Macintosh,
   viewW: 620,
   viewH: 650,
-  glassW: 295,
-  glassH: 195,
+  glassW: 306,
+  glassH: 208,
   glassCy: 198,
 };
 
