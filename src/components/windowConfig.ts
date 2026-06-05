@@ -25,7 +25,7 @@ export type WindowMeta = {
 /* Default content sizes. The three folder windows (projects/fun/about) open
    noticeably larger than Read Me so they have room to display thumbnails. */
 export const WINDOW_META: Record<WindowId, WindowMeta> = {
-  readme: { title: 'Read Me', w: 575, h: 475 },
+  readme: { title: 'Read Me', w: 720, h: 600 },
   projects: { title: 'Projects', w: 980, h: 720 },
   fun: { title: 'Fun', w: 980, h: 740 },
   about: { title: 'About Me', w: 720, h: 620 },

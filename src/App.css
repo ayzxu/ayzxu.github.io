@@ -643,6 +643,24 @@
   float: right;
 }
 
+/* Intro ("Read Me") window: larger, more welcoming type than other windows */
+.readme-content {
+  font-size: clamp(21px, 3vw, 30px);
+  line-height: 1.3;
+}
+
+.readme-content .win-h {
+  font-size: clamp(15px, 2.1vw, 20px);
+}
+
+.readme-content .win-sub {
+  font-size: clamp(12px, 1.7vw, 15px);
+}
+
+.readme-content .win-meta {
+  font-size: clamp(18px, 2.5vw, 25px);
+}
+
 .lightbox-window {
   max-width: min(80%, 92vw) !important;
   max-height: min(80%, 88vh) !important;

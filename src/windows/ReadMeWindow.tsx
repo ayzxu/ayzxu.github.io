@@ -7,7 +7,7 @@ import { intro, socials } from '../data/content';
 
 export default function ReadMeWindow() {
   return (
-    <>
+    <div className="readme-content">
       <div className="win-h">{intro.heading}</div>
 
       <img
@@ -40,6 +40,6 @@ export default function ReadMeWindow() {
       <p className="win-meta" style={{ marginTop: 14 }}>
         Double-click a folder on the desktop to explore.
       </p>
-    </>
+    </div>
   );
 }
