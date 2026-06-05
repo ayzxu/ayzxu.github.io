@@ -101,7 +101,7 @@ export const projects: Project[] = [
     link: 'https://github.com/ayzxu/squatform',
     images: [
       { src: squatformAnalyze, alt: 'Squat Form Analysis Interface' },
-      { src: squatformFeedback, alt: 'Detailed Feedback' },
+      { src: squatformFeedback, alt: 'Detailed Feedback ' },
     ],
   },
   {
