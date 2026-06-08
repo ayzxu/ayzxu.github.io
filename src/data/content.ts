@@ -81,7 +81,7 @@ export type ExperienceItem = {
 export const intro = {
   heading: "Hi, I'm Andy.",
   body:
-    "I'm a recent Carnegie Mellon graduate studying Business and Computer Science. " +
+    "I'm a recent Carnegie Mellon graduate with a degree in Business Administration and Computer Science. " +
     "I'm passionate about building AI products that solve real problems and create meaningful impact. " +
     "Previously, I've worked as a Forward Deployed Engineer at Endeavor AI and as an AI Engineer Intern at IBM.",
   portrait: portrait2,
