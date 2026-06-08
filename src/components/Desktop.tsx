@@ -40,7 +40,14 @@ import AboutWindow from '../windows/AboutWindow';
 import ResumeWindow from '../windows/ResumeWindow';
 import ChessWindow from '../windows/ChessWindow';
 import TrashWindow from '../windows/TrashWindow';
-import desktopBg from '../assets/bg.jpg';
+import desktopBg1 from '../assets/bg.jpg';
+import desktopBg2 from '../assets/bg2.jpg';
+
+/* Pick a desktop wallpaper at random for each visit. Chosen once at module
+   load so it stays stable for the lifetime of the page. */
+const DESKTOP_BACKGROUNDS = [desktopBg1, desktopBg2];
+const desktopBg =
+  DESKTOP_BACKGROUNDS[Math.floor(Math.random() * DESKTOP_BACKGROUNDS.length)];
 
 type OpenWin = { id: WindowId; x: number; y: number };
 
@@ -320,7 +327,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
             onClose={() => closeWindow(win.id)}
             onFocus={() => focusWindow(win.id)}
           >
-            {renderWindow(win.id, onOpenImage)}
+            {renderWindow(win.id, onOpenImage, openWindow)}
           </MacWindow>
         );
       })}
@@ -339,12 +346,15 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
 function renderWindow(
   id: WindowId,
   onOpenImage: (src: string, alt: string) => void,
+  onOpenWindow: (id: WindowId) => void,
 ): React.ReactNode {
   switch (id) {
     case 'readme':
       return <ReadMeWindow />;
     case 'projects':
-      return <ProjectsWindow onOpenImage={onOpenImage} />;
+      return (
+        <ProjectsWindow onOpenImage={onOpenImage} onOpenWindow={onOpenWindow} />
+      );
     case 'fun':
       return <FunWindow onOpenImage={onOpenImage} />;
     case 'about':

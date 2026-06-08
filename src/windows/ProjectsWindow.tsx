@@ -5,12 +5,17 @@
    ========================================================================== */
 
 import { projects } from '../data/content';
+import type { WindowId } from '../components/windowConfig';
 
 type ProjectsWindowProps = {
   onOpenImage: (src: string, alt: string) => void;
+  onOpenWindow: (id: WindowId) => void;
 };
 
-export default function ProjectsWindow({ onOpenImage }: ProjectsWindowProps) {
+export default function ProjectsWindow({
+  onOpenImage,
+  onOpenWindow,
+}: ProjectsWindowProps) {
   return (
     <>
       {projects.map((p, i) => (
@@ -19,12 +24,26 @@ export default function ProjectsWindow({ onOpenImage }: ProjectsWindowProps) {
           <div className="win-meta">{p.date}</div>
           <p style={{ marginTop: 6 }}>{p.description}</p>
 
-          {p.link && (
+          {p.openApp ? (
             <p>
-              <a href={p.link} target="_blank" rel="noreferrer">
-                View on GitHub
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onOpenWindow(p.openApp!);
+                }}
+              >
+                {p.openAppLabel ?? 'Open'}
               </a>
             </p>
+          ) : (
+            p.link && (
+              <p>
+                <a href={p.link} target="_blank" rel="noreferrer">
+                  View on GitHub
+                </a>
+              </p>
+            )
           )}
 
           {p.images && p.images.length > 0 && (

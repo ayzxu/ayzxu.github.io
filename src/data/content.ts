@@ -39,6 +39,8 @@ import ibm23 from '../assets/experiencepics/ibm2/ibm23.webp';
 
 /* --- Types ---------------------------------------------------------------- */
 
+import type { WindowId } from '../components/windowConfig';
+
 export type MediaItem = { src: string; alt: string; type: 'image' | 'video' };
 export type LinkItem = { name: string; url: string };
 
@@ -47,6 +49,10 @@ export type Project = {
   date: string;
   description: string;
   link?: string;
+  /** Opens a window inside the desktop (e.g. the live Andy Chess app) instead
+     of linking out. When set, this takes precedence over `link`. */
+  openApp?: WindowId;
+  openAppLabel?: string;
   images?: { src: string; alt: string }[];
 };
 
@@ -91,6 +97,15 @@ export const socials: LinkItem[] = [
 
 export const projects: Project[] = [
   {
+    title: 'Andy\'s Chess AI',
+    date: 'Jun 2026',
+    description:
+      'A chess bot that plays like me. 1500 rated, but it\'s going to get stronger over time.',
+    openApp: 'chess',
+    openAppLabel: 'Play Andy Chess',
+    images: [{ src: chessaiGameplay, alt: 'Chess AI Gameplay' }],
+  },
+  {
     title: 'Squat Form Analyzer',
     date: 'Nov 2025',
     description:
@@ -130,15 +145,6 @@ export const projects: Project[] = [
       'Features an asset pipeline with GLTF + Draco/KTX2 compression.',
     link: 'https://github.com/ayzxu/threegl-planet',
     images: [{ src: threeglWorld, alt: '3D Game World Screenshot' }],
-  },
-  {
-    title: 'Chess AI',
-    date: 'Dec 2022',
-    description:
-      'AI opponent using minimax algorithm with alpha-beta pruning. Supports ' +
-      'human vs. human and human vs. AI game modes.',
-    link: 'https://www.github.com/ayzxu/chess',
-    images: [{ src: chessaiGameplay, alt: 'Chess AI Gameplay' }],
   },
 ];
 
