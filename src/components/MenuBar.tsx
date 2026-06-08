@@ -80,6 +80,11 @@ export default function MenuBar({
             label: 'Open Résumé',
             onClick: () => onOpenWindow('resume'),
           },
+          {
+            kind: 'item',
+            label: 'Open Andy Chess',
+            onClick: () => onOpenWindow('chess'),
+          },
           { kind: 'sep' },
           {
             kind: 'item',

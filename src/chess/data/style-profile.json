@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "username": "mozandyque",
+    "source": "curated-default",
+    "generatedAt": "2026-06-08T16:45:45.672Z",
+    "games": 0
+  },
+  "ratings": {
+    "blitz": 1500,
+    "rapid": 1450,
+    "bullet": 1450
+  },
+  "style": {
+    "aggression": 0.66,
+    "tactical": 0.62,
+    "materialism": 0.42,
+    "risk": 0.6,
+    "captureBias": 0.5,
+    "checkBias": 0.5,
+    "centerBias": 0.6,
+    "developmentBias": 0.6,
+    "kingsideAttackBias": 0.62
+  },
+  "errors": {
+    "blunderRate": 0.025,
+    "inaccuracyRate": 0.08,
+    "blunderCpWindow": [
+      80,
+      260
+    ],
+    "sharpnessMultiplier": 1.35,
+    "endgameErrorMultiplier": 0.25
+  },
+  "search": {
+    "baseDepth": 2,
+    "endgameDepth": 4,
+    "baseTemperature": 24,
+    "inaccuracyTemperature": 75,
+    "bookDeviation": 0.1
+  }
+}

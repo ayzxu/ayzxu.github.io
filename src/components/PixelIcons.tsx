@@ -72,6 +72,42 @@ export function TrashIcon({ className }: IconProps) {
   );
 }
 
+/* Chess knight on a base — the Andy Chess Bot icon */
+export function ChessIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* knight head & neck silhouette */}
+      <path
+        d="M12 28
+           V20
+           C12 14 14 12 16 10
+           L14 7
+           L17 5
+           L19 8
+           C23 10 24 14 24 20
+           V28 Z"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* eye */}
+      <rect x="18" y="11" width="2" height="2" fill="#000000" />
+      {/* mane line */}
+      <line x1="16" y1="11" x2="14" y2="18" stroke="#000000" strokeWidth="2" />
+      {/* base */}
+      <rect
+        x="9"
+        y="28"
+        width="18"
+        height="2"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 /* The classic "Happy Mac" shown on the boot screen */
 export function HappyMac({ className }: IconProps) {
   return (

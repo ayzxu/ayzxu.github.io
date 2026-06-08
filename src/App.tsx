@@ -25,7 +25,7 @@ import { WINDOW_FOR_ROUTE, type WindowId } from './components/windowConfig';
 
 type Phase = 'exterior' | 'booting' | 'settling' | 'desktop' | 'shutdown';
 
-const DESKTOP_PATHS = ['/projects', '/fun', '/about', '/resume', '/desktop'];
+const DESKTOP_PATHS = ['/projects', '/fun', '/about', '/resume', '/chess', '/desktop'];
 
 /* A "device profile" describes the startup hardware. The SVG is rendered at
    height: svgVh, and exposes a "screen glass" rectangle that the boot animation

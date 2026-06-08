@@ -10,6 +10,7 @@ export const DESKTOP_ICON_IDS = [
   'fun',
   'about',
   'resume',
+  'chess',
   'trash',
 ] as const;
 
@@ -44,17 +45,32 @@ export function getDefaultIconPositions(
   return columnIconPositions(viewport);
 }
 
+/** Max icons stacked in a single vertical column before wrapping to the next. */
+const MAX_PER_COLUMN = 5;
+/** Horizontal spacing between stacked columns. */
+const COLUMN_GAP = 12;
+
 function columnIconPositions(viewport: Viewport): IconPositions {
   const containerH = viewport.h - MENU_TOP;
-  const x = Math.max(8, viewport.w - ICON_W - 28);
-  const gap = (containerH - DESKTOP_ICON_IDS.length * ICON_H) /
-    (DESKTOP_ICON_IDS.length + 1);
+  const count = DESKTOP_ICON_IDS.length;
+
+  // Split into as many columns as needed so no column holds more than
+  // MAX_PER_COLUMN icons, then balance the icons evenly across those columns.
+  const cols = Math.ceil(count / MAX_PER_COLUMN);
+  const perColumn = Math.ceil(count / cols);
+
+  // Rightmost column sits at the classic right margin; extra columns stack to
+  // its left.
+  const rightX = Math.max(8, viewport.w - ICON_W - 28);
+  const gap = (containerH - perColumn * ICON_H) / (perColumn + 1);
 
   const positions = {} as IconPositions;
   DESKTOP_ICON_IDS.forEach((id, i) => {
+    const col = Math.floor(i / perColumn);
+    const row = i % perColumn;
     positions[id] = {
-      x,
-      y: Math.round(gap + i * (ICON_H + gap)),
+      x: Math.max(8, rightX - col * (ICON_W + COLUMN_GAP)),
+      y: Math.round(gap + row * (ICON_H + gap)),
     };
   });
   return positions;

@@ -126,17 +126,22 @@
   );
 }
 
+/* The close control is an oversized, invisible tap target so it's easy to hit;
+   the visible classic box is the inner .close-box-glyph. The negative margins
+   reclaim the title-bar padding so the target reaches toward the corner without
+   pushing the title text around. */
 .close-box {
-  position: relative;
-  width: 15px;
-  height: 15px;
-  border: 1px solid #000000;
-  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 25px;
+  margin: 0 -6px;
+  padding: 0;
+  border: 0;
+  background: none;
   flex-shrink: 0;
   cursor: pointer;
-  /* Native <button> resets so it renders exactly like the classic close box */
-  padding: 0;
-  margin: 0;
   box-sizing: border-box;
   -webkit-appearance: none;
   appearance: none;
@@ -145,9 +150,19 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* The "X" — two crossed 1-bit strokes centred in the close box */
-.close-box::before,
-.close-box::after {
+.close-box-glyph {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #000000;
+  background: #ffffff;
+  box-sizing: border-box;
+  pointer-events: none; /* taps register on the larger button, not the glyph */
+}
+
+/* The "X" — two crossed 1-bit strokes centred in the glyph */
+.close-box-glyph::before,
+.close-box-glyph::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -157,21 +172,21 @@
   background: #000000;
 }
 
-.close-box::before {
+.close-box-glyph::before {
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
-.close-box::after {
+.close-box-glyph::after {
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
-.close-box:active {
+.close-box:active .close-box-glyph {
   background: #000000;
 }
 
 /* Keep the X legible when the box inverts on press */
-.close-box:active::before,
-.close-box:active::after {
+.close-box:active .close-box-glyph::before,
+.close-box:active .close-box-glyph::after {
   background: #ffffff;
 }
 
@@ -322,10 +337,18 @@
     height: 26px;
   }
 
-  /* Enlarge the close box to a finger-friendly target on touch devices */
+  /* Enlarge the tap target on touch devices — the hit area grows generously
+     while the visible glyph only bumps a little, so it stays easy to hit
+     without looking oversized. */
   .close-box {
-    width: 22px;
-    height: 22px;
+    width: 44px;
+    height: 34px;
+    margin: 0 -10px;
+  }
+
+  .close-box-glyph {
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -701,4 +724,114 @@
   .menu-dropdown {
     min-width: min(210px, 92vw);
   }
+}
+
+/* --- Andy Chess Bot window ----------------------------------------------- */
+.chess-app {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chess-app-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chess-app-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.chess-board-area {
+  flex: 1 1 300px;
+  min-width: 0;
+}
+
+/* The interactive board; dithered dark squares, hard 1-bit border */
+.chess-game-board {
+  width: clamp(240px, 58cqw, 460px);
+  max-width: 100%;
+  border: 2px solid #000000;
+  filter: grayscale(1) contrast(1.1);
+}
+
+.chess-status {
+  font-family: "VT323", monospace;
+  font-size: 22px;
+  margin-top: 10px;
+  padding: 4px 0;
+  border-top: 2px solid #000000;
+  width: clamp(240px, 58cqw, 460px);
+  max-width: 100%;
+}
+
+.chess-status.over {
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.chess-side {
+  flex: 1 1 200px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chess-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chess-controls .mac-button {
+  font-size: 18px;
+  padding: 4px 12px;
+}
+
+.chess-movelist-title {
+  margin-top: 4px;
+  border-bottom: 2px solid #000000;
+  padding-bottom: 2px;
+}
+
+.chess-movelist {
+  font-family: "VT323", monospace;
+  font-size: 20px;
+  line-height: 1.3;
+  max-height: 320px;
+  overflow: auto;
+  border: 2px solid #000000;
+  padding: 6px 8px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.chess-move-empty {
+  opacity: 0.6;
+}
+
+.chess-move-row {
+  display: grid;
+  grid-template-columns: 2.4em 1fr 1fr;
+  gap: 4px;
+}
+
+.chess-move-row:nth-child(odd) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.chess-move-num {
+  opacity: 0.6;
+}
+
+.chess-move-san {
+  white-space: nowrap;
 }

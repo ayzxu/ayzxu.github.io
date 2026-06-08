@@ -10,6 +10,7 @@ export type WindowId =
   | 'fun'
   | 'about'
   | 'resume'
+  | 'chess'
   | 'aboutmac'
   | 'trash'
   | 'dropguard';
@@ -30,6 +31,7 @@ export const WINDOW_META: Record<WindowId, WindowMeta> = {
   fun: { title: 'Fun', w: 980, h: 740 },
   about: { title: 'About Me', w: 720, h: 620 },
   resume: { title: 'Résumé', w: 800, h: 720 },
+  chess: { title: 'Andy Chess Bot', w: 720, h: 640 },
   aboutmac: { title: 'About This Macintosh', w: 475, h: 300 },
   trash: { title: 'Trash', w: 560, h: 420 },
   dropguard: { title: 'System Notice', w: 440, h: 200 },
@@ -42,6 +44,7 @@ export const ROUTE_FOR_WINDOW: Partial<Record<WindowId, string>> = {
   fun: '/fun',
   about: '/about',
   resume: '/resume',
+  chess: '/chess',
 };
 
 export const WINDOW_FOR_ROUTE: Record<string, WindowId> = {
@@ -49,4 +52,5 @@ export const WINDOW_FOR_ROUTE: Record<string, WindowId> = {
   '/fun': 'fun',
   '/about': 'about',
   '/resume': 'resume',
+  '/chess': 'chess',
 };

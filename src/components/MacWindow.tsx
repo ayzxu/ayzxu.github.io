@@ -59,15 +59,19 @@ export default function MacWindow({
           aria-label={`Close ${title}`}
           // A real <button> fires `click` reliably on tap across every mobile
           // browser (unlike a <div>, and unlike pointer-capture which iOS Safari
-          // drops for touch). stopPropagation on pointer/mouse down keeps the
-          // title-bar drag + window focus from kicking in when the box is pressed.
+          // drops for touch). The button itself is a generously sized, invisible
+          // tap target; the small classic close box is the inner glyph — so it's
+          // easy to hit without changing the look. stopPropagation on pointer/
+          // mouse down keeps the title-bar drag + focus from kicking in.
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             onClose();
           }}
-        />
+        >
+          <span className="close-box-glyph" />
+        </button>
         <div className="title-bar-text">
           <span>{title}</span>
         </div>

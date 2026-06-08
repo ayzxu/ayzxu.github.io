@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Chess data pipeline cache (downloaded games; regenerate locally)
+tools/chess-data/cache
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
