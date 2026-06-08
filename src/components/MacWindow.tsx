@@ -53,26 +53,20 @@ export default function MacWindow({
         className={`title-bar${active ? ' active' : ''}`}
         onPointerDown={onDragStart}
       >
-        <div
+        <button
+          type="button"
           className="close-box"
-          // Drive the close from pointer events directly rather than a synthetic
-          // click: iOS Safari fires `click` on plain <div>s unreliably. stopping
-          // propagation keeps the title-bar drag from starting, and capturing the
-          // pointer guarantees the matching pointerup lands on this tiny target
-          // even if the finger drifts a pixel or two.
-          onPointerDown={(e) => {
+          aria-label={`Close ${title}`}
+          // A real <button> fires `click` reliably on tap across every mobile
+          // browser (unlike a <div>, and unlike pointer-capture which iOS Safari
+          // drops for touch). stopPropagation on pointer/mouse down keeps the
+          // title-bar drag + window focus from kicking in when the box is pressed.
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
             e.stopPropagation();
-            e.currentTarget.setPointerCapture(e.pointerId);
-          }}
-          onPointerUp={(e) => {
-            e.stopPropagation();
-            if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-              e.currentTarget.releasePointerCapture(e.pointerId);
-            }
             onClose();
           }}
-          role="button"
-          aria-label={`Close ${title}`}
         />
         <div className="title-bar-text">
           <span>{title}</span>

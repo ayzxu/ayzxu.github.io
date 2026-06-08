@@ -134,8 +134,15 @@
   background: #ffffff;
   flex-shrink: 0;
   cursor: pointer;
-  /* Tapping the close box must register as a tap, not a scroll/zoom gesture */
-  touch-action: none;
+  /* Native <button> resets so it renders exactly like the classic close box */
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  /* A tap should fire a fast click (no 300ms delay) without scrolling/zooming */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* The "X" — two crossed 1-bit strokes centred in the close box */

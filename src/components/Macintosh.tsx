@@ -119,6 +119,11 @@ export default function Macintosh({
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
+        {/* soft blur for the grounding shadow so its rectangular footprint reads
+            as a cast shadow, not a hard shape */}
+        <filter id="footShadow" x="-25%" y="-60%" width="150%" height="220%">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
       </defs>
 
       {/* ===== Dark room =================================================== */}
@@ -151,9 +156,19 @@ export default function Macintosh({
           front of the Mac so its full bottom bezel reads as resting on the desk */}
       <rect x="-60" y="622" width="740" height="60" fill="url(#fadeB)" />
 
-      {/* single tight grounding shadow right at the foot (y≈580) so the
-          Mac reads as resting on the desk, not floating */}
-      <ellipse cx="310" cy="580" rx="176" ry="11" fill="#000000" opacity="0.42" />
+      {/* grounding shadow that follows the Mac's rectangular base footprint
+          (not a round blob) so the chassis reads as planted on the desk. Soft
+          blurred edges keep it reading as a cast shadow. */}
+      <rect
+        x="118"
+        y="572"
+        width="384"
+        height="15"
+        rx="7"
+        fill="#000000"
+        opacity="0.5"
+        filter="url(#footShadow)"
+      />
 
       {/* ===== Macintosh clipart ========================================== */}
       <image
