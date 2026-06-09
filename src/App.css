@@ -337,13 +337,17 @@
     height: 26px;
   }
 
-  /* Enlarge the tap target on touch devices — the hit area grows generously
-     while the visible glyph only bumps a little, so it stays easy to hit
-     without looking oversized. */
+  /* Enlarge the tap target on touch devices — a full 44×44 hit area (Apple's
+     minimum) while the visible glyph only bumps a little, so it stays easy to
+     hit without looking oversized. Negative margins let the target spill past
+     the 25px title bar instead of growing it; the raised z-index keeps taps
+     from being swallowed by the invisible resize edges along the window top. */
   .close-box {
     width: 44px;
-    height: 34px;
-    margin: 0 -10px;
+    height: 44px;
+    margin: -10px;
+    position: relative;
+    z-index: 4;
   }
 
   .close-box-glyph {
@@ -613,6 +617,40 @@
 
 .desktop-icon.dragging {
   z-index: 50;
+}
+
+/* --- iOS-style app tiles (compact / mobile icon mode) ---------------------
+   Applied via .desktop-icons-layer--ios when the viewport is phone-sized.
+   The same pixel glyphs and 1-bit palette are kept; each icon simply gains a
+   rounded "app tile" plate, arranged in a home-screen grid (see iconLayout).
+   The whole icon (108×88) stays the tap target — well above 44×44. */
+.desktop-icons-layer--ios .icon-art {
+  width: 62px;
+  height: 62px;
+  padding: 11px;
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 16px;
+  /* Hard 1-bit drop shadow, matching the window chrome */
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Label sits under the tile like a home-screen app name; keeps the white
+   chip so it stays legible over the dithered photo wallpaper. */
+.desktop-icons-layer--ios .icon-label {
+  margin-top: 6px;
+  border: 1px solid #000000;
+}
+
+/* Selected/pressed: invert the whole tile, System 1 style */
+.desktop-icons-layer--ios .desktop-icon.selected .icon-art {
+  filter: none;
+  background: #000000;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.25);
+}
+
+.desktop-icons-layer--ios .desktop-icon.selected .icon-art > * {
+  filter: invert(1);
 }
 
 /* --- Responsive typography & media ----------------------------------------- */

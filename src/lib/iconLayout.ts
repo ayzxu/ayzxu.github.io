@@ -76,32 +76,45 @@ function columnIconPositions(viewport: Viewport): IconPositions {
   return positions;
 }
 
+/* Compact (phone) layout — an iOS-home-screen style grid: icons anchored to
+   the top of the screen, centred horizontally, with roomier row spacing so
+   the rounded app tiles read clearly and stay easy to tap. */
+const COMPACT_GAP_X = 8;
+const COMPACT_GAP_Y = 22;
+const COMPACT_TOP = 16;
+/** iPhone home screens cap at 4 columns; we do the same. */
+const COMPACT_MAX_COLS = 4;
+
 function compactIconPositions(viewport: Viewport): IconPositions {
   const containerH = viewport.h - MENU_TOP;
-  const gap = 10;
   const count = DESKTOP_ICON_IDS.length;
 
-  // How many icons fit across the viewport without overlapping. On phones this
-  // wraps the row into a grid so icons never collide; on wider compact screens
-  // it still resolves to a single bottom row.
+  // How many icons fit across the viewport without overlapping, capped at the
+  // familiar 4-across home-screen grid.
   const cols = Math.max(
     1,
-    Math.min(count, Math.floor((viewport.w - gap) / (ICON_W + gap))),
+    Math.min(
+      COMPACT_MAX_COLS,
+      count,
+      Math.floor((viewport.w - COMPACT_GAP_X) / (ICON_W + COMPACT_GAP_X)),
+    ),
   );
   const rows = Math.ceil(count / cols);
 
-  const gridW = cols * ICON_W + (cols - 1) * gap;
-  const gridH = rows * ICON_H + (rows - 1) * gap;
-  const startX = Math.max(8, Math.round((viewport.w - gridW) / 2));
-  const startY = Math.max(8, containerH - gridH - gap);
+  const gridW = cols * ICON_W + (cols - 1) * COMPACT_GAP_X;
+  const gridH = rows * ICON_H + (rows - 1) * COMPACT_GAP_Y;
+  const startX = Math.max(4, Math.round((viewport.w - gridW) / 2));
+  // Anchor below the menu bar like a home screen; if the grid is taller than
+  // the screen (tiny landscape phones) fall back to the top edge.
+  const startY = Math.max(4, Math.min(COMPACT_TOP, containerH - gridH));
 
   const positions = {} as IconPositions;
   DESKTOP_ICON_IDS.forEach((id, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
     positions[id] = {
-      x: startX + col * (ICON_W + gap),
-      y: startY + row * (ICON_H + gap),
+      x: startX + col * (ICON_W + COMPACT_GAP_X),
+      y: startY + row * (ICON_H + COMPACT_GAP_Y),
     };
   });
   return positions;

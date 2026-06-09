@@ -271,11 +271,13 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
 
       <div
         ref={layerRef}
-        className={
-          iconLayerActive
-            ? 'desktop-icons-layer desktop-icons-layer--active'
-            : 'desktop-icons-layer'
-        }
+        className={[
+          'desktop-icons-layer',
+          compactIcons && 'desktop-icons-layer--ios',
+          iconLayerActive && 'desktop-icons-layer--active',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
         <div
           className="desktop-surface"
