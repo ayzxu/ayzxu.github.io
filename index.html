@@ -1,22 +1,66 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script>
-      (function () {
-        try {
-          const saved = localStorage.getItem('theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const isDark = saved ? saved === 'dark' : prefersDark;
-          document.documentElement.classList.toggle('dark', isDark);
-        } catch (_) {}
-      })();
-    </script>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="/assets/portrait2-3BmJY91L.jpg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Andy Xu</title>
-    <script type="module" crossorigin src="/assets/index-YL1fOy7F.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-LkiYr4pW.css">
+    <title>Andy Xu — Forward Deployed Engineer | CMU Business + CS</title>
+    <meta
+      name="description"
+      content="Andy Xu is a Forward Deployed Engineer at Endeavor AI and a Carnegie Mellon Business + Computer Science grad. His portfolio is a 1984 Macintosh desktop — play a chess bot trained on his real games."
+    />
+    <link rel="canonical" href="https://andyxu.dev/" />
+
+    <!-- Structured data: tells Google who "Andy Xu" is and links his profiles -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Andy Xu",
+        "url": "https://andyxu.dev/",
+        "image": "https://andyxu.dev/favicon.png",
+        "jobTitle": "Forward Deployed Engineer",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "Endeavor AI",
+          "url": "https://www.endeavor.ai"
+        },
+        "alumniOf": {
+          "@type": "CollegeOrUniversity",
+          "name": "Carnegie Mellon University"
+        },
+        "knowsAbout": ["Artificial Intelligence", "Software Engineering", "Full-Stack Development"],
+        "sameAs": [
+          "https://github.com/ayzxu",
+          "https://www.linkedin.com/in/ayzxu/",
+          "https://www.chess.com/member/mozandyque"
+        ]
+      }
+    </script>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://andyxu.dev/" />
+    <meta property="og:title" content="Andy Xu — Forward Deployed Engineer | CMU Business + CS" />
+    <meta
+      property="og:description"
+      content="A personal portfolio reimagined as a 1984 Macintosh System 1 desktop. Business + Computer Science @ CMU — Forward Deploying/AI, full-stack, building things."
+    />
+    <meta property="og:image" content="https://andyxu.dev/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Andy Xu — Macintosh Portfolio" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Andy Xu — Macintosh Portfolio" />
+    <meta
+      name="twitter:description"
+      content="A personal portfolio reimagined as a 1984 Macintosh System 1 desktop. Business + Computer Science @ CMU — AI/ML, full-stack, building things."
+    />
+    <meta name="twitter:image" content="https://andyxu.dev/og-image.png" />
+    <script type="module" crossorigin src="/assets/index-CUnjTLN6.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-zT0iCdsF.css">
   </head>
   <body>
     <div id="root"></div>
