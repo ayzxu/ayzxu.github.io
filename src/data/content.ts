@@ -29,7 +29,7 @@ import volleyballImage1 from '../assets/volleyball/HS2A3950_Original.webp';
 import volleyballImage2 from '../assets/volleyball/HS2A4018_Original.webp';
 
 // About assets
-import portrait2 from '../assets/portraits/portrait2.webp';
+import pfp from '../assets/portraits/pfp.webp';
 import portrait3 from '../assets/portraits/portrait3.webp';
 import portrait4 from '../assets/portraits/portrait4.webp';
 import azuki1 from '../assets/experiencepics/azuki/azuki1.webp';
@@ -90,7 +90,7 @@ export const intro = {
     "was an AI Engineer Intern at IBM, and I graduated from Carnegie Mellon with " +
     "a degree in Business Administration and a minor in Computer Science. I love building " +
     "AI products that solve real problems and create meaningful impact.",
-  portrait: portrait2,
+  portrait: pfp,
 };
 
 export const socials: LinkItem[] = [
