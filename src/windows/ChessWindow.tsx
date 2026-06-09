@@ -16,12 +16,19 @@ import { useAndyBot } from '../chess/useAndyBot';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-/* 50%-gray dither for dark squares — pure 1-bit Macintosh texture */
+/* 25%-black dither for dark squares — the classic Macintosh "light gray"
+   pattern: mostly white with a sparse grid of black pixels, a subtle 1-bit
+   texture that still distinguishes the dark squares from the white ones. */
 const DITHER = {
   backgroundColor: '#ffffff',
-  backgroundImage: 'repeating-conic-gradient(#000000 0% 25%, #ffffff 0% 50%)',
-  backgroundSize: '6px 6px',
+  backgroundImage: 'repeating-conic-gradient(#000000 0% 25%, #ffffff 0% 100%)',
+  backgroundSize: '4px 4px',
 } as const;
+
+/** True for the board's dark squares (a1 is dark). */
+function isDarkSquare(sq: Square): boolean {
+  return (sq.charCodeAt(0) - 97 + (Number(sq[1]) - 1)) % 2 === 0;
+}
 
 type UserColor = 'white' | 'black';
 type Status =
@@ -174,7 +181,9 @@ export default function ChessWindow() {
     [selected, status.kind, isUserTurn, thinking, userColor, tryUserMove],
   );
 
-  /* Highlight the selected square and its legal destinations, 1-bit style. */
+  /* Highlight the selected square and its legal destinations, 1-bit style.
+     On dark squares the dot is layered over the dither so the texture is
+     preserved underneath. */
   const squareStyles = useMemo<Record<string, React.CSSProperties>>(() => {
     if (!selected) return {};
     const styles: Record<string, React.CSSProperties> = {
@@ -182,10 +191,15 @@ export default function ChessWindow() {
     };
     const moves = gameRef.current.moves({ square: selected, verbose: true });
     for (const m of moves) {
-      styles[m.to] = {
-        backgroundImage:
-          'radial-gradient(circle, #000000 22%, rgba(0,0,0,0) 24%)',
-      };
+      styles[m.to] = isDarkSquare(m.to)
+        ? {
+            backgroundImage: `radial-gradient(circle, #000000 22%, rgba(0,0,0,0) 24%), ${DITHER.backgroundImage}`,
+            backgroundSize: `auto, ${DITHER.backgroundSize}`,
+          }
+        : {
+            backgroundImage:
+              'radial-gradient(circle, #000000 22%, rgba(0,0,0,0) 24%)',
+          };
     }
     return styles;
     // `fen` isn't read directly but must stay: it forces the legal-move dots to
