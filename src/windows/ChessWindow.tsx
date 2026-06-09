@@ -78,8 +78,15 @@ export default function ChessWindow() {
     const myGameId = gameIdRef.current;
     const g = gameRef.current;
     if (g.isGameOver()) return;
+    // Tell the engine what the user just played so it can recognize recaptures
+    // (Andy snaps those back instantly) when sampling its think time.
+    const verbose = g.history({ verbose: true });
+    const last = verbose[verbose.length - 1];
+    const lastMove = last
+      ? { to: last.to, capture: last.flags.includes('c') || last.flags.includes('e') }
+      : undefined;
     try {
-      const res = await requestMove(g.fen());
+      const res = await requestMove(g.fen(), lastMove);
       if (myGameId !== gameIdRef.current) return; // game was reset mid-think
       if (!res) return;
       g.move({ from: res.from, to: res.to, promotion: res.promotion });
@@ -300,6 +307,13 @@ export default function ChessWindow() {
           rates that climb in sharp positions (blitz time pressure is real) and
           drop in the endgame. That error model is what lands it at ~1500 instead
           of 3000.
+        </p>
+        <p>
+          Even the pauses are me. The pipeline reads the clock tag Chess.com
+          stamps on every move and models how long I actually spend in each kind
+          of position — so the bot snaps off recaptures and book moves, tanks in
+          sharp middlegames, and speeds up as the game runs long, just like a
+          real blitz clock would force me to.
         </p>
         <p className="win-meta">
           Everything runs in your browser in a Web Worker — no server. The book

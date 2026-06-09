@@ -68,7 +68,7 @@ A curated **default** book + profile ship in the repo so the bot is fully playab
         └──────reply{san,fen}◄─────────┘
 ```
 
-Running the engine in a **Web Worker** guarantees the 1-bit desktop UI never janks while the bot "thinks." A small artificial think-delay (200–900 ms, scaled to position complexity) is added so moves don't feel robotically instant.
+Running the engine in a **Web Worker** guarantees the 1-bit desktop UI never janks while the bot "thinks." The pause before each reply is sampled from a measured think-time model (`engine/think.ts`): the data pipeline reads the `[%clk]` tag Chess.com stamps on every move of Andy's blitz games and fits a log-normal per context bucket (forced / recapture / book / endgame / capture / normal), so the bot snaps off recaptures and book moves, tanks in sharp middlegames, and speeds up late in the game like real clock pressure. Curated defaults tuned to ~5|0 blitz ship in the profile until the pipeline is run on real games.
 
 ---
 

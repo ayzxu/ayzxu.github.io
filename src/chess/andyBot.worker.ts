@@ -3,22 +3,33 @@
    never janks while Andy "thinks". The opening book and style profile are
    bundled (imported JSON), so there is no runtime fetch and no base-path issues.
 
-   A small minimum think-time is enforced so instant book moves still feel like a
-   human took a beat, scaled up a little for variety.
+   The reply is delayed to the engine's human-modelled think time (see
+   think.ts), so the pause before each move follows Andy's real clock habits —
+   instant recaptures, blitzed book moves, long tanks in sharp middlegames.
    ========================================================================== */
 
 import { chooseMove } from './engine/andyBot';
-import type { AndyProfile, EngineResult, OpeningBook } from './engine/types';
+import type {
+  AndyProfile,
+  EngineResult,
+  LastMoveInfo,
+  OpeningBook,
+} from './engine/types';
 import bookJson from './data/opening-book.json';
 import profileJson from './data/style-profile.json';
 
 const BOOK = bookJson as unknown as OpeningBook;
 const PROFILE = profileJson as unknown as AndyProfile;
 
-const MIN_THINK_MS = 350;
-const EXTRA_THINK_MS = 500;
+const FALLBACK_MIN_MS = 350;
+const FALLBACK_EXTRA_MS = 500;
 
-type MoveRequest = { type: 'move'; id: number; fen: string };
+type MoveRequest = {
+  type: 'move';
+  id: number;
+  fen: string;
+  lastMove?: LastMoveInfo;
+};
 type MoveResponse =
   | { type: 'move'; id: number; result: EngineResult | null }
   | { type: 'error'; id: number; message: string };
@@ -34,14 +45,17 @@ self.onmessage = (e: MessageEvent<MoveRequest>) => {
   const start = Date.now();
   let result: EngineResult | null;
   try {
-    result = chooseMove(msg.fen, PROFILE, BOOK);
+    result = chooseMove(msg.fen, PROFILE, BOOK, Math.random, msg.lastMove);
   } catch (err) {
     post({ type: 'error', id: msg.id, message: err instanceof Error ? err.message : String(err) });
     return;
   }
 
+  // Present the move after the human-modelled delay; computation time counts
+  // toward it. Falls back to the old flat pause if no delay was produced.
   const elapsed = Date.now() - start;
-  const target = MIN_THINK_MS + Math.random() * EXTRA_THINK_MS;
+  const target =
+    result?.delayMs ?? FALLBACK_MIN_MS + Math.random() * FALLBACK_EXTRA_MS;
   const wait = Math.max(0, target - elapsed);
   setTimeout(() => post({ type: 'move', id: msg.id, result }), wait);
 };

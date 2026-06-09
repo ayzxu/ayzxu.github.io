@@ -11,19 +11,37 @@
    Pure and synchronous; the Web Worker wraps it for off-main-thread execution.
    ========================================================================== */
 
-import { Chess } from 'chess.js';
-import type { AndyProfile, EngineResult, OpeningBook, Rng, ScoredMove } from './types';
+import { Chess, type Move } from 'chess.js';
+import type {
+  AndyProfile,
+  EngineResult,
+  LastMoveInfo,
+  OpeningBook,
+  Rng,
+  ScoredMove,
+} from './types';
 import { isEndgame } from './evaluate';
 import { searchRoot } from './search';
 import { pickBookMove } from './book';
 import { styleBonus } from './style';
 import { humanizeChoice, sharpness } from './humanize';
+import { humanThinkMs, type ThinkContext } from './think';
+
+function isCapture(m: Move): boolean {
+  return m.flags.includes('c') || m.flags.includes('e');
+}
+
+function fullmoveNumber(fen: string): number {
+  const n = Number(fen.split(' ')[5]);
+  return Number.isFinite(n) ? n : 1;
+}
 
 export function chooseMove(
   fen: string,
   profile: AndyProfile,
   book: OpeningBook,
   rng: Rng = Math.random,
+  lastMove?: LastMoveInfo,
 ): EngineResult | null {
   const t0 = Date.now();
   const chess = new Chess(fen);
@@ -31,10 +49,32 @@ export function chooseMove(
   const legal = chess.moves({ verbose: true });
   if (legal.length === 0) return null; // game over — nothing to play
 
+  const moveNumber = fullmoveNumber(fen);
+  const thinkCtx = (
+    source: 'book' | 'search',
+    chosen: Move,
+    sharp: number,
+    endgame: boolean,
+  ): ThinkContext => ({
+    source,
+    forced: legal.length === 1,
+    recapture:
+      !!lastMove && lastMove.capture && isCapture(chosen) && chosen.to === lastMove.to,
+    capture: isCapture(chosen),
+    endgame,
+    sharp,
+    moveNumber,
+  });
+
   // --- 1. Opening book ---------------------------------------------------
   if (rng() > profile.search.bookDeviation) {
     const bm = pickBookMove(chess, book, rng);
     if (bm) {
+      const delayMs = humanThinkMs(
+        profile.timing,
+        thinkCtx('book', bm, 0, false),
+        rng,
+      );
       const applied = chess.move({ from: bm.from, to: bm.to, promotion: bm.promotion });
       return {
         san: applied.san,
@@ -45,6 +85,7 @@ export function chooseMove(
         source: 'book',
         evalCp: 0,
         thinkMs: Date.now() - t0,
+        delayMs,
       };
     }
   }
@@ -65,6 +106,12 @@ export function chooseMove(
   const ctx = { endgame, sharp: sharpness(ranked, chess.isCheck()) };
   const { choice, source } = humanizeChoice(ranked, profile, ctx, rng);
 
+  const delayMs = humanThinkMs(
+    profile.timing,
+    thinkCtx('search', choice.move, ctx.sharp, endgame),
+    rng,
+  );
+
   const applied = chess.move({
     from: choice.move.from,
     to: choice.move.to,
@@ -80,5 +127,6 @@ export function chooseMove(
     source,
     evalCp: choice.searchCp,
     thinkMs: Date.now() - t0,
+    delayMs,
   };
 }

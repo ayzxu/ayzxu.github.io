@@ -2,7 +2,7 @@
   "meta": {
     "username": "mozandyque",
     "source": "curated-default",
-    "generatedAt": "2026-06-08T16:45:45.672Z",
+    "generatedAt": "2026-06-09T19:06:33.041Z",
     "games": 0
   },
   "ratings": {
@@ -37,5 +37,43 @@
     "baseTemperature": 24,
     "inaccuracyTemperature": 75,
     "bookDeviation": 0.1
+  },
+  "timing": {
+    "source": "curated-default",
+    "clampMs": [
+      400,
+      8000
+    ],
+    "buckets": {
+      "forced": {
+        "medianMs": 700,
+        "sigma": 0.45
+      },
+      "recapture": {
+        "medianMs": 650,
+        "sigma": 0.4
+      },
+      "book": {
+        "medianMs": 1100,
+        "sigma": 0.55
+      },
+      "endgame": {
+        "medianMs": 2000,
+        "sigma": 0.6
+      },
+      "capture": {
+        "medianMs": 2600,
+        "sigma": 0.65
+      },
+      "normal": {
+        "medianMs": 3400,
+        "sigma": 0.7
+      }
+    },
+    "modifiers": {
+      "sharpMultiplier": 1.6,
+      "lateGameHalfLifeMoves": 60,
+      "minLateFactor": 0.35
+    }
   }
 }

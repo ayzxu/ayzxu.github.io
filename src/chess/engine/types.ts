@@ -57,6 +57,45 @@ export type AndyProfile = {
     /** probability of leaving book even when a book move exists */
     bookDeviation: number;
   };
+  /** Measured think-time model (optional — engine falls back to curated
+      defaults in think.ts when absent). */
+  timing?: TimingProfile;
+};
+
+/** Log-normal think-time parameters for one move context. */
+export type TimingBucket = {
+  /** median think time in ms */
+  medianMs: number;
+  /** spread in ln-space (≈ 0.4 tight … 0.9 wide) */
+  sigma: number;
+};
+
+/** Andy's measured clock behaviour, derived from [%clk] tags in his PGNs. */
+export type TimingProfile = {
+  source: string;
+  /** hard bounds on any sampled delay, ms */
+  clampMs: [number, number];
+  buckets: {
+    forced: TimingBucket;
+    recapture: TimingBucket;
+    book: TimingBucket;
+    endgame: TimingBucket;
+    capture: TimingBucket;
+    normal: TimingBucket;
+  };
+  modifiers: {
+    sharpMultiplier: number;
+    lateGameHalfLifeMoves: number;
+    minLateFactor: number;
+  };
+};
+
+/** The opponent's previous move, used to recognize instant recaptures. */
+export type LastMoveInfo = {
+  /** destination square of the opponent's last move */
+  to: string;
+  /** whether that move was a capture */
+  capture: boolean;
 };
 
 export type BookMove = {
@@ -84,8 +123,11 @@ export type EngineResult = {
   source: MoveSource;
   /** engine evaluation of the chosen move, centipawns from mover's POV */
   evalCp: number;
-  /** wall-clock spent thinking (ms) */
+  /** wall-clock spent computing (ms) */
   thinkMs: number;
+  /** human-modelled think time the UI should present (ms) — sampled from
+      Andy's measured clock behaviour (see think.ts) */
+  delayMs: number;
 };
 
 /** A scored candidate produced during search, before humanization. */

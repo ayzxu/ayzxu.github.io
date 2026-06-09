@@ -30,6 +30,14 @@
                    optional extension; the heuristic curve is intentionally
                    conservative and matches the curated defaults at ~1500.
 
+     Think times   Chess.com embeds a [%clk] tag after every move; the per-move
+                   think time is the drop in Andy's own clock (plus increment).
+                   Blitz games only. Each think is classified into the same
+                   context buckets the engine uses (forced / recapture / book /
+                   endgame / capture / normal) and fitted as a log-normal
+                   (median + sigma of ln). Buckets with too few samples fall
+                   back to the curated defaults.
+
    Usage:  node tools/chess-data/build-artifacts.mjs
    ========================================================================== */
 
@@ -49,6 +57,22 @@ const MIDDLE_END = 70;
 const MIN_POS_GAMES = 3; // drop book positions seen in fewer games (noise)
 const MIN_MOVE_COUNT = 2; // within a kept position, drop one-off move choices
 const TIME_CLASSES = new Set(['bullet', 'blitz', 'rapid']);
+
+/* Timing model tunables. Buckets with fewer samples than this fall back to
+   the curated defaults (kept in sync with DEFAULT_TIMING in
+   src/chess/engine/think.ts). */
+const MIN_TIMING_SAMPLES = 30;
+const MAX_THINK_MS = 120_000; // discard pathological gaps (disconnects, AFK)
+const TIMING_TIME_CLASS = 'blitz'; // the bot presents as ~5|0 blitz
+
+const CURATED_TIMING_BUCKETS = {
+  forced: { medianMs: 700, sigma: 0.45 },
+  recapture: { medianMs: 650, sigma: 0.4 },
+  book: { medianMs: 1100, sigma: 0.55 },
+  endgame: { medianMs: 2000, sigma: 0.6 },
+  capture: { medianMs: 2600, sigma: 0.65 },
+  normal: { medianMs: 3400, sigma: 0.7 },
+};
 
 const CENTRAL_SQUARES = new Set(['c4', 'c5', 'd4', 'd5', 'e4', 'e5', 'f4', 'f5']);
 const DRAW_RESULTS = new Set([
@@ -73,6 +97,39 @@ function outcome(andyResult) {
   return 'loss'; // checkmated, resigned, timeout, abandoned, lose, ...
 }
 
+/* ---- clock / timing helpers --------------------------------------------- */
+
+/** All [%clk H:MM:SS(.t)] values in the PGN, in ply order, as seconds. */
+function parseClocks(pgn) {
+  const out = [];
+  const re = /\[%clk\s+(\d+):(\d+):(\d+(?:\.\d+)?)\]/g;
+  let m;
+  while ((m = re.exec(pgn)) !== null) {
+    out.push(Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]));
+  }
+  return out;
+}
+
+/** Parse the [TimeControl "base+inc"] header -> { base, inc } in seconds. */
+function parseTimeControl(pgn) {
+  const m = pgn.match(/\[TimeControl\s+"(\d+)(?:\+(\d+))?"\]/);
+  if (!m) return null;
+  return { base: Number(m[1]), inc: Number(m[2] ?? 0) };
+}
+
+/** Mirrors isEndgame() in src/chess/engine/evaluate.ts. */
+const NPM_VALUE = { n: 320, b: 330, r: 500, q: 900 };
+const ENDGAME_NPM = 2600; // ENDGAME_MATERIAL(1300) * 2
+function isEndgame(chess) {
+  let total = 0;
+  for (const row of chess.board()) {
+    for (const sq of row) {
+      if (sq && sq.type !== 'p' && sq.type !== 'k') total += NPM_VALUE[sq.type];
+    }
+  }
+  return total <= ENDGAME_NPM;
+}
+
 /* ---- accumulators ------------------------------------------------------- */
 const book = {}; // key -> Map(san -> { count, wins, draws, losses })
 const ratingByClass = {}; // timeClass -> latest rating seen
@@ -90,6 +147,12 @@ const tally = {
   kingsideAttacks: 0,
 };
 const games = { used: 0, skipped: 0, wins: 0, draws: 0, losses: 0 };
+
+/** bucket -> array of measured think times (ms), Andy's blitz moves only. */
+const timingSamples = {
+  forced: [], recapture: [], book: [], endgame: [], capture: [], normal: [],
+};
+let timingGames = 0;
 
 function recordBook(key, san, result) {
   if (!book[key]) book[key] = new Map();
@@ -130,17 +193,62 @@ function processGame(rec) {
     ratingByClass[rec.timeClass] = rec.andyRating; // games are oldest->newest
   }
 
+  // --- think-time samples (blitz only, needs one [%clk] per ply) ---
+  const tc = rec.timeClass === TIMING_TIME_CLASS ? parseTimeControl(rec.pgn) : null;
+  const clocks = tc ? parseClocks(rec.pgn) : [];
+  const hasClocks = tc !== null && clocks.length === sans.length;
+  if (hasClocks) timingGames += 1;
+  let lastMv = null; // previous (opponent) move, for recapture detection
+
   const g = new Chess();
   for (let ply = 0; ply < sans.length; ply++) {
     const side = g.turn();
     const fen = g.fen();
+
+    // Pre-move context for the timing buckets (cheap checks only when needed).
+    let preForced = false;
+    let preEndgame = false;
+    if (hasClocks && side === rec.andyColor) {
+      preForced = g.moves().length === 1;
+      preEndgame = isEndgame(g);
+    }
+
     let mv;
     try {
       mv = g.move(sans[ply]);
     } catch {
       break; // desync — abandon the rest of this game
     }
-    if (side !== rec.andyColor) continue; // only Andy's moves count
+    if (side !== rec.andyColor) {
+      lastMv = mv;
+      continue; // only Andy's moves count
+    }
+
+    // --- think time: drop in Andy's own clock since his previous move ---
+    if (hasClocks) {
+      const prev = ply < 2 ? tc.base : clocks[ply - 2];
+      const thinkMs = Math.round((prev - clocks[ply] + tc.inc) * 1000);
+      if (thinkMs >= 0 && thinkMs <= MAX_THINK_MS) {
+        const moverCapture = mv.flags.includes('c') || mv.flags.includes('e');
+        const oppCaptured = !!lastMv && (lastMv.flags.includes('c') || lastMv.flags.includes('e'));
+        // Same precedence as pickBucket() in src/chess/engine/think.ts; "book"
+        // is proxied by the opening phase the book itself is built from.
+        const bucket = preForced
+          ? 'forced'
+          : oppCaptured && moverCapture && mv.to === lastMv.to
+            ? 'recapture'
+            : ply < OPENING_PLIES
+              ? 'book'
+              : preEndgame
+                ? 'endgame'
+                : moverCapture
+                  ? 'capture'
+                  : 'normal';
+        // Clock granularity is 0.1s, so floor instant moves at 100ms.
+        timingSamples[bucket].push(Math.max(100, thinkMs));
+      }
+    }
+    lastMv = mv;
 
     // --- opening book ---
     if (ply < OPENING_PLIES) recordBook(fenKey(fen), mv.san, result);
@@ -236,6 +344,51 @@ function ratingToErrors(blitz) {
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 const round3 = (x) => Math.round(x * 1000) / 1000;
 
+/* ---- timing derivation --------------------------------------------------- */
+function median(xs) {
+  const s = [...xs].sort((a, b) => a - b);
+  const mid = s.length >> 1;
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
+/** Fit a log-normal (median + sigma of ln) per bucket; thin buckets fall back
+    to the curated defaults so the bot never thinks in unnatural rhythms. */
+function deriveTiming() {
+  const buckets = {};
+  const sampleCounts = {};
+  let measured = 0;
+  for (const [name, samples] of Object.entries(timingSamples)) {
+    sampleCounts[name] = samples.length;
+    if (samples.length < MIN_TIMING_SAMPLES) {
+      buckets[name] = { ...CURATED_TIMING_BUCKETS[name] };
+      continue;
+    }
+    measured += 1;
+    const logs = samples.map((ms) => Math.log(ms));
+    const mean = logs.reduce((s, x) => s + x, 0) / logs.length;
+    const variance = logs.reduce((s, x) => s + (x - mean) ** 2, 0) / logs.length;
+    buckets[name] = {
+      medianMs: Math.round(median(samples)),
+      // Clamp the spread: too tight reads robotic, too wide reads erratic.
+      sigma: round2(clamp(Math.sqrt(variance), 0.3, 0.9)),
+    };
+  }
+  return {
+    timing: {
+      source: measured > 0 ? 'chesscom-clk' : 'curated-default',
+      clampMs: [400, 8000],
+      buckets,
+      modifiers: {
+        sharpMultiplier: 1.6,
+        lateGameHalfLifeMoves: 60,
+        minLateFactor: 0.35,
+      },
+    },
+    sampleCounts,
+    measured,
+  };
+}
+
 /* ---- main --------------------------------------------------------------- */
 function main() {
   if (!existsSync(CACHE)) {
@@ -272,6 +425,7 @@ function main() {
   }
 
   const { raw, style } = deriveStyle();
+  const { timing, sampleCounts, measured } = deriveTiming();
   const ratings = {
     blitz: ratingByClass.blitz ?? 1500,
     rapid: ratingByClass.rapid ?? 1450,
@@ -316,6 +470,7 @@ function main() {
       inaccuracyTemperature: 75,
       bookDeviation: 0.1,
     },
+    timing,
   };
 
   mkdirSync(OUT_DIR, { recursive: true });
@@ -337,6 +492,10 @@ function main() {
     `style-profile.json  ratings b/r/bu ${ratings.blitz}/${ratings.rapid}/${ratings.bullet}`,
   );
   console.log(`  style: ${JSON.stringify(style)}`);
+  console.log(
+    `  timing: ${timing.source} — ${timingGames} blitz games with clocks, ` +
+      `samples ${JSON.stringify(sampleCounts)} (${measured}/6 buckets measured)`,
+  );
 }
 
 main();

@@ -149,6 +149,27 @@ const profile = {
     inaccuracyTemperature: 75,
     bookDeviation: 0.1,
   },
+  /* Think-time model (log-normal per context). Curated to feel like ~5|0
+     blitz at 1500; build-artifacts.mjs replaces it with values measured from
+     the [%clk] tags in real games. Keep in sync with DEFAULT_TIMING in
+     src/chess/engine/think.ts. */
+  timing: {
+    source: 'curated-default',
+    clampMs: [400, 8000],
+    buckets: {
+      forced: { medianMs: 700, sigma: 0.45 },
+      recapture: { medianMs: 650, sigma: 0.4 },
+      book: { medianMs: 1100, sigma: 0.55 },
+      endgame: { medianMs: 2000, sigma: 0.6 },
+      capture: { medianMs: 2600, sigma: 0.65 },
+      normal: { medianMs: 3400, sigma: 0.7 },
+    },
+    modifiers: {
+      sharpMultiplier: 1.6,
+      lateGameHalfLifeMoves: 60,
+      minLateFactor: 0.35,
+    },
+  },
 };
 
 mkdirSync(OUT_DIR, { recursive: true });

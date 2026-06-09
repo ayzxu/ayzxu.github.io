@@ -5,7 +5,7 @@
    ========================================================================== */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { EngineResult } from './engine/types';
+import type { EngineResult, LastMoveInfo } from './engine/types';
 
 type Pending = {
   resolve: (r: EngineResult | null) => void;
@@ -50,19 +50,22 @@ export function useAndyBot() {
     };
   }, []);
 
-  const requestMove = useCallback((fen: string): Promise<EngineResult | null> => {
-    return new Promise((resolve, reject) => {
-      const worker = workerRef.current;
-      if (!worker) {
-        reject(new Error('Engine worker is not ready'));
-        return;
-      }
-      const id = ++idRef.current;
-      pending.current.set(id, { resolve, reject });
-      setThinking(true);
-      worker.postMessage({ type: 'move', id, fen });
-    });
-  }, []);
+  const requestMove = useCallback(
+    (fen: string, lastMove?: LastMoveInfo): Promise<EngineResult | null> => {
+      return new Promise((resolve, reject) => {
+        const worker = workerRef.current;
+        if (!worker) {
+          reject(new Error('Engine worker is not ready'));
+          return;
+        }
+        const id = ++idRef.current;
+        pending.current.set(id, { resolve, reject });
+        setThinking(true);
+        worker.postMessage({ type: 'move', id, fen, lastMove });
+      });
+    },
+    [],
+  );
 
   return { requestMove, thinking };
 }

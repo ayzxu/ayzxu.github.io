@@ -6,8 +6,8 @@ bot ships with:
 - `src/chess/data/opening-book.json` — Andy's learned repertoire (per-position
   move choices, weighted by how often he plays them and how they scored).
 - `src/chess/data/style-profile.json` — Andy's measured tendencies (capture /
-  check / development / attacking rates mapped to style knobs), his ratings, and
-  the error model.
+  check / development / attacking rates mapped to style knobs), his ratings,
+  the error model, and a think-time model measured from his real clock usage.
 
 The pipeline runs **on your machine, not at build/deploy time.** Production ships
 the committed JSON. Regenerate whenever you want the bot to reflect newer games.
@@ -73,6 +73,18 @@ position with a reference engine (e.g. a local Stockfish) and measuring Andy's
 average centipawn loss; that's a worthwhile future extension but is intentionally
 out of scope here, since the bot ships no engine binary and the rating-based
 curve is already a good match for a ~1500 player's mistake cadence.
+
+**Think times.** Chess.com embeds a `[%clk]` tag after every move in the PGN, so
+Andy's per-move think time is the drop in his own clock since his previous move
+(plus the increment). Blitz games only, since that's the persona the bot
+presents. Each measured think is classified into the same context buckets the
+engine uses — `forced`, `recapture`, `book` (proxied by the opening phase),
+`endgame`, `capture`, `normal` — and fitted as a log-normal: the bucket's median
+think time plus the spread of its log-times (clamped to 0.3–0.9 so the result
+reads neither robotic nor erratic). Buckets with fewer than 30 samples fall back
+to the curated defaults in `src/chess/engine/think.ts`. At play time the engine
+samples from this model (`humanThinkMs`), stretches thinks in sharp positions,
+and speeds up late in the game to mimic blitz clock pressure.
 
 ## Files
 
