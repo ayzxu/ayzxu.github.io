@@ -4,8 +4,13 @@
    ========================================================================== */
 
 import { intro, socials } from '../data/content';
+import type { WindowId } from '../components/windowConfig';
 
-export default function ReadMeWindow() {
+type ReadMeWindowProps = {
+  onOpenWindow: (id: WindowId) => void;
+};
+
+export default function ReadMeWindow({ onOpenWindow }: ReadMeWindowProps) {
   return (
     <div className="readme-content">
       <div className="win-h">{intro.heading}</div>
@@ -18,6 +23,16 @@ export default function ReadMeWindow() {
       />
 
       <p>{intro.body}</p>
+
+      <p style={{ marginTop: 10 }}>
+        <button
+          type="button"
+          className="mac-button default"
+          onClick={() => onOpenWindow('resume')}
+        >
+          View Résumé
+        </button>
+      </p>
 
       <hr className="mac-rule" />
 

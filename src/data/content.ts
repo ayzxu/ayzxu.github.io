@@ -81,9 +81,11 @@ export type ExperienceItem = {
 export const intro = {
   heading: "Hi, I'm Andy.",
   body:
-    "I'm a recent Carnegie Mellon graduate with a degree in Business Administration and Computer Science. " +
-    "I'm passionate about building AI products that solve real problems and create meaningful impact. " +
-    "Previously, I've worked as a Forward Deployed Engineer at Endeavor AI and as an AI Engineer Intern at IBM.",
+    "I'm a Forward Deployed Engineer at Endeavor AI, where I build AI-assisted " +
+    "order entry and ERP automation that customers run in production. Before that, I " +
+    "was an AI Engineer Intern at IBM, and I graduated from Carnegie Mellon with " +
+    "a degree in Business Administration and a minor in Computer Science. I love building " +
+    "AI products that solve real problems and create meaningful impact.",
   portrait: portrait2,
 };
 
@@ -100,7 +102,11 @@ export const projects: Project[] = [
     title: 'Andy\'s Chess AI',
     date: 'Jun 2026',
     description:
-      'A chess bot that plays like me. 1500 rated, but it\'s going to get stronger over time.',
+      'A chess engine that plays like me, built from my real Chess.com games. ' +
+      'It opens with my actual repertoire, leans toward the moves I\'d pick, and ' +
+      'even makes my mistakes (~1500 blitz). Hand-written search engine that runs ' +
+      'entirely in your browser — no server, no Stockfish. It gets stronger as I do: ' +
+      'the bot retrains on my latest games.',
     openApp: 'chess',
     openAppLabel: 'Play Andy Chess',
     images: [{ src: chessaiGameplay, alt: 'Chess AI Gameplay' }],
@@ -130,12 +136,6 @@ export const projects: Project[] = [
       { src: spoilerblockRedacted, alt: 'Spoiler Redaction Example' },
       { src: spoilerblockFurtherRedaction, alt: 'Advanced Redaction Features' },
     ],
-  },
-  {
-    title: 'Brawl Stars Agent - Supercell Game',
-    date: 'Nov 2024 - Ongoing',
-    description:
-      'AI-powered bot using computer vision and reinforcement learning to play Brawl Stars.',
   },
   {
     title: 'ThreeGL Planet \u2013 WebGL Game World',

@@ -828,6 +828,12 @@
   background: rgba(0, 0, 0, 0.05);
 }
 
+/* "How it works" write-up beneath the board */
+.chess-howto p {
+  margin-top: 8px;
+  max-width: 72ch;
+}
+
 .chess-move-num {
   opacity: 0.6;
 }

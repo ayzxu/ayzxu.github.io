@@ -277,6 +277,36 @@ export default function ChessWindow() {
           </div>
         </div>
       </div>
+
+      <hr className="mac-rule" />
+
+      <div className="chess-howto">
+        <div className="win-sub">How it works</div>
+        <p>
+          This isn&apos;t Stockfish with the difficulty turned down — it&apos;s a
+          hand-written engine modeled on my actual games. A data pipeline pulls my
+          full Chess.com history and builds two things: an opening book of every
+          position I&apos;ve reached, weighted by how often I played each move and
+          how it scored, and a style profile measuring my tendencies — how often I
+          grab captures, give checks, develop pieces, attack the kingside.
+        </p>
+        <p>
+          In the opening, the bot simply plays my repertoire. Once we&apos;re out
+          of book, a negamax search with alpha-beta pruning and a capture-only
+          quiescence search scores every legal move, then a style layer nudges the
+          ranking toward moves that look like me. Finally, a &quot;humanizer&quot;
+          decides what actually gets played: usually a good move, sometimes an
+          inaccuracy, and occasionally a natural-looking blunder — with error
+          rates that climb in sharp positions (blitz time pressure is real) and
+          drop in the endgame. That error model is what lands it at ~1500 instead
+          of 3000.
+        </p>
+        <p className="win-meta">
+          Everything runs in your browser in a Web Worker — no server. The book
+          and profile are rebuilt from my latest games, so as I improve, so does
+          the bot.
+        </p>
+      </div>
     </div>
   );
 }

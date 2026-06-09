@@ -30,7 +30,7 @@ const TRASH_ITEMS: TrashItem[] = [
   {
     id: 'ranked_loss',
     label: 'ranked.log',
-    note: 'Brawl Stars losses. The RL bot is handling it now',
+    note: 'Brawl Stars losses. All of them',
     kind: 'doc',
   }
 ];

@@ -350,7 +350,7 @@ function renderWindow(
 ): React.ReactNode {
   switch (id) {
     case 'readme':
-      return <ReadMeWindow />;
+      return <ReadMeWindow onOpenWindow={onOpenWindow} />;
     case 'projects':
       return (
         <ProjectsWindow onOpenImage={onOpenImage} onOpenWindow={onOpenWindow} />
