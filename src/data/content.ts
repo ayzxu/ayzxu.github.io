@@ -17,6 +17,10 @@ import gusfring from '../assets/art/gusfring.webp';
 import stevejobs from '../assets/art/stevejobs.png';
 import vagabondshoes from '../assets/art/vagabondshoes.webp';
 import walterwhite from '../assets/art/walterwhite.webp';
+import azukivagabond from '../assets/art/azukivagabond.webp';
+import dragon from '../assets/art/dragon.webp';
+import corgi from '../assets/art/corgi.webp';
+import sunsetkicks from '../assets/art/sunsetkicks.webp';
 import gymVideo1 from '../assets/gym/IMG_6232.mov';
 import gymVideo2 from '../assets/gym/IMG_6418.MOV';
 import volleyballVideo1 from '../assets/volleyball/VB1.mov';
@@ -159,14 +163,20 @@ export const funItems: FunItem[] = [
   },
   {
     title: 'Art',
-    description: ['I like drawing bald or nearly bald guys and painting shoes.'],
-    images: [
-      { src: gusfring, alt: 'Gus Fring' },
-      { src: stevejobs, alt: 'Steve Jobs' },
-      { src: vagabondshoes, alt: 'Vagabond Shoes' },
-      { src: walterwhite, alt: 'Walter White' },
+    description: [
+      'I like drawing bald or nearly bald guys and painting shoes. ' +
+        'The occasional animal too.',
     ],
-    links: [{ name: 'Portfolio', url: 'https://axuportfolio.weebly.com' }],
+    images: [
+      { src: vagabondshoes, alt: 'Custom Vagabond AF1 — June 2025' },
+      { src: walterwhite, alt: 'Walter White, pencil — August 2024' },
+      { src: gusfring, alt: 'Gus Fring, pencil — July 2024' },
+      { src: stevejobs, alt: 'Steve Jobs, MS Paint with a mouse — July 2023' },
+      { src: azukivagabond, alt: 'Azuki "Vagabond", pen and marker — December 2022' },
+      { src: dragon, alt: 'Dragon, pencil — March 2021' },
+      { src: sunsetkicks, alt: 'Custom shoes "Sunset Kicks" — June 2020' },
+      { src: corgi, alt: 'Corgi, pencil — January 2020' },
+    ],
   },
   {
     title: 'Volleyball',
