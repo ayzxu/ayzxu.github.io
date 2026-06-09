@@ -210,9 +210,9 @@ export default function ChessWindow() {
     [fen, userColor, status.kind, isUserTurn, thinking, squareStyles, onPieceDrop, onSquareClick],
   );
 
-  // Start a fresh game on first mount.
+  // Start a fresh game on first mount — coin-flip for color, like a real pairing.
   useEffect(() => {
-    newGame('white');
+    newGame(Math.random() < 0.5 ? 'white' : 'black');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -262,7 +262,7 @@ export default function ChessWindow() {
             <button
               type="button"
               className="mac-button"
-              onClick={() => newGame(userColor)}
+              onClick={() => newGame(Math.random() < 0.5 ? 'white' : 'black')}
             >
               New Game
             </button>
