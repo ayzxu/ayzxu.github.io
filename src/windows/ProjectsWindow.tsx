@@ -5,6 +5,7 @@
    ========================================================================== */
 
 import { projects } from '../data/content';
+import Thumb from '../components/Thumb';
 import type { WindowId } from '../components/windowConfig';
 
 type ProjectsWindowProps = {
@@ -49,14 +50,11 @@ export default function ProjectsWindow({
           {p.images && p.images.length > 0 && (
             <div className="thumb-row">
               {p.images.map((img) => (
-                <img
+                <Thumb
                   key={img.src}
                   src={img.src}
                   alt={img.alt}
-                  loading="lazy"
-                  decoding="async"
-                  className="thumb bw-img pixelated"
-                  onClick={() => onOpenImage(img.src, img.alt)}
+                  onOpen={onOpenImage}
                 />
               ))}
             </div>

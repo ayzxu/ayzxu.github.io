@@ -5,18 +5,18 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://andyxu.dev/projects</loc>
+    <loc>https://andyxu.dev/projects/</loc>
   </url>
   <url>
-    <loc>https://andyxu.dev/about</loc>
+    <loc>https://andyxu.dev/about/</loc>
   </url>
   <url>
-    <loc>https://andyxu.dev/resume</loc>
+    <loc>https://andyxu.dev/resume/</loc>
   </url>
   <url>
-    <loc>https://andyxu.dev/chess</loc>
+    <loc>https://andyxu.dev/chess/</loc>
   </url>
   <url>
-    <loc>https://andyxu.dev/fun</loc>
+    <loc>https://andyxu.dev/fun/</loc>
   </url>
 </urlset>

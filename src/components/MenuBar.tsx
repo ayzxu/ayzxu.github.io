@@ -1,7 +1,7 @@
 /* ==========================================================================
-   MenuBar — the System 1 menu bar: Apple / File / Edit / View / Special
-   menus plus a live clock. Edit and View carry the classic (disabled) items;
-   the menus that do real work are Apple, File and Special.
+   MenuBar — the System 1 menu bar: Apple / File / Edit / View menus plus a
+   live clock. Edit and View carry the classic (disabled) items; the menus
+   that do real work are Apple and File.
    ========================================================================== */
 
 import { useEffect, useState } from 'react';
@@ -28,7 +28,8 @@ export default function MenuBar({
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [clock, setClock] = useState(formatClock);
 
-  // Live clock — refreshed once a minute is enough for "10:30 PM"
+  // Live clock — checked every second so the minute flips promptly; React
+  // bails out of re-rendering while the formatted string is unchanged.
   useEffect(() => {
     const id = window.setInterval(() => setClock(formatClock()), 1000);
     return () => window.clearInterval(id);

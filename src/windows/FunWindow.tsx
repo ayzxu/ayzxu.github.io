@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import { Chessboard } from 'react-chessboard';
 import type { ChessboardOptions } from 'react-chessboard';
 import { funItems } from '../data/content';
+import Thumb from '../components/Thumb';
 import { useChessGame } from '../components/useChessGame';
 
 type FunWindowProps = {
@@ -82,14 +83,11 @@ export default function FunWindow({ onOpenImage }: FunWindowProps) {
           {item.images && item.images.length > 0 && (
             <div className="thumb-row">
               {item.images.map((img) => (
-                <img
+                <Thumb
                   key={img.src}
                   src={img.src}
                   alt={img.alt}
-                  loading="lazy"
-                  decoding="async"
-                  className="thumb bw-img pixelated"
-                  onClick={() => onOpenImage(img.src, img.alt)}
+                  onOpen={onOpenImage}
                 />
               ))}
             </div>
@@ -110,14 +108,11 @@ export default function FunWindow({ onOpenImage }: FunWindowProps) {
                     className="bw-img media-video"
                   />
                 ) : (
-                  <img
+                  <Thumb
                     key={m.src}
                     src={m.src}
                     alt={m.alt}
-                    loading="lazy"
-                    decoding="async"
-                    className="thumb bw-img pixelated"
-                    onClick={() => onOpenImage(m.src, m.alt)}
+                    onOpen={onOpenImage}
                   />
                 ),
               )}

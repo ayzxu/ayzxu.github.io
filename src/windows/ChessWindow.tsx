@@ -66,6 +66,9 @@ export default function ChessWindow() {
   const [history, setHistory] = useState<string[]>([]);
   const [status, setStatus] = useState<Status>({ kind: 'playing' });
   const [selected, setSelected] = useState<Square | null>(null);
+  /* True when the engine failed to produce a move (worker error or no result)
+     — surfaces a Retry button instead of soft-locking on "Andy's move". */
+  const [engineError, setEngineError] = useState(false);
 
   const isUserTurn = useCallback(() => {
     const turn = gameRef.current.turn() === 'w' ? 'white' : 'black';
@@ -95,12 +98,17 @@ export default function ChessWindow() {
     try {
       const res = await requestMove(g.fen(), lastMove);
       if (myGameId !== gameIdRef.current) return; // game was reset mid-think
-      if (!res) return;
+      if (!res) {
+        setEngineError(true);
+        return;
+      }
       g.move({ from: res.from, to: res.to, promotion: res.promotion });
       setSelected(null);
+      setEngineError(false);
       syncFromGame();
     } catch {
-      /* worker error — leave it the user's move; they can retry */
+      // Worker error — show a Retry control rather than hanging on "Andy's move"
+      if (myGameId === gameIdRef.current) setEngineError(true);
     }
   }, [requestMove, syncFromGame]);
 
@@ -110,6 +118,7 @@ export default function ChessWindow() {
       gameRef.current = new Chess();
       setUserColor(color);
       setSelected(null);
+      setEngineError(false);
       setStatus({ kind: 'playing' });
       setFen(gameRef.current.fen());
       setHistory([]);
@@ -118,12 +127,18 @@ export default function ChessWindow() {
         const myGameId = gameIdRef.current;
         requestMove(gameRef.current.fen())
           .then((res) => {
-            if (myGameId !== gameIdRef.current || !res) return;
+            if (myGameId !== gameIdRef.current) return;
+            if (!res) {
+              setEngineError(true);
+              return;
+            }
             gameRef.current.move({ from: res.from, to: res.to, promotion: res.promotion });
             setFen(gameRef.current.fen());
             setHistory(gameRef.current.history());
           })
-          .catch(() => {});
+          .catch(() => {
+            if (myGameId === gameIdRef.current) setEngineError(true);
+          });
       }
     },
     [requestMove],
@@ -230,15 +245,23 @@ export default function ChessWindow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* Re-ask the engine after a worker failure. */
+  const retryAndy = useCallback(() => {
+    setEngineError(false);
+    void askAndy();
+  }, [askAndy]);
+
   const rows = toRows(history);
   const turnLabel =
     status.kind === 'over'
       ? status.text
-      : thinking
-        ? 'Andy is thinking…'
-        : isUserTurn()
-          ? 'Your move'
-          : "Andy's move";
+      : engineError
+        ? 'Andy froze up — '
+        : thinking
+          ? 'Andy is thinking…'
+          : isUserTurn()
+            ? 'Your move'
+            : "Andy's move";
 
   return (
     <div className="chess-app">
@@ -254,6 +277,11 @@ export default function ChessWindow() {
           </div>
           <div className={`chess-status${status.kind === 'over' ? ' over' : ''}`}>
             {turnLabel}
+            {status.kind === 'playing' && engineError && (
+              <button type="button" className="mac-button" onClick={retryAndy}>
+                Retry
+              </button>
+            )}
           </div>
         </div>
 

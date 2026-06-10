@@ -4,6 +4,7 @@
    ========================================================================== */
 
 import { about, experience } from '../data/content';
+import Thumb from '../components/Thumb';
 
 type AboutWindowProps = {
   onOpenImage: (src: string, alt: string) => void;
@@ -16,15 +17,7 @@ export default function AboutWindow({ onOpenImage }: AboutWindowProps) {
 
       <div className="thumb-row">
         {about.portraits.map((img) => (
-          <img
-            key={img.src}
-            src={img.src}
-            alt={img.alt}
-            loading="lazy"
-            decoding="async"
-            className="thumb bw-img pixelated"
-            onClick={() => onOpenImage(img.src, img.alt)}
-          />
+          <Thumb key={img.src} src={img.src} alt={img.alt} onOpen={onOpenImage} />
         ))}
       </div>
 
@@ -57,14 +50,11 @@ export default function AboutWindow({ onOpenImage }: AboutWindowProps) {
           {exp.images && exp.images.length > 0 && (
             <div className="thumb-row">
               {exp.images.map((img) => (
-                <img
+                <Thumb
                   key={img.src}
                   src={img.src}
                   alt={img.alt}
-                  loading="lazy"
-                  decoding="async"
-                  className="thumb bw-img pixelated"
-                  onClick={() => onOpenImage(img.src, img.alt)}
+                  onOpen={onOpenImage}
                 />
               ))}
             </div>

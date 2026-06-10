@@ -41,12 +41,14 @@ export default function Lightbox({ src, alt, onClose }: LightboxProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="title-bar active">
-          <div
+          <button
+            type="button"
             className="close-box"
             onClick={onClose}
-            role="button"
             aria-label="Close image"
-          />
+          >
+            <span className="close-box-glyph" />
+          </button>
           <div className="title-bar-text">
             <span>{alt}</span>
           </div>

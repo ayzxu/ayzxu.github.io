@@ -32,6 +32,7 @@ import {
 } from '../lib/iconLayout';
 import { useIconDrag } from './useIconDrag';
 import { useMarqueeSelect } from './useMarqueeSelect';
+import { playBasso } from '../lib/sounds';
 
 import ReadMeWindow from '../windows/ReadMeWindow';
 import ProjectsWindow from '../windows/ProjectsWindow';
@@ -122,10 +123,15 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   );
   const [busy, setBusy] = useState(false);
   const busyTimer = useRef<number | null>(null);
+  /* Windows asked to open while another is "loading" — drained in order */
+  const openQueue = useRef<WindowId[]>([]);
 
-  /* Toggle the hourglass cursor on <body> while a window is "loading" */
+  /* Toggle the hourglass cursor on <body> while a window is "loading".
+     The cleanup also runs on unmount, so shutting down mid-load can't leave
+     the hourglass cursor stuck on the exterior screen. */
   useEffect(() => {
     document.body.classList.toggle('mac-busy', busy);
+    return () => document.body.classList.remove('mac-busy');
   }, [busy]);
 
   /* Clear any pending open timer on unmount */
@@ -181,8 +187,12 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
       });
       return;
     }
-    // New window → flash the hourglass for a beat, then mount it.
-    if (busyTimer.current !== null) return; // one open at a time
+    // New window → flash the hourglass for a beat, then mount it. Opens
+    // requested while one is already "loading" are queued, not dropped.
+    if (busyTimer.current !== null) {
+      if (!openQueue.current.includes(id)) openQueue.current.push(id);
+      return;
+    }
     setBusy(true);
     const delay =
       OPEN_DELAY_MIN_MS +
@@ -191,10 +201,14 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
       busyTimer.current = null;
       setBusy(false);
       mountWindow(id);
+      const next = openQueue.current.shift();
+      if (next) openWindow(next);
     }, delay);
   };
 
   const openDropGuard = () => {
+    // Classic Mac error beep as the "don't do that" dialog pops up.
+    playBasso();
     const size = getDefaultWindowSize(WINDOW_META.dropguard, viewport);
     const pos = centerWindowPosition(size, viewport);
     setOpenWins((wins) => {

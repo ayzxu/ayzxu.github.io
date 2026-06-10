@@ -22,10 +22,19 @@ import './App.css';
 import Macintosh from './components/Macintosh';
 import Desktop from './components/Desktop';
 import { WINDOW_FOR_ROUTE, type WindowId } from './components/windowConfig';
+import { getViewport, isCompactIcons } from './lib/windowBounds';
+import { playStartupChime } from './lib/sounds';
 
 type Phase = 'exterior' | 'booting' | 'settling' | 'desktop' | 'shutdown';
 
 const DESKTOP_PATHS = ['/projects', '/fun', '/about', '/resume', '/chess', '/desktop'];
+
+/* GitHub Pages serves the pre-rendered deep links as directories, so the
+   browser lands on e.g. /projects/ — normalize away the trailing slash
+   before matching routes. */
+function normalizedPath(): string {
+  return window.location.pathname.replace(/\/+$/, '') || '/';
+}
 
 /* A "device profile" describes the startup hardware. The SVG is rendered at
    height: svgVh, and exposes a "screen glass" rectangle that the boot animation
@@ -100,10 +109,10 @@ export default function App() {
 
   // Route is read once at mount — deep links jump straight to the desktop
   const [initialWindow] = useState<WindowId | undefined>(
-    () => WINDOW_FOR_ROUTE[window.location.pathname],
+    () => WINDOW_FOR_ROUTE[normalizedPath()],
   );
   const [phase, setPhase] = useState<Phase>(() =>
-    DESKTOP_PATHS.includes(window.location.pathname) ? 'desktop' : 'exterior',
+    DESKTOP_PATHS.includes(normalizedPath()) ? 'desktop' : 'exterior',
   );
   const [zoom, setZoom] = useState(false);
 
@@ -138,7 +147,12 @@ export default function App() {
   const [crossfaded, setCrossfaded] = useState(false);
 
   const powerOn = () => {
-    if (phase === 'exterior') setPhase('booting');
+    if (phase !== 'exterior') return;
+    // Startup chime — the click is a user gesture, so playback is allowed.
+    // Desktop gets the Mac chime; phone-sized screens get the iPhone chime
+    // to match their iOS home-screen icon layout.
+    playStartupChime(isCompactIcons(getViewport()));
+    setPhase('booting');
   };
   const shutDown = () => setPhase('shutdown');
 
