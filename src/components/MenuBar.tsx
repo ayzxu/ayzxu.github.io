@@ -5,7 +5,8 @@
    ========================================================================== */
 
 import { useEffect, useState } from 'react';
-import { AppleIcon } from './PixelIcons';
+import { AppleIcon, SpeakerOffIcon, SpeakerOnIcon } from './PixelIcons';
+import { isSfxMuted, setSfxMuted } from '../lib/sounds';
 import type { WindowId } from './windowConfig';
 
 type MenuEntry =
@@ -27,6 +28,13 @@ export default function MenuBar({
 }: MenuBarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [clock, setClock] = useState(formatClock);
+  const [muted, setMuted] = useState(isSfxMuted);
+
+  const toggleMute = () => {
+    const next = !muted;
+    setSfxMuted(next);
+    setMuted(next);
+  };
 
   // Live clock — checked every second so the minute flips promptly; React
   // bails out of re-rendering while the formatted string is unchanged.
@@ -167,6 +175,20 @@ export default function MenuBar({
             )}
           </div>
         ))}
+
+        <button
+          type="button"
+          className="menu-sfx"
+          onClick={toggleMute}
+          title={muted ? 'Unmute sound effects' : 'Mute sound effects'}
+          aria-label={muted ? 'Unmute sound effects' : 'Mute sound effects'}
+        >
+          {muted ? (
+            <SpeakerOffIcon className="h-3.5 w-3.5" />
+          ) : (
+            <SpeakerOnIcon className="h-3.5 w-3.5" />
+          )}
+        </button>
 
         <div className="menu-clock">{clock}</div>
       </div>

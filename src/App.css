@@ -31,8 +31,25 @@
   color: #ffffff;
 }
 
-.menu-clock {
+/* SFX mute toggle — sits at the right edge, just before the clock */
+.menu-sfx {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  background: none;
+  border: none;
+  color: #000000;
+  cursor: pointer;
+  font: inherit;
+}
+
+.menu-sfx:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.menu-clock {
   display: flex;
   align-items: center;
   padding: 0 13px;

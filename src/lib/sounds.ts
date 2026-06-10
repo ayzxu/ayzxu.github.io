@@ -19,7 +19,37 @@ import chessMoveOpponentUrl from '../assets/audio/chess/move-opponent.mp3';
 import chessMoveSelfUrl from '../assets/audio/chess/move-self.mp3';
 import chessPromoteUrl from '../assets/audio/chess/promote.mp3';
 
+/* --- Mute (SFX toggle in the menu bar) ------------------------------------ */
+
+const MUTE_STORAGE_KEY = 'sfx-muted';
+
+function readStoredMute(): boolean {
+  try {
+    return localStorage.getItem(MUTE_STORAGE_KEY) === '1';
+  } catch {
+    return false; // storage unavailable (private mode, etc.)
+  }
+}
+
+let muted = readStoredMute();
+
+/** Whether all sound effects are currently muted. */
+export function isSfxMuted(): boolean {
+  return muted;
+}
+
+/** Mute/unmute every sound effect; the choice persists across reloads. */
+export function setSfxMuted(value: boolean): void {
+  muted = value;
+  try {
+    localStorage.setItem(MUTE_STORAGE_KEY, value ? '1' : '0');
+  } catch {
+    /* storage unavailable — mute still applies for this session */
+  }
+}
+
 function play(url: string, volume = 1): void {
+  if (muted) return;
   try {
     const audio = new Audio(url);
     audio.volume = volume;

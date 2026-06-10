@@ -148,6 +148,36 @@ export function HappyMac({ className }: IconProps) {
   );
 }
 
+/* Speaker (sound on) — used by the menu-bar SFX toggle */
+export function SpeakerOnIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* speaker body + cone */}
+      <path d="M4 12 H10 L17 5 V27 L10 20 H4 Z" fill="currentColor" />
+      {/* sound waves */}
+      <g stroke="currentColor" strokeWidth="2" fill="none">
+        <path d="M21 12 Q23 16 21 20" />
+        <path d="M25 9 Q29 16 25 23" />
+      </g>
+    </svg>
+  );
+}
+
+/* Speaker (muted) — speaker with a strike-through X */
+export function SpeakerOffIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* speaker body + cone */}
+      <path d="M4 12 H10 L17 5 V27 L10 20 H4 Z" fill="currentColor" />
+      {/* mute X */}
+      <g stroke="currentColor" strokeWidth="2.5">
+        <line x1="21" y1="12" x2="29" y2="20" />
+        <line x1="29" y1="12" x2="21" y2="20" />
+      </g>
+    </svg>
+  );
+}
+
 /* Solid 1-bit Apple — used in the menu bar */
 export function AppleIcon({ className }: IconProps) {
   return (
