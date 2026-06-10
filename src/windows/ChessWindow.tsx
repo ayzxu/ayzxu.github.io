@@ -9,7 +9,8 @@
    ========================================================================== */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Chess, type Square } from 'chess.js';
+import { Chess, type Move, type Square } from 'chess.js';
+import { playChessSound, type ChessSound } from '../lib/sounds';
 import { Chessboard } from 'react-chessboard';
 import type { ChessboardOptions } from 'react-chessboard';
 import { useAndyBot } from '../chess/useAndyBot';
@@ -45,6 +46,19 @@ function resultText(game: Chess, userColor: UserColor): string {
   if (game.isThreefoldRepetition()) return 'Draw — repetition';
   if (game.isDraw()) return 'Draw';
   return 'Game over';
+}
+
+/** Pick the clip for a just-played move — one sound per move, Chess.com
+    priority order: game end > check > promotion > castle > capture > plain
+    move (whose clip differs for the user vs. Andy). `g` must already reflect
+    the move. */
+function soundForMove(move: Move, g: Chess, byUser: boolean): ChessSound {
+  if (g.isGameOver()) return 'game-end';
+  if (g.inCheck()) return 'move-check';
+  if (move.promotion) return 'promote';
+  if (move.flags.includes('k') || move.flags.includes('q')) return 'castle';
+  if (move.flags.includes('c') || move.flags.includes('e')) return 'capture';
+  return byUser ? 'move-self' : 'move-opponent';
 }
 
 /** Pair SAN history into numbered (white, black) rows for the move list. */
@@ -102,7 +116,8 @@ export default function ChessWindow() {
         setEngineError(true);
         return;
       }
-      g.move({ from: res.from, to: res.to, promotion: res.promotion });
+      const mv = g.move({ from: res.from, to: res.to, promotion: res.promotion });
+      playChessSound(soundForMove(mv, g, false));
       setSelected(null);
       setEngineError(false);
       syncFromGame();
@@ -122,6 +137,7 @@ export default function ChessWindow() {
       setStatus({ kind: 'playing' });
       setFen(gameRef.current.fen());
       setHistory([]);
+      playChessSound('game-start');
       // If the user takes Black, Andy (White) opens.
       if (color === 'black') {
         const myGameId = gameIdRef.current;
@@ -132,7 +148,12 @@ export default function ChessWindow() {
               setEngineError(true);
               return;
             }
-            gameRef.current.move({ from: res.from, to: res.to, promotion: res.promotion });
+            const mv = gameRef.current.move({
+              from: res.from,
+              to: res.to,
+              promotion: res.promotion,
+            });
+            playChessSound(soundForMove(mv, gameRef.current, false));
             setFen(gameRef.current.fen());
             setHistory(gameRef.current.history());
           })
@@ -154,11 +175,14 @@ export default function ChessWindow() {
         piece && piece.type === 'p' && (to[1] === '8' || to[1] === '1')
           ? 'q'
           : undefined;
+      let mv: Move;
       try {
-        g.move({ from, to, promotion: promo });
+        mv = g.move({ from, to, promotion: promo });
       } catch {
-        return false; // illegal
+        playChessSound('illegal');
+        return false;
       }
+      playChessSound(soundForMove(mv, g, true));
       setSelected(null);
       syncFromGame();
       if (!g.isGameOver()) void askAndy();
