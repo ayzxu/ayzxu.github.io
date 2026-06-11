@@ -100,13 +100,16 @@ export default function FunWindow({ onOpenImage }: FunWindowProps) {
                 m.type === 'video' ? (
                   <video
                     key={m.src}
-                    src={m.src}
                     controls
                     muted
                     playsInline
                     preload="none"
+                    poster={m.poster}
                     className="bw-img media-video"
-                  />
+                  >
+                    <source src={m.src} type="video/webm" />
+                    {m.mp4 && <source src={m.mp4} type="video/mp4" />}
+                  </video>
                 ) : (
                   <Thumb
                     key={m.src}

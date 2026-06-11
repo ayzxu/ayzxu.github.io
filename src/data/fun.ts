@@ -10,9 +10,18 @@ import azukivagabond from '../assets/art/azukivagabond.webp';
 import dragon from '../assets/art/dragon.webp';
 import corgi from '../assets/art/corgi.webp';
 import sunsetkicks from '../assets/art/sunsetkicks.webp';
-import gymVideo1 from '../assets/gym/IMG_6232.mov';
-import gymVideo2 from '../assets/gym/IMG_6418.MOV';
-import volleyballVideo1 from '../assets/volleyball/VB1.mov';
+/* Videos ship as WebM (VP9) with an H.264 MP4 fallback and a poster frame —
+   transcoded at 720p from the original phone footage, which was 20–120 MB
+   per clip (and partly HEVC, which Chrome/Firefox can't play). */
+import gymVideo1 from '../assets/gym/IMG_6232.webm';
+import gymVideo1Mp4 from '../assets/gym/IMG_6232.mp4';
+import gymVideo1Poster from '../assets/gym/IMG_6232-poster.webp';
+import gymVideo2 from '../assets/gym/IMG_6418.webm';
+import gymVideo2Mp4 from '../assets/gym/IMG_6418.mp4';
+import gymVideo2Poster from '../assets/gym/IMG_6418-poster.webp';
+import volleyballVideo1 from '../assets/volleyball/VB1.webm';
+import volleyballVideo1Mp4 from '../assets/volleyball/VB1.mp4';
+import volleyballVideo1Poster from '../assets/volleyball/VB1-poster.webp';
 import volleyballImage1 from '../assets/volleyball/HS2A3950_Original.webp';
 // .webp variant used here — the .png original is ~7.6 MB
 import volleyballImage2 from '../assets/volleyball/HS2A4018_Original.webp';
@@ -63,7 +72,13 @@ export const funItems: FunItem[] = [
     media: [
       { src: volleyballImage1, alt: 'Phoenix Nationals 2025', type: 'image' },
       { src: volleyballImage2, alt: 'Phoenix Nationals 2025 as well', type: 'image' },
-      { src: volleyballVideo1, alt: 'Clip from Phoenix Nationals 2025', type: 'video' },
+      {
+        src: volleyballVideo1,
+        mp4: volleyballVideo1Mp4,
+        poster: volleyballVideo1Poster,
+        alt: 'Clip from Phoenix Nationals 2025',
+        type: 'video',
+      },
     ],
   },
   {
@@ -90,8 +105,20 @@ export const funItems: FunItem[] = [
       'Just trying to stay healthy and get stronger!',
     ],
     media: [
-      { src: gymVideo1, alt: '365 Squat for 2!', type: 'video' },
-      { src: gymVideo2, alt: '295 Bench!', type: 'video' },
+      {
+        src: gymVideo1,
+        mp4: gymVideo1Mp4,
+        poster: gymVideo1Poster,
+        alt: '365 Squat for 2!',
+        type: 'video',
+      },
+      {
+        src: gymVideo2,
+        mp4: gymVideo2Mp4,
+        poster: gymVideo2Poster,
+        alt: '295 Bench!',
+        type: 'video',
+      },
     ],
   },
 ];

@@ -14,10 +14,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # LFS is no longer needed — videos ship as small committed WebM/MP4
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          lfs: true
 
       - name: Setup Node
         uses: actions/setup-node@v5

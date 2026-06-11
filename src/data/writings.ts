@@ -32,8 +32,8 @@ export const writings: Writing[] = [
         type: 'p',
         text:
           'There are plenty of chess engines you can lose to. I wanted to build the only ' +
-          'one where losing feels like losing to me specifically. The goal of Andy Chess ' +
-          'Bot was never strength — it was recognizability. A visitor should finish a game ' +
+          'one where losing feels like losing to me specifically. Strength was never the ' +
+          'goal for Andy Chess Bot. Recognizability was. A visitor should finish a game ' +
           'thinking "that felt like playing Andy": my opening repertoire, my taste for ' +
           'sharp open positions, and, critically, my ~1500-rated mistakes.',
       },
@@ -42,12 +42,12 @@ export const writings: Writing[] = [
         type: 'p',
         text:
           'The obvious approach is Stockfish plus a "style layer." I rejected it for three ' +
-          'reasons. First, hosting reality: this site is a static GitHub Pages deployment, ' +
+          'reasons. First, hosting reality. This site is a static GitHub Pages deployment, ' +
           'which cannot set the cross-origin isolation headers multi-threaded Stockfish ' +
           'needs, and the workarounds add a multi-megabyte download for strength I would ' +
-          'then throw away. Second, the goal fights the tool — corrupting a 3200-rated ' +
+          'then throw away. Second, the goal fights the tool. Corrupting a 3200-rated ' +
           'oracle down to 1500 looks less human than starting from a deliberately modest ' +
-          'engine and shaping it. Third, control: a handwritten evaluation gives me direct, ' +
+          'engine and shaping it. Third, control. A handwritten evaluation gives me direct, ' +
           'legible knobs for aggression, materialism, and blunder rate. Every "feels like ' +
           'Andy" lever is a number in a JSON file, not an opaque neural-network weight.',
       },
@@ -56,10 +56,10 @@ export const writings: Writing[] = [
         type: 'p',
         text:
           'The bot is three cooperating layers. An opening book, built statistically from ' +
-          'my real games, makes it prefer my repertoire — the Italian as White, the King\'s ' +
+          'my real games, makes it prefer my repertoire: the Italian as White, the King\'s ' +
           'Indian against 1.d4. A style-shaped search (handcrafted evaluation, shallow ' +
           'alpha-beta with quiescence, plus a bounded style bonus) makes it play like my ' +
-          'middlegame taste. And a humanizer makes it miss things like a 1500: a blunder ' +
+          'middlegame taste. And a humanizer makes it miss things like a 1500. A blunder ' +
           'roll occasionally picks a natural-looking but clearly inferior move, and even ' +
           '"good" play is softmax-sampled from the top few candidates so it has lifelike ' +
           'variety instead of robotic repetition.',
@@ -74,9 +74,9 @@ export const writings: Writing[] = [
           'frequency and result) and a style profile (capture, check, development, and ' +
           'attacking rates mapped onto the engine\'s knobs). The pipeline even reads the ' +
           'clock tags Chess.com stamps on every move and fits a think-time model per ' +
-          'context bucket — so the bot snaps off recaptures, tanks in sharp middlegames, ' +
-          'and speeds up under imaginary time pressure. The artifacts are committed JSON: ' +
-          'rerun the pipeline and the bot gets more like present-day me.',
+          'context bucket. So the bot snaps off recaptures, tanks in sharp middlegames, ' +
+          'and speeds up under imaginary time pressure. The artifacts are committed JSON. ' +
+          'Rerun the pipeline and the bot gets more like present-day me.',
       },
       { type: 'h', text: 'What I learned' },
       {
@@ -85,10 +85,11 @@ export const writings: Writing[] = [
           'Modeling weakness honestly is harder than modeling strength. The single biggest ' +
           'fidelity lever left is calibrating the blunder rate against real centipawn loss, ' +
           'which would mean running every historical position through a strong engine ' +
-          'offline. But the lesson that stuck with me is architectural: running the engine ' +
+          'offline. But the lesson that stuck with me is architectural. Running the engine ' +
           'in a Web Worker, shipping pre-baked data instead of fetching at load, and ' +
           'choosing a small legible system over a big opaque one made the whole thing ' +
-          'maintainable by exactly one person — which is the team size this project has.',
+          'maintainable by exactly one person. That happens to be the team size this ' +
+          'project has.',
       },
     ],
   },
@@ -110,8 +111,8 @@ export const writings: Writing[] = [
       {
         type: 'p',
         text:
-          'A desktop is a navigation system people already know how to use — and knew how ' +
-          'to use in 1984. Projects live in folders. The résumé is a document. Games go in ' +
+          'A desktop is a navigation system people already know how to use. They knew it ' +
+          'in 1984, too. Projects live in folders. The résumé is a document. Games go in ' +
           'a Games folder. Instead of inventing an information architecture, I borrowed ' +
           'the most battle-tested one in computing history. The constraint of System 1 ' +
           '(one-bit graphics, pixel fonts, dithered grays) turned out to be a gift: every ' +
@@ -127,9 +128,9 @@ export const writings: Writing[] = [
           'cascading, clamping to the viewport, and a compact phone mode where the desktop ' +
           'quietly becomes an iPhone home screen. The boot sequence is a single CSS ' +
           'transform that zooms the camera into the Mac\'s screen glass, computed so the ' +
-          'glass lands exactly fitted to your viewport. Deep links still work — /projects ' +
-          'opens the Projects window on top — because each window maps to a route and the ' +
-          'build pre-renders a real HTML page for every one of them.',
+          'glass lands exactly fitted to your viewport. Deep links still work. Hitting ' +
+          '/projects opens the Projects window on top, because each window maps to a ' +
+          'route and the build pre-renders a real HTML page for every one of them.',
       },
       { type: 'h', text: 'The details are the product' },
       {
@@ -168,15 +169,15 @@ export const writings: Writing[] = [
           'last deduplicated during a previous presidential administration, and the ' +
           'integration you depend on goes down on Tuesdays. A large part of the job is ' +
           'diagnosing data quality issues in customer environments and designing ' +
-          'workarounds that are reliable enough to run unattended — which is a politer ' +
-          'way of saying: assume everything lies, and verify.',
+          'workarounds that are reliable enough to run unattended. That is a politer way ' +
+          'of saying: assume everything lies, and verify.',
       },
       { type: 'h', text: 'Boring infrastructure wins' },
       {
         type: 'p',
         text:
-          'The stack that actually ships — FastAPI services, AWS Lambda, S3, Terraform — ' +
-          'is deliberately unexciting. Scheduled syncs that ingest catalogs and push ' +
+          'The stack that actually ships is deliberately unexciting: FastAPI services, ' +
+          'AWS Lambda, S3, Terraform. Scheduled syncs that ingest catalogs and push ' +
           'uploads downstream do not need novelty; they need to run every night and tell ' +
           'you loudly when they did not. The AI is the differentiator, but the plumbing ' +
           'around it is what customers experience as "it works."',
@@ -186,9 +187,9 @@ export const writings: Writing[] = [
         type: 'p',
         text:
           'The surprise of the role is how often the hard problem is not technical. ' +
-          'Deciding what to automate first, translating an operations manager\'s ' +
-          'frustration into a schema, knowing when a 90% solution shipped this week beats ' +
-          'a 99% solution shipped next quarter — that is the business half of my degree ' +
+          'Deciding what to automate first. Translating an operations manager\'s ' +
+          'frustration into a schema. Knowing when a 90% solution shipped this week beats ' +
+          'a 99% solution shipped next quarter. That is the business half of my degree ' +
           'earning its keep. Forward deployed engineering is the rare job where the ' +
           'spreadsheet people and the terminal people are the same person.',
       },
@@ -205,9 +206,10 @@ export const writings: Writing[] = [
         type: 'p',
         text:
           'Spoiler-block started with a simple grievance: I was two seasons behind on a ' +
-          'show, and the internet did not care. The obvious fix — keyword blocklists — is ' +
-          'also obviously bad. Block the show\'s title and you block the review you wanted ' +
-          'to read; allow it and "character X dies in episode Y" sails right through.',
+          'show, and the internet did not care. The obvious fix is keyword blocklists. ' +
+          'It is obviously bad. Block the show\'s title and you block the review you ' +
+          'wanted to read; allow it and "character X dies in episode Y" sails right ' +
+          'through.',
       },
       { type: 'h', text: 'Spoilers are about context, not keywords' },
       {
@@ -215,9 +217,9 @@ export const writings: Writing[] = [
         text:
           'A spoiler is a claim about plot, attached to a work, that you have not reached ' +
           'yet. That is three conditions, and naive matching tests only one of them. The ' +
-          'extension scores page text with lightweight NLP — looking at sentence-level ' +
-          'context around a title mention rather than the mention itself — before deciding ' +
-          'what to redact. Moving from keywords to context scoring improved blocking ' +
+          'extension scores page text with lightweight NLP before deciding what to ' +
+          'redact, looking at sentence-level context around a title mention rather than ' +
+          'the mention itself. Moving from keywords to context scoring improved blocking ' +
           'efficiency by about 40% in my testing, mostly by cutting false positives that ' +
           'made people turn blockers off.',
       },
@@ -226,9 +228,9 @@ export const writings: Writing[] = [
         type: 'p',
         text:
           'The second lesson was about the redaction itself. Deleting content breaks page ' +
-          'layouts and makes users suspicious about what they missed. Blacking text out — ' +
-          'visibly, reversibly, the way a censored document looks — keeps the page intact ' +
-          'and puts the user in control: click to reveal if you are willing to risk it. ' +
+          'layouts and makes users suspicious about what they missed. Blacking text out ' +
+          'keeps the page intact. Visibly, reversibly, the way a censored document looks. ' +
+          'And it puts the user in control: click to reveal if you are willing to risk it. ' +
           'It is still an ongoing project, and the backlog (per-show progress tracking, ' +
           'image redaction) is mostly a list of ways context could get richer.',
       },
