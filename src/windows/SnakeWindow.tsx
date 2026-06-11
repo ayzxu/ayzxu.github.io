@@ -5,6 +5,7 @@
    ========================================================================== */
 
 import { useEffect, useRef, useState } from 'react';
+import { playSnakeSound } from '../lib/sounds';
 
 const GRID = 20; // 20×20 cells
 const CELL = 16; // px per cell
@@ -41,6 +42,7 @@ function readHighScore(): number {
 }
 
 export default function SnakeWindow() {
+  const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [score, setScore] = useState(0);
@@ -135,6 +137,7 @@ export default function SnakeWindow() {
       snake.current.unshift({ x: nx, y: ny });
       let nextDelay = delay;
       if (nx === food.current.x && ny === food.current.y) {
+        playSnakeSound('food');
         setScore((s) => s + 1);
         placeFood();
         nextDelay = Math.max(MIN_MS, delay - 4);
@@ -165,12 +168,15 @@ export default function SnakeWindow() {
   const steer = (d: Dir) => {
     if (phaseRef.current !== 'running') return;
     if (d === OPPOSITE[dir.current]) return; // can't reverse into yourself
+    // click only on an actual change of direction — every tick would be noise
+    if (d !== nextDir.current) playSnakeSound('move');
     nextDir.current = d;
   };
 
-  /* initial board + cleanup */
+  /* initial board + keyboard focus + cleanup */
   useEffect(() => {
     draw();
+    rootRef.current?.focus({ preventScroll: true });
     return stopLoop;
   }, []);
 
@@ -196,7 +202,13 @@ export default function SnakeWindow() {
   };
 
   return (
-    <div className="snake-content" tabIndex={0} onKeyDown={onKeyDown}>
+    <div
+      ref={rootRef}
+      className="snake-content"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      onPointerDown={() => rootRef.current?.focus({ preventScroll: true })}
+    >
       <div className="snake-status">
         <span>Score: {score}</span>
         <span>Best: {highScore}</span>
@@ -214,7 +226,13 @@ export default function SnakeWindow() {
             <div className="win-sub">
               {phase === 'over' ? 'GAME OVER' : 'SNAKE'}
             </div>
-            <button type="button" className="mac-button default" onClick={start}>
+            <button
+              type="button"
+              className="mac-button default"
+              // keep keyboard focus on the wrapper so steering works right away
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={start}
+            >
               {phase === 'over' ? 'Play Again' : 'Start'}
             </button>
             <p className="win-meta" style={{ margin: 0 }}>
@@ -225,7 +243,7 @@ export default function SnakeWindow() {
       </div>
 
       {/* touch D-pad */}
-      <div className="snake-dpad" aria-hidden>
+      <div className="snake-dpad" aria-hidden onMouseDown={(e) => e.preventDefault()}>
         <button type="button" className="mac-button" onClick={() => steer('up')}>
           ▲
         </button>

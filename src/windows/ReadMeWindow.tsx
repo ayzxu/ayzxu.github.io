@@ -42,16 +42,6 @@ export default function ReadMeWindow({ onOpenWindow, visited }: ReadMeWindowProp
           />
 
           <p>{intro.body}</p>
-
-          <p style={{ marginTop: 10 }}>
-            <button
-              type="button"
-              className="mac-button default"
-              onClick={() => onOpenWindow('resume')}
-            >
-              View Résumé
-            </button>
-          </p>
         </div>
 
         <div className="readme-tour-pane">
@@ -83,7 +73,7 @@ export default function ReadMeWindow({ onOpenWindow, visited }: ReadMeWindowProp
           </div>
           {done === TOUR.length && (
             <p className="win-meta" style={{ marginTop: 6 }}>
-              You&apos;ve seen it all. Now hire me.
+              You&apos;ve seen it all.
             </p>
           )}
         </div>
@@ -91,21 +81,29 @@ export default function ReadMeWindow({ onOpenWindow, visited }: ReadMeWindowProp
 
       <hr className="mac-rule" />
 
-      <div className="win-sub">Find me online</div>
-      <p style={{ marginTop: 8 }}>
-        {socials.map((s, i) => (
-          <span key={s.name}>
-            <a
-              href={s.url}
-              target={s.url.startsWith('http') ? '_blank' : undefined}
-              rel={s.url.startsWith('http') ? 'noreferrer' : undefined}
-            >
-              {s.name}
-            </a>
-            {i < socials.length - 1 ? '  •  ' : ''}
-          </span>
-        ))}
-      </p>
+      <div className="readme-links-row">
+        <button
+          type="button"
+          className="mac-button default"
+          onClick={() => onOpenWindow('resume')}
+        >
+          View Résumé
+        </button>
+        <p style={{ margin: 0 }}>
+          {socials.map((s, i) => (
+            <span key={s.name}>
+              <a
+                href={s.url}
+                target={s.url.startsWith('http') ? '_blank' : undefined}
+                rel={s.url.startsWith('http') ? 'noreferrer' : undefined}
+              >
+                {s.name}
+              </a>
+              {i < socials.length - 1 ? '  •  ' : ''}
+            </span>
+          ))}
+        </p>
+      </div>
 
       <p className="win-meta" style={{ marginTop: 14 }}>
         Double-click a folder on the desktop to explore.

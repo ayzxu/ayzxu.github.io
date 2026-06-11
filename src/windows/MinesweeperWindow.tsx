@@ -5,6 +5,7 @@
    ========================================================================== */
 
 import { useEffect, useRef, useState } from 'react';
+import { playMinesweeperSound } from '../lib/sounds';
 
 const ROWS = 9;
 const COLS = 9;
@@ -79,11 +80,17 @@ function revealFrom(board: Cell[][], r: number, c: number): void {
 }
 
 export default function MinesweeperWindow() {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [board, setBoard] = useState<Cell[][]>(emptyBoard);
   const [phase, setPhase] = useState<Phase>('fresh');
   const [flagMode, setFlagMode] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const timerRef = useRef<number | null>(null);
+
+  /* grab keyboard focus on open */
+  useEffect(() => {
+    rootRef.current?.focus({ preventScroll: true });
+  }, []);
 
   /* timer runs only while playing */
   useEffect(() => {
@@ -101,6 +108,7 @@ export default function MinesweeperWindow() {
   const flagsUsed = board.flat().filter((c) => c.flagged).length;
 
   const reset = () => {
+    playMinesweeperSound('reset');
     setBoard(emptyBoard());
     setPhase('fresh');
     setSeconds(0);
@@ -112,6 +120,17 @@ export default function MinesweeperWindow() {
 
   const reveal = (r: number, c: number) => {
     if (phase === 'won' || phase === 'lost') return;
+    // Sound is decided here, outside the state updater. The first click can
+    // never be a mine (mines are planted around it), so checking the current
+    // board is accurate.
+    if (
+      phase === 'playing' &&
+      board[r][c].mine &&
+      !board[r][c].flagged &&
+      !board[r][c].revealed
+    ) {
+      playMinesweeperSound('explosion');
+    }
     setBoard((prev) => {
       const b = prev.map((row) => row.map((cell) => ({ ...cell })));
       if (phase === 'fresh') {
@@ -134,6 +153,7 @@ export default function MinesweeperWindow() {
 
   const toggleFlag = (r: number, c: number) => {
     if (phase === 'won' || phase === 'lost' || phase === 'fresh') return;
+    if (!board[r][c].revealed) playMinesweeperSound('flag');
     setBoard((prev) => {
       const b = prev.map((row) => row.map((cell) => ({ ...cell })));
       const cell = b[r][c];
@@ -149,8 +169,25 @@ export default function MinesweeperWindow() {
 
   const face = phase === 'lost' ? 'X(' : phase === 'won' ? 'B)' : ':)';
 
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const k = e.key.toLowerCase();
+    if (k === 'f') {
+      e.preventDefault();
+      setFlagMode((f) => !f);
+    } else if (k === 'r') {
+      e.preventDefault();
+      reset();
+    }
+  };
+
   return (
-    <div className="mine-content">
+    <div
+      ref={rootRef}
+      className="mine-content"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      onPointerDown={() => rootRef.current?.focus({ preventScroll: true })}
+    >
       <div className="mine-status">
         <span className="mine-counter">
           {String(Math.max(0, MINES - flagsUsed)).padStart(3, '0')}
@@ -213,8 +250,8 @@ export default function MinesweeperWindow() {
           {phase === 'won'
             ? 'You win!'
             : phase === 'lost'
-              ? 'Boom. Click the face.'
-              : 'Right-click or Flag mode to mark mines.'}
+              ? 'Boom. Click the face (or press R).'
+              : 'Right-click or F for flags. R restarts.'}
         </span>
       </div>
     </div>

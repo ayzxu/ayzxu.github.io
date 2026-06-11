@@ -860,9 +860,8 @@
   aspect-ratio: 168 / 138;
   object-fit: cover;
   border: 2px solid #000000;
-  margin-left: 12px;
-  margin-bottom: 8px;
-  float: right;
+  display: block;
+  margin: 10px auto 12px;
 }
 
 /* Intro ("Read Me") window: larger, more welcoming type than other windows */
@@ -873,6 +872,7 @@
 
 .readme-content .win-h {
   font-size: clamp(14px, 2vw, 18px);
+  text-align: center;
 }
 
 .readme-content .win-sub {
@@ -1140,6 +1140,15 @@
   opacity: 0.55;
 }
 
+/* Bottom row: Résumé button alongside the social links */
+.readme-links-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 8px;
+}
+
 .readme-tour {
   margin-top: 8px;
   display: flex;
@@ -1196,6 +1205,37 @@
   display: flex;
   flex-direction: column;
   outline: none;
+  position: relative; /* anchors the clear-confirm dialog */
+}
+
+/* "Are you sure" dialog for Clear */
+.paint-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paint-confirm {
+  background: #ffffff;
+  border: 2px solid #000000;
+  box-shadow: 5px 5px 0 0 rgba(0, 0, 0, 0.45);
+  padding: 16px 18px;
+  max-width: 320px;
+  margin: 0 14px;
+}
+
+.paint-confirm-text {
+  margin: 0 0 14px;
+}
+
+.paint-confirm-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .paint-main {
@@ -1430,6 +1470,7 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  outline: none;
 }
 
 .mine-status {

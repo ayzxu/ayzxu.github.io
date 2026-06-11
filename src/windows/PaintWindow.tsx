@@ -71,6 +71,7 @@ export default function PaintWindow() {
   const [opacity, setOpacity] = useState(1); // slider 0..1
   const [size, setSize] = useState(4);
   const [canUndo, setCanUndo] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   /* Refs for values needed inside pointer handlers without re-binding */
   const toolRef = useRef(tool);
@@ -338,6 +339,7 @@ export default function PaintWindow() {
     pushUndo();
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    setConfirmClear(false);
   };
 
   const savePng = () => {
@@ -446,7 +448,11 @@ export default function PaintWindow() {
           >
             Undo
           </button>
-          <button type="button" className="mac-button" onClick={clearCanvas}>
+          <button
+            type="button"
+            className="mac-button"
+            onClick={() => setConfirmClear(true)}
+          >
             Clear
           </button>
           <button type="button" className="mac-button" onClick={savePng}>
@@ -454,6 +460,37 @@ export default function PaintWindow() {
           </button>
         </div>
       </div>
+
+      {/* System-1 style "are you sure" dialog */}
+      {confirmClear && (
+        <div className="paint-confirm-backdrop">
+          <div
+            className="paint-confirm"
+            role="alertdialog"
+            aria-label="Confirm clear"
+          >
+            <p className="paint-confirm-text">
+              Erase the whole canvas? This can be undone once with Undo.
+            </p>
+            <div className="paint-confirm-buttons">
+              <button
+                type="button"
+                className="mac-button"
+                onClick={() => setConfirmClear(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="mac-button default"
+                onClick={clearCanvas}
+              >
+                Erase
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

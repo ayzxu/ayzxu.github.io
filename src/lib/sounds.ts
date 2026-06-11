@@ -19,6 +19,13 @@ import chessMoveOpponentUrl from '../assets/audio/chess/move-opponent.mp3';
 import chessMoveSelfUrl from '../assets/audio/chess/move-self.mp3';
 import chessPromoteUrl from '../assets/audio/chess/promote.mp3';
 
+// Minesweeper + Snake clips
+import mineExplosionUrl from '../assets/audio/minesweeper/explosion.ogg';
+import mineFlagUrl from '../assets/audio/minesweeper/flag_sound.ogg';
+import mineResetUrl from '../assets/audio/minesweeper/reset.ogg';
+import snakeFoodUrl from '../assets/audio/snake/food.mp3';
+import snakeMoveUrl from '../assets/audio/snake/move.mp3';
+
 /* --- Mute & volume (SFX controls in the menu bar) ------------------------- */
 
 const MUTE_STORAGE_KEY = 'sfx-muted';
@@ -117,4 +124,33 @@ export type ChessSound = keyof typeof CHESS_SOUNDS;
 /** One clip per chess event — keys mirror the filenames in assets/audio/chess. */
 export function playChessSound(name: ChessSound): void {
   play(CHESS_SOUNDS[name], 0.8);
+}
+
+/* --- Minesweeper ----------------------------------------------------------- */
+
+const MINESWEEPER_SOUNDS = {
+  explosion: { url: mineExplosionUrl, volume: 0.8 },
+  flag: { url: mineFlagUrl, volume: 0.5 },
+  reset: { url: mineResetUrl, volume: 0.6 },
+} as const;
+
+export type MinesweeperSound = keyof typeof MINESWEEPER_SOUNDS;
+
+export function playMinesweeperSound(name: MinesweeperSound): void {
+  const s = MINESWEEPER_SOUNDS[name];
+  play(s.url, s.volume);
+}
+
+/* --- Snake ------------------------------------------------------------------ */
+
+const SNAKE_SOUNDS = {
+  food: { url: snakeFoodUrl, volume: 0.6 },
+  move: { url: snakeMoveUrl, volume: 0.35 },
+} as const;
+
+export type SnakeSound = keyof typeof SNAKE_SOUNDS;
+
+export function playSnakeSound(name: SnakeSound): void {
+  const s = SNAKE_SOUNDS[name];
+  play(s.url, s.volume);
 }
