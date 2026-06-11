@@ -13,7 +13,10 @@ export type WindowId =
   | 'chess'
   | 'news'
   | 'paint'
+  | 'andywrite'
+  | 'achievements'
   | 'calc'
+  | 'puzzle'
   | 'games'
   | 'minesweeper'
   | 'snake'
@@ -40,6 +43,9 @@ export const WINDOW_META: Record<WindowId, WindowMeta> = {
   chess: { title: 'Andy Chess Bot', w: 720, h: 640 },
   news: { title: 'News', w: 780, h: 700 },
   paint: { title: 'Paint', w: 700, h: 560 },
+  andywrite: { title: 'AndyWrite', w: 760, h: 640 },
+  achievements: { title: 'Achievements', w: 560, h: 600 },
+  puzzle: { title: 'Puzzle', w: 320, h: 430 },
   calc: { title: 'Calculator', w: 252, h: 356 },
   games: { title: 'Games', w: 470, h: 320 },
   minesweeper: { title: 'Minesweeper', w: 400, h: 510 },
@@ -59,7 +65,10 @@ export const ROUTE_FOR_WINDOW: Partial<Record<WindowId, string>> = {
   chess: '/chess',
   news: '/news',
   paint: '/paint',
+  andywrite: '/write',
+  achievements: '/achievements',
   calc: '/calc',
+  puzzle: '/puzzle',
   games: '/games',
   minesweeper: '/minesweeper',
   snake: '/snake',
@@ -73,7 +82,10 @@ export const WINDOW_FOR_ROUTE: Record<string, WindowId> = {
   '/chess': 'chess',
   '/news': 'news',
   '/paint': 'paint',
+  '/write': 'andywrite',
+  '/achievements': 'achievements',
   '/calc': 'calc',
+  '/puzzle': 'puzzle',
   '/games': 'games',
   '/minesweeper': 'minesweeper',
   '/snake': 'snake',

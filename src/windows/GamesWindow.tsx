@@ -3,7 +3,7 @@
    lives on the desktop proper, not in here.
    ========================================================================== */
 
-import { MineIcon, SnakeIcon } from '../components/PixelIcons';
+import { MineIcon, SnakeIcon, PuzzleIcon } from '../components/PixelIcons';
 import type { WindowId } from '../components/windowConfig';
 
 type GamesWindowProps = {
@@ -13,6 +13,7 @@ type GamesWindowProps = {
 const GAMES: { id: WindowId; label: string; icon: React.ReactNode }[] = [
   { id: 'minesweeper', label: 'Minesweeper', icon: <MineIcon className="folder-app-glyph" /> },
   { id: 'snake', label: 'Snake', icon: <SnakeIcon className="folder-app-glyph" /> },
+  { id: 'puzzle', label: 'Puzzle', icon: <PuzzleIcon className="folder-app-glyph" /> },
 ];
 
 export default function GamesWindow({ onOpenWindow }: GamesWindowProps) {

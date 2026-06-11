@@ -19,7 +19,10 @@ import {
   NewsIcon,
   PaintIcon,
   CalcIcon,
+  AndyWriteIcon,
+  TrophyIcon,
 } from './PixelIcons';
+import AchievementToast from './AchievementToast';
 import Screensaver from './Screensaver';
 import { WINDOW_META, ROUTE_FOR_WINDOW, type WindowId } from './windowConfig';
 import { useViewport } from '../hooks/useViewport';
@@ -51,6 +54,9 @@ import ResumeWindow from '../windows/ResumeWindow';
 import ChessWindow from '../windows/ChessWindow';
 import NewsWindow from '../windows/NewsWindow';
 import PaintWindow from '../windows/PaintWindow';
+import AndyWriteWindow from '../windows/AndyWriteWindow';
+import PuzzleWindow from '../windows/PuzzleWindow';
+import AchievementsWindow from '../windows/AchievementsWindow';
 import CalculatorWindow from '../windows/CalculatorWindow';
 import GamesWindow from '../windows/GamesWindow';
 import MinesweeperWindow from '../windows/MinesweeperWindow';
@@ -91,6 +97,8 @@ const DESKTOP_ICONS: {
   { id: 'chess', label: 'Andy Chess', icon: <ChessIcon className="w-full h-full" /> },
   { id: 'news', label: 'News', icon: <NewsIcon className="w-full h-full" /> },
   { id: 'paint', label: 'Paint', icon: <PaintIcon className="w-full h-full" /> },
+  { id: 'andywrite', label: 'AndyWrite', icon: <AndyWriteIcon className="w-full h-full" /> },
+  { id: 'achievements', label: 'Achievements', icon: <TrophyIcon className="w-full h-full" /> },
   { id: 'games', label: 'Games', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'calc', label: 'Calculator', icon: <CalcIcon className="w-full h-full" /> },
   { id: 'trash', label: 'Trash', icon: <TrashIcon className="w-full h-full" /> },
@@ -408,6 +416,8 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
         />
       )}
 
+      <AchievementToast />
+
       <Screensaver />
     </div>
   );
@@ -438,6 +448,12 @@ function renderWindow(
       return <NewsWindow />;
     case 'paint':
       return <PaintWindow />;
+    case 'andywrite':
+      return <AndyWriteWindow />;
+    case 'puzzle':
+      return <PuzzleWindow />;
+    case 'achievements':
+      return <AchievementsWindow />;
     case 'calc':
       return <CalculatorWindow />;
     case 'games':

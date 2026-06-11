@@ -14,6 +14,7 @@ import { playChessSound, type ChessSound } from '../lib/sounds';
 import { Chessboard } from 'react-chessboard';
 import type { ChessboardOptions } from 'react-chessboard';
 import { useAndyBot } from '../chess/useAndyBot';
+import { unlockAchievement } from '../lib/achievements';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -93,7 +94,14 @@ export default function ChessWindow() {
     const g = gameRef.current;
     setFen(g.fen());
     setHistory(g.history());
-    if (g.isGameOver()) setStatus({ kind: 'over', text: resultText(g, userColor) });
+    if (g.isGameOver()) {
+      setStatus({ kind: 'over', text: resultText(g, userColor) });
+      // checkmate where the side to move (the loser) is Andy → the user won
+      const loser = g.turn() === 'w' ? 'white' : 'black';
+      if (g.isCheckmate() && loser !== userColor) {
+        unlockAchievement('chess-win');
+      }
+    }
   }, [userColor]);
 
   /* Ask the engine for Andy's reply, then apply it (guarding against a New Game

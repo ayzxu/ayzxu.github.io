@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { playMinesweeperSound } from '../lib/sounds';
+import { unlockAchievement } from '../lib/achievements';
 
 const ROWS = 9;
 const COLS = 9;
@@ -146,7 +147,10 @@ export default function MinesweeperWindow() {
         return b;
       }
       revealFrom(b, r, c);
-      if (checkWin(b)) setPhase('won');
+      if (checkWin(b)) {
+        setPhase('won');
+        unlockAchievement('minesweeper-win');
+      }
       return b;
     });
   };

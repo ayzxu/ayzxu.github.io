@@ -124,6 +124,16 @@ export default function MenuBar({
           },
           {
             kind: 'item',
+            label: 'Open AndyWrite',
+            onClick: () => onOpenWindow('andywrite'),
+          },
+          {
+            kind: 'item',
+            label: 'Open Achievements',
+            onClick: () => onOpenWindow('achievements'),
+          },
+          {
+            kind: 'item',
             label: 'Open Games',
             onClick: () => onOpenWindow('games'),
           },

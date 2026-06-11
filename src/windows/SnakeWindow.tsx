@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { playSnakeSound } from '../lib/sounds';
+import { unlockAchievement } from '../lib/achievements';
 
 const GRID = 20; // 20×20 cells
 const CELL = 16; // px per cell
@@ -138,7 +139,11 @@ export default function SnakeWindow() {
       let nextDelay = delay;
       if (nx === food.current.x && ny === food.current.y) {
         playSnakeSound('food');
-        setScore((s) => s + 1);
+        setScore((s) => {
+          const next = s + 1;
+          if (next >= 10) unlockAchievement('snake-10');
+          return next;
+        });
         placeFood();
         nextDelay = Math.max(MIN_MS, delay - 4);
       } else {

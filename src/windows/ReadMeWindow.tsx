@@ -22,6 +22,7 @@ const TOUR: { id: WindowId; label: string }[] = [
   { id: 'fun', label: 'Snoop around the Fun folder' },
   { id: 'resume', label: 'Read my Résumé' },
   { id: 'calc', label: 'Crunch numbers in the Calculator' },
+  { id: 'achievements', label: 'Check your Achievements' },
 ];
 
 export default function ReadMeWindow({ onOpenWindow, visited }: ReadMeWindowProps) {

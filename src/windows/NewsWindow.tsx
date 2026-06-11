@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { fetchFrontPage, type HNStory } from '../lib/hackerNews';
+import { unlockAchievement } from '../lib/achievements';
 
 type FetchState =
   | { status: 'loading' }
@@ -93,6 +94,7 @@ export default function NewsWindow() {
                       target="_blank"
                       rel="noreferrer"
                       className="news-headline"
+                      onClick={() => unlockAchievement('news-read')}
                     >
                       {story.title}
                     </a>

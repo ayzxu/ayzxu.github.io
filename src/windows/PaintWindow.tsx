@@ -9,6 +9,7 @@
    ========================================================================== */
 
 import { useEffect, useRef, useState } from 'react';
+import { unlockAchievement } from '../lib/achievements';
 
 /* Logical canvas size — fixed, classic-small. Rendered 1:1 where possible. */
 const CANVAS_W = 512;
@@ -349,6 +350,7 @@ export default function PaintWindow() {
     a.download = 'painting.png';
     a.href = canvas.toDataURL('image/png');
     a.click();
+    unlockAchievement('paint-save');
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {

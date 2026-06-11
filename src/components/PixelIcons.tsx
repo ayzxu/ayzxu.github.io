@@ -214,6 +214,97 @@ export function CalcIcon({ className }: IconProps) {
   );
 }
 
+/* Lined page with a fountain-pen nib — the AndyWrite icon */
+export function AndyWriteIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* page */}
+      <rect
+        x="5"
+        y="2"
+        width="20"
+        height="28"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* text lines */}
+      <g fill="#000000">
+        <rect x="9" y="7" width="12" height="2" />
+        <rect x="9" y="11" width="12" height="2" />
+        <rect x="9" y="15" width="8" height="2" />
+      </g>
+      {/* nib writing across the lower page */}
+      <path d="M28 14 L31 17 L21 27 L17 28 L18 24 Z" fill="#000000" />
+      <path d="M18 24 L20 26 L17 28 Z" fill="#ffffff" />
+    </svg>
+  );
+}
+
+/* 4×4 tile frame with one missing corner — the Puzzle icon */
+export function PuzzleIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* frame */}
+      <rect
+        x="3"
+        y="3"
+        width="26"
+        height="26"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* grid lines */}
+      <g stroke="#000000" strokeWidth="1.5">
+        <line x1="10" y1="4" x2="10" y2="28" />
+        <line x1="16" y1="4" x2="16" y2="28" />
+        <line x1="22" y1="4" x2="22" y2="22" />
+        <line x1="4" y1="10" x2="28" y2="10" />
+        <line x1="4" y1="16" x2="28" y2="16" />
+        <line x1="4" y1="22" x2="28" y2="22" />
+      </g>
+      {/* the gap: bottom-right cell filled black */}
+      <rect x="23" y="23" width="5" height="5" fill="#000000" />
+    </svg>
+  );
+}
+
+/* Loving cup on a plinth — the Achievements icon */
+export function TrophyIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* cup bowl */}
+      <path
+        d="M9 4 H23 V12 Q23 18 16 18 Q9 18 9 12 Z"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* handles */}
+      <path
+        d="M9 6 H4 Q4 13 9 13"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      <path
+        d="M23 6 H28 Q28 13 23 13"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* star on the bowl */}
+      <rect x="15" y="8" width="2" height="2" fill="#000000" />
+      <rect x="13" y="10" width="6" height="2" fill="#000000" />
+      {/* stem + base */}
+      <rect x="14" y="18" width="4" height="5" fill="#000000" />
+      <rect x="9" y="23" width="14" height="3" fill="#ffffff" stroke="#000000" strokeWidth="2" />
+      <rect x="7" y="27" width="18" height="3" fill="#000000" />
+    </svg>
+  );
+}
+
 /* Round bomb with a fuse — the Minesweeper icon */
 export function MineIcon({ className }: IconProps) {
   return (
