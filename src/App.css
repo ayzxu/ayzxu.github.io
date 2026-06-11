@@ -2030,3 +2030,218 @@
   font-size: 24px;
   line-height: 1;
 }
+
+/* --- AndyMusic window ----------------------------------------------------- */
+/* Full-bleed like Paint: cancel the window body's padding */
+.music-content {
+  margin: -20px -22px;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% + 40px);
+  min-height: 0;
+}
+
+.music-deck {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #000000;
+  background: #ffffff;
+  flex-wrap: wrap;
+}
+
+.music-transport {
+  display: flex;
+  gap: 6px;
+}
+
+.music-btn {
+  min-width: 42px;
+  text-align: center;
+}
+
+.music-btn-play {
+  min-width: 52px;
+}
+
+/* the iTunes-style LCD readout */
+.music-lcd {
+  flex: 1;
+  min-width: 200px;
+  border: 2px solid #000000;
+  background: repeating-conic-gradient(#00000010 0% 25%, #ffffff00 0% 100%);
+  background-size: 4px 4px;
+  padding: 7px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.music-lcd-idle {
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+  padding: 11px 0;
+}
+
+.music-lcd-title {
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-lcd-sub {
+  font-family: "VT323", monospace;
+  font-size: 16px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-lcd-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.music-lcd-time {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+}
+
+.music-progress-track {
+  flex: 1;
+  height: 8px;
+  border: 1px solid #000000;
+  background: #ffffff;
+  display: block;
+}
+
+.music-progress-fill {
+  display: block;
+  height: 100%;
+  background: #000000;
+}
+
+.music-volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* the song list */
+.music-table {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.music-row {
+  display: grid;
+  grid-template-columns: 30px 1.2fr 1fr 0.9fr 46px;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 10px;
+  font-family: "VT323", monospace;
+  font-size: 18px;
+  line-height: 1.15;
+  border-bottom: 1px solid #00000022;
+  cursor: default;
+  user-select: none;
+}
+
+.music-row > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-row-head {
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #000000;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  z-index: 1;
+}
+
+.music-row.selected:not(.music-row-head) {
+  background: #000000;
+  color: #ffffff;
+}
+
+.music-row.playing:not(.selected) .music-cell-num {
+  font-weight: bold;
+}
+
+.music-cell-num {
+  text-align: right;
+}
+
+.music-cell-time {
+  text-align: right;
+}
+
+.music-statusbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 12px;
+  border-top: 1px solid #000000;
+  background: #ffffff;
+  flex-wrap: wrap;
+}
+
+/* --- iPhone mode: fullscreen standalone apps -------------------------------- */
+/* Edge-to-edge under the menu bar: no side borders, no drop shadow */
+.mac-window--full {
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+/* The home button — reuses .close-box's tap-target plumbing, sits top right.
+   Glyph is a 1-bit iPhone home button: a circle with a rounded app square. */
+.home-box {
+  margin: 0 -6px 0 0;
+}
+
+.home-box-glyph {
+  position: relative;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid #000000;
+  border-radius: 50%;
+  background: #ffffff;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.home-box-glyph::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid #000000;
+  border-radius: 2px;
+}
+
+.home-box:active .home-box-glyph {
+  background: #000000;
+}
+
+.home-box:active .home-box-glyph::before {
+  border-color: #ffffff;
+}

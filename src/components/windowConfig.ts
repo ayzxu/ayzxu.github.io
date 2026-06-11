@@ -14,6 +14,7 @@ export type WindowId =
   | 'news'
   | 'paint'
   | 'andywrite'
+  | 'music'
   | 'achievements'
   | 'calc'
   | 'puzzle'
@@ -44,6 +45,7 @@ export const WINDOW_META: Record<WindowId, WindowMeta> = {
   news: { title: 'News', w: 780, h: 700 },
   paint: { title: 'Paint', w: 700, h: 560 },
   andywrite: { title: 'AndyWrite', w: 760, h: 640 },
+  music: { title: 'AndyMusic', w: 780, h: 620 },
   achievements: { title: 'Achievements', w: 560, h: 600 },
   puzzle: { title: 'Puzzle', w: 320, h: 430 },
   calc: { title: 'Calculator', w: 252, h: 356 },
@@ -66,6 +68,7 @@ export const ROUTE_FOR_WINDOW: Partial<Record<WindowId, string>> = {
   news: '/news',
   paint: '/paint',
   andywrite: '/write',
+  music: '/music',
   achievements: '/achievements',
   calc: '/calc',
   puzzle: '/puzzle',
@@ -83,6 +86,7 @@ export const WINDOW_FOR_ROUTE: Record<string, WindowId> = {
   '/news': 'news',
   '/paint': 'paint',
   '/write': 'andywrite',
+  '/music': 'music',
   '/achievements': 'achievements',
   '/calc': 'calc',
   '/puzzle': 'puzzle',

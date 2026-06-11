@@ -20,6 +20,7 @@ import {
   PaintIcon,
   CalcIcon,
   AndyWriteIcon,
+  MusicIcon,
   TrophyIcon,
 } from './PixelIcons';
 import AchievementToast from './AchievementToast';
@@ -55,6 +56,7 @@ import ChessWindow from '../windows/ChessWindow';
 import NewsWindow from '../windows/NewsWindow';
 import PaintWindow from '../windows/PaintWindow';
 import AndyWriteWindow from '../windows/AndyWriteWindow';
+import MusicWindow from '../windows/MusicWindow';
 import PuzzleWindow from '../windows/PuzzleWindow';
 import AchievementsWindow from '../windows/AchievementsWindow';
 import CalculatorWindow from '../windows/CalculatorWindow';
@@ -98,6 +100,7 @@ const DESKTOP_ICONS: {
   { id: 'news', label: 'News', icon: <NewsIcon className="w-full h-full" /> },
   { id: 'paint', label: 'Paint', icon: <PaintIcon className="w-full h-full" /> },
   { id: 'andywrite', label: 'AndyWrite', icon: <AndyWriteIcon className="w-full h-full" /> },
+  { id: 'music', label: 'AndyMusic', icon: <MusicIcon className="w-full h-full" /> },
   { id: 'achievements', label: 'Achievements', icon: <TrophyIcon className="w-full h-full" /> },
   { id: 'games', label: 'Games', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'calc', label: 'Calculator', icon: <CalcIcon className="w-full h-full" /> },
@@ -290,6 +293,8 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     onSelectSingle: (id) => setSelectedIcons(new Set([id])),
     onOpen: (id) => openWindow(iconIdToWindow(id)),
     onDropOnTarget: () => openDropGuard(),
+    // iPhone mode: a single tap launches the app
+    openOnSingleTap: compactIcons,
   });
 
   const {
@@ -328,6 +333,10 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     const top = openWins[openWins.length - 1];
     if (top) closeWindow(top.id);
   };
+
+  /* iPhone mode: the home button returns to the icon grid — every "app"
+     closes, like pressing home on an actual iPhone. */
+  const goHome = () => setOpenWins([]);
 
   const onOpenImage = (src: string, alt: string) => setLightbox({ src, alt });
 
@@ -402,6 +411,9 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
             active={i === openWins.length - 1}
             onClose={() => closeWindow(win.id)}
             onFocus={() => focusWindow(win.id)}
+            // iPhone mode: apps go fullscreen; system alerts stay dialogs
+            fullscreen={compactIcons && win.id !== 'dropguard'}
+            onHome={goHome}
           >
             {renderWindow(win.id, onOpenImage, openWindow, visited)}
           </MacWindow>
@@ -450,6 +462,8 @@ function renderWindow(
       return <PaintWindow />;
     case 'andywrite':
       return <AndyWriteWindow />;
+    case 'music':
+      return <MusicWindow />;
     case 'puzzle':
       return <PuzzleWindow />;
     case 'achievements':

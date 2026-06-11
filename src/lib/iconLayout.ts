@@ -5,7 +5,7 @@
 import { MENU_TOP, type Point, type Viewport } from './windowBounds';
 
 /* Order determines on-screen position: the rightmost column fills top-to-
-   bottom first. With 13 icons the grid balances to three columns of five,
+   bottom first. With 14 icons the grid balances to three columns of five,
    so 'trash' in slot 5 lands at the classic bottom-right. */
 export const DESKTOP_ICON_IDS = [
   'readme',
@@ -18,6 +18,7 @@ export const DESKTOP_ICON_IDS = [
   'news',
   'paint',
   'andywrite',
+  'music',
   'games',
   'calc',
   'about',

@@ -12,6 +12,7 @@ export type AchievementId =
   | 'news-read'
   | 'puzzle-solve'
   | 'write-export'
+  | 'music-play'
   | 'all-clear';
 
 export type AchievementDef = {
@@ -65,6 +66,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     title: 'Published Author',
     desc: 'Save a document from AndyWrite.',
     glyph: 'A',
+  },
+  {
+    id: 'music-play',
+    title: 'Top of the Charts',
+    desc: 'Spin a track in AndyMusic.',
+    glyph: '♪',
   },
   {
     id: 'all-clear',

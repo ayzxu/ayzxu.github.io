@@ -22,20 +22,20 @@
     "kingsideAttackBias": 0.62
   },
   "errors": {
-    "blunderRate": 0.025,
-    "inaccuracyRate": 0.08,
+    "blunderRate": 0.01,
+    "inaccuracyRate": 0.05,
     "blunderCpWindow": [
-      80,
-      260
+      60,
+      160
     ],
-    "sharpnessMultiplier": 1.35,
+    "sharpnessMultiplier": 1.2,
     "endgameErrorMultiplier": 0.25
   },
   "search": {
     "baseDepth": 2,
     "endgameDepth": 4,
-    "baseTemperature": 24,
-    "inaccuracyTemperature": 75,
+    "baseTemperature": 14,
+    "inaccuracyTemperature": 55,
     "bookDeviation": 0.1
   },
   "timing": {

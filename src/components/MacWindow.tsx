@@ -4,10 +4,14 @@
    bottom-right size box and an internally scrolling body. Position and size
    are owned together by useWindowGeometry so the window can be resized from
    any edge or corner; z-order, focus and lifecycle are owned by the Desktop.
+
+   On compact (phone) viewports the desktop runs in "iPhone mode": windows
+   render as fullscreen standalone apps — no dragging, no resizing, no close
+   box — with a home button at the top right that returns to the icon grid.
    ========================================================================== */
 
 import { useWindowGeometry, type Point } from './useWindowGeometry';
-import type { Size, Viewport } from '../lib/windowBounds';
+import { MENU_TOP, type Size, type Viewport } from '../lib/windowBounds';
 
 type MacWindowProps = {
   title: string;
@@ -20,6 +24,10 @@ type MacWindowProps = {
   active: boolean;
   onClose: () => void;
   onFocus: () => void;
+  /** Render as a fullscreen standalone app (compact / touch layout) */
+  fullscreen?: boolean;
+  /** Home button handler in fullscreen mode — falls back to onClose */
+  onHome?: () => void;
   children: React.ReactNode;
 };
 
@@ -34,6 +42,8 @@ export default function MacWindow({
   active,
   onClose,
   onFocus,
+  fullscreen = false,
+  onHome,
   children,
 }: MacWindowProps) {
   const { pos, size, onDragStart, onResizeStart } = useWindowGeometry(
@@ -43,6 +53,47 @@ export default function MacWindow({
     viewport,
   );
 
+  /* --- fullscreen "standalone app" (iPhone mode) ------------------------- */
+  if (fullscreen) {
+    return (
+      <div
+        className="mac-window mac-window--full"
+        style={{
+          left: 0,
+          top: MENU_TOP - 1,
+          width: viewport.w,
+          height: viewport.h - MENU_TOP + 1,
+          zIndex: z,
+        }}
+        onPointerDown={onFocus}
+      >
+        <div className={`title-bar${active ? ' active' : ''}`}>
+          {/* balances the home button so the title stays centred */}
+          <div style={{ width: 34, flexShrink: 0 }} />
+          <div className="title-bar-text">
+            <span>{title}</span>
+          </div>
+          <button
+            type="button"
+            className="close-box home-box"
+            aria-label="Home"
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              (onHome ?? onClose)();
+            }}
+          >
+            <span className="home-box-glyph" />
+          </button>
+        </div>
+
+        <div className="window-body mac-scroll">{children}</div>
+      </div>
+    );
+  }
+
+  /* --- classic draggable window ------------------------------------------ */
   return (
     <div
       className="mac-window"

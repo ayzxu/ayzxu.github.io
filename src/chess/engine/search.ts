@@ -22,7 +22,7 @@ const DEFAULT_TOP_K = 8;
     This is what gives a *depth-2* search real tactical safety: it resolves all
     pending captures before scoring, so the engine rarely hangs or misses a
     simple trade — the main reason a shallow engine feels weak. */
-const MAX_QDEPTH = 5;
+const MAX_QDEPTH = 8;
 
 type Budget = { nodes: number; limit: number };
 

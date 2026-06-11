@@ -32,6 +32,8 @@ type UseIconDragOptions = {
   onSelectSingle: (id: DesktopIconId) => void;
   onOpen: (id: DesktopIconId) => void;
   onDropOnTarget: () => void;
+  /** iPhone-style: a single tap opens the app (compact / touch layout) */
+  openOnSingleTap?: boolean;
 };
 
 export function useIconDrag({
@@ -42,6 +44,7 @@ export function useIconDrag({
   onSelectSingle,
   onOpen,
   onDropOnTarget,
+  openOnSingleTap = false,
 }: UseIconDragOptions) {
   const [draggingIds, setDraggingIds] = useState<Set<DesktopIconId>>(
     () => new Set(),
@@ -123,6 +126,10 @@ export function useIconDrag({
           setPositions((prev) => ({ ...prev, ...d.origins }));
           onDropOnTarget();
         }
+      } else if (openOnSingleTap) {
+        // home-screen behaviour: tap → launch
+        lastClick.current = null;
+        onOpen(id);
       } else {
         const now = Date.now();
         const prev = lastClick.current;
@@ -137,7 +144,7 @@ export function useIconDrag({
       drag.current = null;
       setDraggingIds(new Set());
     },
-    [positions, setPositions, onOpen, onDropOnTarget],
+    [positions, setPositions, onOpen, onDropOnTarget, openOnSingleTap],
   );
 
   return {

@@ -241,6 +241,22 @@ export function AndyWriteIcon({ className }: IconProps) {
   );
 }
 
+/* Beamed eighth notes — the AndyMusic icon */
+export function MusicIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* stems */}
+      <rect x="11" y="5" width="2.5" height="18" fill="#000000" />
+      <rect x="23" y="3" width="2.5" height="18" fill="#000000" />
+      {/* beam connecting the stems */}
+      <path d="M11 5 L25.5 3 L25.5 8 L11 10 Z" fill="#000000" />
+      {/* note heads */}
+      <ellipse cx="9" cy="24" rx="4.5" ry="3.5" fill="#000000" />
+      <ellipse cx="21" cy="22" rx="4.5" ry="3.5" fill="#000000" />
+    </svg>
+  );
+}
+
 /* 4×4 tile frame with one missing corner — the Puzzle icon */
 export function PuzzleIcon({ className }: IconProps) {
   return (

@@ -129,6 +129,11 @@ export default function MenuBar({
           },
           {
             kind: 'item',
+            label: 'Open AndyMusic',
+            onClick: () => onOpenWindow('music'),
+          },
+          {
+            kind: 'item',
             label: 'Open Achievements',
             onClick: () => onOpenWindow('achievements'),
           },

@@ -106,7 +106,7 @@ export const projects: Project[] = [
     description:
       'A chess engine that plays like me, built from my real Chess.com games. ' +
       'It opens with my actual repertoire, leans toward the moves I\'d pick, and ' +
-      'even makes my mistakes (~1500 blitz). Hand-written search engine that runs ' +
+      'even makes my mistakes (~1500 chess.com). Hand-written search engine that runs ' +
       'entirely in your browser — no server, no Stockfish. It gets stronger as I do: ' +
       'the bot retrains on my latest games.',
     openApp: 'chess',

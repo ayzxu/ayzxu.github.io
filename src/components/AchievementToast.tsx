@@ -10,7 +10,7 @@ import {
   type AchievementDef,
 } from '../lib/achievements';
 
-const SHOW_MS = 8000;
+const SHOW_MS = 2500;
 const EXIT_MS = 300;
 
 export default function AchievementToast() {

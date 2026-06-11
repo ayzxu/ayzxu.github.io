@@ -299,7 +299,7 @@ export default function ChessWindow() {
     <div className="chess-app">
       <div className="chess-app-head">
         <div className="win-sub">Andy Chess Bot</div>
-        <div className="win-meta">Plays like Andy · ~1500 blitz</div>
+        <div className="win-meta">Plays like Andy · ~1500 chess.com</div>
       </div>
 
       <div className="chess-app-body">
