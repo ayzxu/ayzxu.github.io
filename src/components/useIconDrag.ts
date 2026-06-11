@@ -79,7 +79,9 @@ export function useIconDrag({
         anchorOffsetY: e.clientY - MENU_TOP - pos.y,
         moved: false,
       };
-      setDraggingIds(new Set(ids));
+      /* draggingIds is NOT set here — a mere press must not float the icon
+         layer above open windows. It flips on in onIconPointerMove once the
+         pointer crosses DRAG_THRESHOLD, i.e. when a real drag starts. */
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     },
     [positions, selectedIcons, onSelectSingle],
@@ -96,6 +98,7 @@ export function useIconDrag({
       const dy = ny - d.origins[id].y;
       if (!d.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
 
+      if (!d.moved) setDraggingIds(new Set(d.ids));
       d.moved = true;
       setPositions((prev) => {
         const next = { ...prev };
@@ -142,7 +145,7 @@ export function useIconDrag({
       }
 
       drag.current = null;
-      setDraggingIds(new Set());
+      if (d.moved) setDraggingIds(new Set());
     },
     [positions, setPositions, onOpen, onDropOnTarget, openOnSingleTap],
   );
