@@ -156,11 +156,12 @@ export default function App() {
   };
   const shutDown = () => setPhase('shutdown');
 
-  // Boot sequence: hold on Happy Mac, zoom into the screen, then crossfade
+  // Boot sequence: hold on Happy Mac, zoom into the screen, then crossfade.
+  // The settling handoff waits for the full 1350ms zoom (700 + 1350 + a beat).
   useEffect(() => {
     if (phase !== 'booting') return;
     const toZoom = window.setTimeout(() => setZoom(true), 700);
-    const toSettling = window.setTimeout(() => setPhase('settling'), 1900);
+    const toSettling = window.setTimeout(() => setPhase('settling'), 2100);
     return () => {
       window.clearTimeout(toZoom);
       window.clearTimeout(toSettling);
@@ -254,14 +255,22 @@ export default function App() {
         <div style={macWrapperStyle}>
           {/* Wrapper carries the zoom. The transform pivots on the glass centre
               AND translates that centre to viewport-centre, so the glass snaps
-              perfectly into the screen rather than landing high and cropped. */}
+              perfectly into the screen rather than landing high and cropped.
+
+              The boot zoom-in uses a steep ease-in-out velocity curve: it
+              creeps off the line, ramps up hard through the middle of the
+              move, then brakes smoothly just before the glass fills the
+              screen. Shutdown keeps the calmer stock ease-in-out pull-back. */}
           <div
             style={{
               transform: zoom
                 ? `translate(0, ${exteriorLayout.zoomTranslateY}vh) scale(${exteriorLayout.fitScale})`
                 : 'translate(0, 0) scale(1)',
               transformOrigin: `50% ${glassOriginYPct(device)}%`,
-              transition: 'transform 1150ms ease-in-out',
+              transition:
+                phase === 'booting'
+                  ? 'transform 1350ms cubic-bezier(0.83, 0, 0.17, 1)'
+                  : 'transform 1150ms ease-in-out',
               willChange: 'transform',
             }}
           >

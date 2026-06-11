@@ -83,10 +83,33 @@ export function setSfxMuted(value: boolean): void {
   }
 }
 
+/* --- Preloading ------------------------------------------------------------
+   `new Audio(url)` only starts downloading when it's created, so a clip
+   played for the first time lags behind the UI by its fetch+decode time.
+   For sounds that must land on a precise beat (the startup chime against the
+   boot animation), we buffer them ahead of time and play the warm element. */
+const preloaded = new Map<string, HTMLAudioElement>();
+
+function preload(url: string): void {
+  if (preloaded.has(url)) return;
+  try {
+    const audio = new Audio(url);
+    audio.preload = 'auto';
+    preloaded.set(url, audio);
+  } catch {
+    /* no audio support — play() will fall back to a cold element */
+  }
+}
+
+// Warm both startup chimes as soon as the app loads, long before power-on.
+preload(startupDesktopUrl);
+preload(startupIphoneUrl);
+
 function play(url: string, volume = 1): void {
   if (muted || masterVolume <= 0) return;
   try {
-    const audio = new Audio(url);
+    const audio = preloaded.get(url) ?? new Audio(url);
+    audio.currentTime = 0;
     audio.volume = Math.min(1, Math.max(0, volume * masterVolume));
     void audio.play().catch(() => {});
   } catch {

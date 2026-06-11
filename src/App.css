@@ -2245,3 +2245,11 @@
 .home-box:active .home-box-glyph::before {
   border-color: #ffffff;
 }
+
+/* Seekable progress bar: bigger hit target, scrub cursor, no touch scrolling */
+.music-progress-seek {
+  height: 12px;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
