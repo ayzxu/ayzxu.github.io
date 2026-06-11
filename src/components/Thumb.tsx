@@ -3,6 +3,8 @@
    the lightbox reachable by keyboard (Tab + Enter/Space), not just mouse.
    ========================================================================== */
 
+import MacImg from './MacImg';
+
 type ThumbProps = {
   src: string;
   alt: string;
@@ -24,7 +26,7 @@ export default function Thumb({ src, alt, onOpen }: ThumbProps) {
         font: 'inherit',
       }}
     >
-      <img
+      <MacImg
         src={src}
         alt={alt}
         loading="lazy"

@@ -3,7 +3,8 @@
    Mirrors the old Home hero: greeting, blurb, portrait and social links.
    ========================================================================== */
 
-import { intro, socials } from '../data/content';
+import { intro, socials } from '../data/experience';
+import MacImg from '../components/MacImg';
 import type { WindowId } from '../components/windowConfig';
 
 type ReadMeWindowProps = {
@@ -20,6 +21,8 @@ const TOUR: { id: WindowId; label: string }[] = [
   { id: 'games', label: 'Play Minesweeper & Snake in Games' },
   { id: 'news', label: "Skim today's News" },
   { id: 'fun', label: 'Snoop around the Fun folder' },
+  { id: 'writings', label: 'Read an essay in Writings' },
+  { id: 'terminal', label: 'Poke around the MacTerminal' },
   { id: 'resume', label: 'Read my Résumé' },
   { id: 'calc', label: 'Crunch numbers in the Calculator' },
   { id: 'achievements', label: 'Check your Achievements' },
@@ -35,7 +38,7 @@ export default function ReadMeWindow({ onOpenWindow, visited }: ReadMeWindowProp
         <div className="readme-intro">
           <div className="win-h">{intro.heading}</div>
 
-          <img
+          <MacImg
             src={intro.portrait}
             alt="Andy Xu"
             decoding="async"

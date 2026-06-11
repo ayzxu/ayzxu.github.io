@@ -13,6 +13,7 @@ export type AchievementId =
   | 'puzzle-solve'
   | 'write-export'
   | 'music-play'
+  | 'terminal-hack'
   | 'all-clear';
 
 export type AchievementDef = {
@@ -72,6 +73,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     title: 'Top of the Charts',
     desc: 'Spin a track in AndyMusic.',
     glyph: '♪',
+  },
+  {
+    id: 'terminal-hack',
+    title: 'Root Access',
+    desc: "Find the Terminal's forbidden command.",
+    glyph: '>',
   },
   {
     id: 'all-clear',

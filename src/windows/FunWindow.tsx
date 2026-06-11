@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 import { Chessboard } from 'react-chessboard';
 import type { ChessboardOptions } from 'react-chessboard';
-import { funItems } from '../data/content';
+import { funItems } from '../data/fun';
 import Thumb from '../components/Thumb';
 import { useChessGame } from '../components/useChessGame';
 

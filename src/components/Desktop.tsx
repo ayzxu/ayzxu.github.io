@@ -22,10 +22,20 @@ import {
   AndyWriteIcon,
   MusicIcon,
   TrophyIcon,
+  TerminalIcon,
 } from './PixelIcons';
 import AchievementToast from './AchievementToast';
 import Screensaver from './Screensaver';
-import { WINDOW_META, ROUTE_FOR_WINDOW, type WindowId } from './windowConfig';
+import {
+  WINDOW_META,
+  getWindowMeta,
+  routeForWindow,
+  projectSlugFromWindowId,
+  writingSlugFromWindowId,
+  type WindowId,
+} from './windowConfig';
+import { getProject } from '../data/projects';
+import { getWriting } from '../data/writings';
 import { useViewport } from '../hooks/useViewport';
 import {
   centerWindowPosition,
@@ -49,6 +59,10 @@ import { playBasso } from '../lib/sounds';
 
 import ReadMeWindow from '../windows/ReadMeWindow';
 import ProjectsWindow from '../windows/ProjectsWindow';
+import ProjectWindow from '../windows/ProjectWindow';
+import WritingsWindow from '../windows/WritingsWindow';
+import WritingReaderWindow from '../windows/WritingReaderWindow';
+import TerminalWindow from '../windows/TerminalWindow';
 import FunWindow from '../windows/FunWindow';
 import AboutWindow from '../windows/AboutWindow';
 import ResumeWindow from '../windows/ResumeWindow';
@@ -100,10 +114,12 @@ const DESKTOP_ICONS: {
   { id: 'news', label: 'News', icon: <NewsIcon className="w-full h-full" /> },
   { id: 'paint', label: 'Paint', icon: <PaintIcon className="w-full h-full" /> },
   { id: 'andywrite', label: 'AndyWrite', icon: <AndyWriteIcon className="w-full h-full" /> },
+  { id: 'writings', label: 'Writings', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'music', label: 'AndyMusic', icon: <MusicIcon className="w-full h-full" /> },
   { id: 'achievements', label: 'Achievements', icon: <TrophyIcon className="w-full h-full" /> },
   { id: 'games', label: 'Games', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'calc', label: 'Calculator', icon: <CalcIcon className="w-full h-full" /> },
+  { id: 'terminal', label: 'MacTerminal', icon: <TerminalIcon className="w-full h-full" /> },
   { id: 'trash', label: 'Trash', icon: <TrashIcon className="w-full h-full" /> },
 ];
 
@@ -114,7 +130,7 @@ function buildInitialWindows(initialWindow?: WindowId): OpenWin[] {
   const wins: OpenWin[] = [{ id: 'readme', ...readmePos }];
   if (initialWindow && initialWindow !== 'readme') {
     const off = getCascadeOffset(viewport);
-    const size = getDefaultWindowSize(WINDOW_META[initialWindow], viewport);
+    const size = getDefaultWindowSize(getWindowMeta(initialWindow), viewport);
     wins.push({
       id: initialWindow,
       ...clampWindowPosition(
@@ -226,7 +242,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
       if (wins.some((w) => w.id === id)) return wins;
       const n = wins.length;
       const off = getCascadeOffset(viewport);
-      const size = getDefaultWindowSize(WINDOW_META[id], viewport);
+      const size = getDefaultWindowSize(getWindowMeta(id), viewport);
       return [
         ...wins,
         {
@@ -315,7 +331,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   /* Keep the URL in step with the topmost window so links stay shareable */
   useEffect(() => {
     const top = openWins[openWins.length - 1];
-    const route = top ? ROUTE_FOR_WINDOW[top.id] : undefined;
+    const route = top ? routeForWindow(top.id) : undefined;
     navigate(route ?? '/desktop', { replace: true });
   }, [openWins, navigate]);
 
@@ -396,7 +412,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
       </div>
 
       {openWins.map((win, i) => {
-        const meta = WINDOW_META[win.id];
+        const meta = getWindowMeta(win.id);
         const size = getDefaultWindowSize(meta, viewport);
         return (
           <MacWindow
@@ -415,7 +431,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
             fullscreen={compactIcons && win.id !== 'dropguard'}
             onHome={goHome}
           >
-            {renderWindow(win.id, onOpenImage, openWindow, visited)}
+            {renderWindow(win.id, onOpenImage, openWindow, closeWindow, visited)}
           </MacWindow>
         );
       })}
@@ -439,15 +455,32 @@ function renderWindow(
   id: WindowId,
   onOpenImage: (src: string, alt: string) => void,
   onOpenWindow: (id: WindowId) => void,
+  onCloseWindow: (id: WindowId) => void,
   visited: Set<WindowId>,
 ): React.ReactNode {
+  /* Dynamic document windows: project case studies and writing readers */
+  const projectSlug = projectSlugFromWindowId(id);
+  if (projectSlug !== null) {
+    const project = getProject(projectSlug);
+    return project ? (
+      <ProjectWindow
+        project={project}
+        onOpenImage={onOpenImage}
+        onOpenWindow={onOpenWindow}
+      />
+    ) : null;
+  }
+  const writingSlug = writingSlugFromWindowId(id);
+  if (writingSlug !== null) {
+    const writing = getWriting(writingSlug);
+    return writing ? <WritingReaderWindow writing={writing} /> : null;
+  }
+
   switch (id) {
     case 'readme':
       return <ReadMeWindow onOpenWindow={onOpenWindow} visited={visited} />;
     case 'projects':
-      return (
-        <ProjectsWindow onOpenImage={onOpenImage} onOpenWindow={onOpenWindow} />
-      );
+      return <ProjectsWindow onOpenWindow={onOpenWindow} />;
     case 'fun':
       return <FunWindow onOpenImage={onOpenImage} />;
     case 'about':
@@ -462,6 +495,15 @@ function renderWindow(
       return <PaintWindow />;
     case 'andywrite':
       return <AndyWriteWindow />;
+    case 'writings':
+      return <WritingsWindow onOpenWindow={onOpenWindow} />;
+    case 'terminal':
+      return (
+        <TerminalWindow
+          onOpenWindow={onOpenWindow}
+          onClose={() => onCloseWindow('terminal')}
+        />
+      );
     case 'music':
       return <MusicWindow />;
     case 'puzzle':
@@ -482,6 +524,8 @@ function renderWindow(
       return <TrashWindow />;
     case 'dropguard':
       return <DropGuardContent />;
+    default:
+      return null;
   }
 }
 

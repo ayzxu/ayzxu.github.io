@@ -3,7 +3,7 @@
    the full work-experience history and a closing note.
    ========================================================================== */
 
-import { about, experience } from '../data/content';
+import { about, experience } from '../data/experience';
 import Thumb from '../components/Thumb';
 
 type AboutWindowProps = {

@@ -2253,3 +2253,184 @@
   touch-action: none;
   user-select: none;
 }
+
+/* --- Document folders (Projects / Writings) -------------------------------- */
+.folder-doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px 6px;
+  margin-top: 12px;
+}
+
+.folder-doc {
+  text-align: center;
+}
+
+.folder-doc .folder-app-label {
+  max-width: 130px;
+  line-height: 1.5;
+}
+
+.folder-doc-meta {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  color: #555555;
+  margin-top: 2px;
+}
+
+/* --- Project case study ----------------------------------------------------- */
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.project-tag {
+  border: 1px solid #000000;
+  padding: 3px 6px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  background: #ffffff;
+  white-space: nowrap;
+}
+
+/* --- AndyWrite reader (Writings) --------------------------------------------- */
+.write-name-readonly {
+  display: inline-block;
+  width: auto;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid #000000;
+  background: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  padding: 5px 6px;
+}
+
+.write-readonly-badge {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  border: 1px dashed #000000;
+  padding: 4px 6px;
+  margin-left: auto;
+}
+
+.write-page-reader {
+  cursor: default;
+  user-select: text;
+}
+
+.reader-title {
+  font-family: "New York", Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  line-height: 1.25;
+}
+
+.reader-byline {
+  font-family: Geneva, Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  color: #444444;
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #000000;
+}
+
+.reader-heading {
+  font-family: "New York", Georgia, "Times New Roman", serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 18px 0 6px;
+}
+
+.reader-para {
+  margin: 0 0 10px;
+}
+
+/* --- MacTerminal -------------------------------------------------------------- */
+.terminal-content {
+  /* cancel the window-body padding so the dark screen runs edge to edge,
+     matching how .write-content claims the full window */
+  margin: -20px -22px;
+  height: calc(100% + 40px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000000;
+  cursor: text;
+}
+
+.terminal-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  font-family: VT323, "Courier New", monospace;
+  font-size: 17px;
+  line-height: 1.25;
+  color: #ffffff;
+}
+
+.terminal-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-cmd {
+  color: #bbbbbb;
+}
+
+.terminal-err {
+  text-decoration: underline;
+}
+
+.terminal-input-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.terminal-prompt {
+  white-space: nowrap;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-family: VT323, "Courier New", monospace;
+  font-size: 17px;
+  caret-color: #ffffff;
+  padding: 0;
+}
+
+/* --- image loading placeholder ------------------------------------------------ */
+/* Lazy images paint as empty bordered boxes until the bitmap arrives; fill the
+   wait with a classic Mac 50%-gray dither so it reads as "loading", not broken.
+   MacImg removes the class on load, keeping transparent images clean. */
+.img-loading {
+  background-color: #ffffff;
+  background-image: repeating-conic-gradient(#000000 0% 25%, #ffffff 0% 50%);
+  background-size: 4px 4px;
+  animation: img-loading-march 0.6s steps(2) infinite;
+}
+
+@keyframes img-loading-march {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 4px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .img-loading {
+    animation: none;
+  }
+}

@@ -21,13 +21,13 @@ import { useNavigate } from 'react-router-dom';
 import './App.css';
 import Macintosh from './components/Macintosh';
 import Desktop from './components/Desktop';
-import { WINDOW_FOR_ROUTE, type WindowId } from './components/windowConfig';
+import { windowForRoute, type WindowId } from './components/windowConfig';
 import { getViewport, isCompactIcons } from './lib/windowBounds';
 import { playStartupChime } from './lib/sounds';
 
 type Phase = 'exterior' | 'booting' | 'settling' | 'desktop' | 'shutdown';
 
-const DESKTOP_PATHS = ['/projects', '/fun', '/about', '/resume', '/chess', '/desktop'];
+const DESKTOP_PATHS = ['/projects', '/fun', '/about', '/resume', '/chess', '/writings', '/desktop'];
 
 /* GitHub Pages serves the pre-rendered deep links as directories, so the
    browser lands on e.g. /projects/ — normalize away the trailing slash
@@ -109,11 +109,25 @@ export default function App() {
 
   // Route is read once at mount — deep links jump straight to the desktop
   const [initialWindow] = useState<WindowId | undefined>(
-    () => WINDOW_FOR_ROUTE[normalizedPath()],
+    () => windowForRoute(normalizedPath()),
   );
   const [phase, setPhase] = useState<Phase>(() =>
     DESKTOP_PATHS.includes(normalizedPath()) ? 'desktop' : 'exterior',
   );
+
+  /* 404 handling: GitHub Pages serves 404.html for unknown paths, so the SPA
+     boots with the bogus URL still in the address bar. If the path maps to
+     nothing we know, normalize it back to '/' so refreshes and shares work. */
+  useEffect(() => {
+    const path = normalizedPath();
+    if (
+      path !== '/' &&
+      !DESKTOP_PATHS.includes(path) &&
+      !windowForRoute(path)
+    ) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
   const [zoom, setZoom] = useState(false);
 
   // Dynamic zoom scale and exterior device height — recomputed on resize

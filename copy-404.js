@@ -22,6 +22,7 @@ const ROUTES = {
   fun: 'Fun — Andy Xu',
   about: 'About Me — Andy Xu',
   resume: 'Résumé — Andy Xu',
+  writings: 'Writings — Andy Xu',
   chess: 'Andy Chess Bot — Andy Xu',
   desktop: 'Desktop — Andy Xu', // shareable, but intentionally not in the sitemap
 };

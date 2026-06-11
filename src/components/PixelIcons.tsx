@@ -49,6 +49,36 @@ export function FolderIcon({ className }: IconProps) {
   );
 }
 
+/* MacTerminal — a tiny CRT with a prompt and cursor block */
+export function TerminalIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      <rect
+        x="3"
+        y="5"
+        width="26"
+        height="20"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      <rect x="6" y="8" width="20" height="14" fill="#000000" />
+      {/* prompt chevron */}
+      <path
+        d="M9 11 L13 14 L9 17"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="2"
+      />
+      {/* cursor block */}
+      <rect x="15" y="15" width="5" height="3" fill="#ffffff" />
+      {/* stand */}
+      <rect x="12" y="25" width="8" height="2" fill="#000000" />
+      <rect x="9" y="27" width="14" height="2" fill="#000000" />
+    </svg>
+  );
+}
+
 /* Trash can — appears on every desktop */
 export function TrashIcon({ className }: IconProps) {
   return (

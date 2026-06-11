@@ -5,14 +5,15 @@
 import { MENU_TOP, type Point, type Viewport } from './windowBounds';
 
 /* Order determines on-screen position: the rightmost column fills top-to-
-   bottom first. With 14 icons the grid balances to three columns of five,
-   so 'trash' in slot 5 lands at the classic bottom-right. */
+   bottom first. With 16 icons the grid balances to four columns of four,
+   and 'trash' in slot 4 keeps the classic bottom-right. */
 export const DESKTOP_ICON_IDS = [
   'readme',
   'projects',
+  'writings',
+  'trash',
   'fun',
   'achievements',
-  'trash',
   'resume',
   'chess',
   'news',
@@ -21,6 +22,7 @@ export const DESKTOP_ICON_IDS = [
   'music',
   'games',
   'calc',
+  'terminal',
   'about',
 ] as const;
 
@@ -30,6 +32,7 @@ export type DesktopIconId = (typeof DESKTOP_ICON_IDS)[number];
 export const ICON_DROP_TARGETS: DesktopIconId[] = [
   'trash',
   'projects',
+  'writings',
   'fun',
   'about',
   'games',

@@ -129,6 +129,11 @@ export default function MenuBar({
           },
           {
             kind: 'item',
+            label: 'Open Writings',
+            onClick: () => onOpenWindow('writings'),
+          },
+          {
+            kind: 'item',
             label: 'Open AndyMusic',
             onClick: () => onOpenWindow('music'),
           },
@@ -146,6 +151,11 @@ export default function MenuBar({
             kind: 'item',
             label: 'Open Calculator',
             onClick: () => onOpenWindow('calc'),
+          },
+          {
+            kind: 'item',
+            label: 'Open MacTerminal',
+            onClick: () => onOpenWindow('terminal'),
           },
           { kind: 'sep' },
           {
