@@ -85,11 +85,9 @@ export type ExperienceItem = {
 export const intro = {
   heading: "Hi, I'm Andy.",
   body:
-    "I'm a Forward Deployed Engineer at Endeavor AI, where I build AI-assisted " +
-    "order entry and ERP automation that customers run in production. Before that, I " +
-    "was an AI Engineer Intern at IBM, and I graduated from Carnegie Mellon with " +
-    "a degree in Business Administration and a minor in Computer Science. I love building " +
-    "AI products that solve real problems and create meaningful impact.",
+    "I'm currently a Forward Deployed Engineer at Endeavor AI. " +
+    "I recently graduated from Carnegie Mellon University with " +
+    "a degree in Business Administration and a minor in Computer Science.",
   portrait: pfp,
 };
 

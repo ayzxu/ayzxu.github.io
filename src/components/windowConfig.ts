@@ -11,6 +11,12 @@ export type WindowId =
   | 'about'
   | 'resume'
   | 'chess'
+  | 'news'
+  | 'paint'
+  | 'calc'
+  | 'games'
+  | 'minesweeper'
+  | 'snake'
   | 'aboutmac'
   | 'trash'
   | 'dropguard';
@@ -26,12 +32,18 @@ export type WindowMeta = {
 /* Default content sizes. The three folder windows (projects/fun/about) open
    noticeably larger than Read Me so they have room to display thumbnails. */
 export const WINDOW_META: Record<WindowId, WindowMeta> = {
-  readme: { title: 'Read Me', w: 720, h: 600 },
+  readme: { title: 'Read Me', w: 760, h: 700 },
   projects: { title: 'Projects', w: 980, h: 720 },
   fun: { title: 'Fun', w: 980, h: 740 },
   about: { title: 'About Me', w: 720, h: 620 },
   resume: { title: 'Résumé', w: 800, h: 720 },
   chess: { title: 'Andy Chess Bot', w: 720, h: 640 },
+  news: { title: 'News', w: 780, h: 700 },
+  paint: { title: 'Paint', w: 700, h: 560 },
+  calc: { title: 'Calculator', w: 252, h: 356 },
+  games: { title: 'Games', w: 470, h: 320 },
+  minesweeper: { title: 'Minesweeper', w: 400, h: 510 },
+  snake: { title: 'Snake', w: 440, h: 560 },
   aboutmac: { title: 'About This Macintosh', w: 475, h: 300 },
   trash: { title: 'Trash', w: 560, h: 420 },
   dropguard: { title: 'System Notice', w: 440, h: 200 },
@@ -45,6 +57,12 @@ export const ROUTE_FOR_WINDOW: Partial<Record<WindowId, string>> = {
   about: '/about',
   resume: '/resume',
   chess: '/chess',
+  news: '/news',
+  paint: '/paint',
+  calc: '/calc',
+  games: '/games',
+  minesweeper: '/minesweeper',
+  snake: '/snake',
 };
 
 export const WINDOW_FOR_ROUTE: Record<string, WindowId> = {
@@ -53,4 +71,10 @@ export const WINDOW_FOR_ROUTE: Record<string, WindowId> = {
   '/about': 'about',
   '/resume': 'resume',
   '/chess': 'chess',
+  '/news': 'news',
+  '/paint': 'paint',
+  '/calc': 'calc',
+  '/games': 'games',
+  '/minesweeper': 'minesweeper',
+  '/snake': 'snake',
 };

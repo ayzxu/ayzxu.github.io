@@ -6,7 +6,13 @@
 
 import { useEffect, useState } from 'react';
 import { AppleIcon, SpeakerOffIcon, SpeakerOnIcon } from './PixelIcons';
-import { isSfxMuted, setSfxMuted } from '../lib/sounds';
+import NewsTicker from './NewsTicker';
+import {
+  getSfxVolume,
+  isSfxMuted,
+  setSfxMuted,
+  setSfxVolume,
+} from '../lib/sounds';
 import type { WindowId } from './windowConfig';
 
 type MenuEntry =
@@ -29,11 +35,23 @@ export default function MenuBar({
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [clock, setClock] = useState(formatClock);
   const [muted, setMuted] = useState(isSfxMuted);
+  const [volume, setVolume] = useState(getSfxVolume);
+  const [volumeOpen, setVolumeOpen] = useState(false);
 
   const toggleMute = () => {
     const next = !muted;
     setSfxMuted(next);
     setMuted(next);
+  };
+
+  // Dragging the slider always takes effect immediately, so it also unmutes.
+  const changeVolume = (value: number) => {
+    setSfxVolume(value);
+    setVolume(value);
+    if (muted && value > 0) {
+      setSfxMuted(false);
+      setMuted(false);
+    }
   };
 
   // Live clock — checked every second so the minute flips promptly; React
@@ -93,6 +111,26 @@ export default function MenuBar({
             kind: 'item',
             label: 'Open Andy Chess',
             onClick: () => onOpenWindow('chess'),
+          },
+          {
+            kind: 'item',
+            label: 'Open News',
+            onClick: () => onOpenWindow('news'),
+          },
+          {
+            kind: 'item',
+            label: 'Open Paint',
+            onClick: () => onOpenWindow('paint'),
+          },
+          {
+            kind: 'item',
+            label: 'Open Games',
+            onClick: () => onOpenWindow('games'),
+          },
+          {
+            kind: 'item',
+            label: 'Open Calculator',
+            onClick: () => onOpenWindow('calc'),
           },
           { kind: 'sep' },
           {
@@ -176,19 +214,45 @@ export default function MenuBar({
           </div>
         ))}
 
-        <button
-          type="button"
-          className="menu-sfx"
-          onClick={toggleMute}
-          title={muted ? 'Unmute sound effects' : 'Mute sound effects'}
-          aria-label={muted ? 'Unmute sound effects' : 'Mute sound effects'}
+        <NewsTicker onOpenNews={() => onOpenWindow('news')} />
+
+        <div
+          className="menu-sfx-wrap"
+          onMouseEnter={() => setVolumeOpen(true)}
+          onMouseLeave={() => setVolumeOpen(false)}
         >
-          {muted ? (
-            <SpeakerOffIcon className="h-3.5 w-3.5" />
-          ) : (
-            <SpeakerOnIcon className="h-3.5 w-3.5" />
+          <button
+            type="button"
+            className="menu-sfx"
+            onClick={toggleMute}
+            title={muted ? 'Unmute sound effects' : 'Mute sound effects'}
+            aria-label={muted ? 'Unmute sound effects' : 'Mute sound effects'}
+          >
+            {muted || volume === 0 ? (
+              <SpeakerOffIcon className="h-3.5 w-3.5" />
+            ) : (
+              <SpeakerOnIcon className="h-3.5 w-3.5" />
+            )}
+          </button>
+
+          {volumeOpen && (
+            <div className="menu-volume-panel">
+              <input
+                type="range"
+                className="menu-volume-slider"
+                min={0}
+                max={100}
+                step={1}
+                value={Math.round(volume * 100)}
+                onChange={(e) => changeVolume(Number(e.target.value) / 100)}
+                aria-label="Sound effects volume"
+              />
+              <div className="menu-volume-label">
+                {muted ? 'MUTE' : `${Math.round(volume * 100)}%`}
+              </div>
+            </div>
           )}
-        </button>
+        </div>
 
         <div className="menu-clock">{clock}</div>
       </div>

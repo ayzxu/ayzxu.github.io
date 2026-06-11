@@ -11,7 +11,16 @@ import MenuBar from './MenuBar';
 import MacWindow from './MacWindow';
 import DesktopIcon from './DesktopIcon';
 import Lightbox from './Lightbox';
-import { DocumentIcon, FolderIcon, TrashIcon, ChessIcon } from './PixelIcons';
+import {
+  DocumentIcon,
+  FolderIcon,
+  TrashIcon,
+  ChessIcon,
+  NewsIcon,
+  PaintIcon,
+  CalcIcon,
+} from './PixelIcons';
+import Screensaver from './Screensaver';
 import { WINDOW_META, ROUTE_FOR_WINDOW, type WindowId } from './windowConfig';
 import { useViewport } from '../hooks/useViewport';
 import {
@@ -40,6 +49,12 @@ import FunWindow from '../windows/FunWindow';
 import AboutWindow from '../windows/AboutWindow';
 import ResumeWindow from '../windows/ResumeWindow';
 import ChessWindow from '../windows/ChessWindow';
+import NewsWindow from '../windows/NewsWindow';
+import PaintWindow from '../windows/PaintWindow';
+import CalculatorWindow from '../windows/CalculatorWindow';
+import GamesWindow from '../windows/GamesWindow';
+import MinesweeperWindow from '../windows/MinesweeperWindow';
+import SnakeWindow from '../windows/SnakeWindow';
 import TrashWindow from '../windows/TrashWindow';
 import desktopBg1 from '../assets/bg.jpg';
 import desktopBg2 from '../assets/bg2.jpg';
@@ -74,6 +89,10 @@ const DESKTOP_ICONS: {
   { id: 'about', label: 'About Me', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'resume', label: 'Résumé', icon: <DocumentIcon className="w-full h-full" /> },
   { id: 'chess', label: 'Andy Chess', icon: <ChessIcon className="w-full h-full" /> },
+  { id: 'news', label: 'News', icon: <NewsIcon className="w-full h-full" /> },
+  { id: 'paint', label: 'Paint', icon: <PaintIcon className="w-full h-full" /> },
+  { id: 'games', label: 'Games', icon: <FolderIcon className="w-full h-full" /> },
+  { id: 'calc', label: 'Calculator', icon: <CalcIcon className="w-full h-full" /> },
   { id: 'trash', label: 'Trash', icon: <TrashIcon className="w-full h-full" /> },
 ];
 
@@ -101,6 +120,22 @@ function iconIdToWindow(id: DesktopIconId): WindowId {
   return id;
 }
 
+/* --- visited tracking — feeds the Read Me "check these out" checklist ------ */
+const VISITED_STORAGE_KEY = 'visited-windows';
+
+function readVisitedWindows(): Set<WindowId> {
+  try {
+    const raw = localStorage.getItem(VISITED_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed: unknown = JSON.parse(raw);
+    return new Set(
+      Array.isArray(parsed) ? (parsed.filter((x) => typeof x === 'string') as WindowId[]) : [],
+    );
+  } catch {
+    return new Set();
+  }
+}
+
 export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const navigate = useNavigate();
   const viewport = useViewport();
@@ -121,6 +156,23 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(
     null,
   );
+  const [visited, setVisited] = useState<Set<WindowId>>(readVisitedWindows);
+
+  /* Every window that gets opened (icon, menu, deep link, checklist) lands in
+     openWins, so watching it is enough to keep the visited set current. */
+  useEffect(() => {
+    setVisited((prev) => {
+      if (openWins.every((w) => prev.has(w.id))) return prev;
+      const next = new Set(prev);
+      for (const w of openWins) next.add(w.id);
+      try {
+        localStorage.setItem(VISITED_STORAGE_KEY, JSON.stringify([...next]));
+      } catch {
+        /* storage unavailable — checklist still works for this session */
+      }
+      return next;
+    });
+  }, [openWins]);
   const [busy, setBusy] = useState(false);
   const busyTimer = useRef<number | null>(null);
   /* Windows asked to open while another is "loading" — drained in order */
@@ -343,7 +395,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
             onClose={() => closeWindow(win.id)}
             onFocus={() => focusWindow(win.id)}
           >
-            {renderWindow(win.id, onOpenImage, openWindow)}
+            {renderWindow(win.id, onOpenImage, openWindow, visited)}
           </MacWindow>
         );
       })}
@@ -355,6 +407,8 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
           onClose={() => setLightbox(null)}
         />
       )}
+
+      <Screensaver />
     </div>
   );
 }
@@ -363,10 +417,11 @@ function renderWindow(
   id: WindowId,
   onOpenImage: (src: string, alt: string) => void,
   onOpenWindow: (id: WindowId) => void,
+  visited: Set<WindowId>,
 ): React.ReactNode {
   switch (id) {
     case 'readme':
-      return <ReadMeWindow onOpenWindow={onOpenWindow} />;
+      return <ReadMeWindow onOpenWindow={onOpenWindow} visited={visited} />;
     case 'projects':
       return (
         <ProjectsWindow onOpenImage={onOpenImage} onOpenWindow={onOpenWindow} />
@@ -379,6 +434,18 @@ function renderWindow(
       return <ResumeWindow />;
     case 'chess':
       return <ChessWindow />;
+    case 'news':
+      return <NewsWindow />;
+    case 'paint':
+      return <PaintWindow />;
+    case 'calc':
+      return <CalculatorWindow />;
+    case 'games':
+      return <GamesWindow onOpenWindow={onOpenWindow} />;
+    case 'minesweeper':
+      return <MinesweeperWindow />;
+    case 'snake':
+      return <SnakeWindow />;
     case 'aboutmac':
       return <AboutMacContent />;
     case 'trash':

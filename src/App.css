@@ -31,9 +31,83 @@
   color: #ffffff;
 }
 
-/* SFX mute toggle — sits at the right edge, just before the clock */
-.menu-sfx {
+/* News ticker — scrolling headline wire between the menus and the clock */
+.menu-ticker {
+  /* Grow factor < 1 → the wire claims only half the bar's free space; the
+     auto side margins split the rest evenly so the wire sits centred
+     between the menus and the SFX/clock controls. */
+  flex: 0.5 1 0%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 0 12px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+/* While the ticker is visible it owns the centring margins, so the SFX/clock
+   group must give up its own auto margin or the wire gets pushed off-centre.
+   (When the ticker isn't rendered — wire down, or phone widths — the
+   SFX group's default margin-left:auto keeps it pinned right.) */
+@media (min-width: 681px) {
+  .menu-bar:has(.menu-ticker) .menu-sfx-wrap {
+    margin-left: 0;
+  }
+}
+
+.menu-ticker:hover {
+  opacity: 1;
+}
+
+.menu-ticker-track {
+  display: flex;
+  white-space: nowrap;
+  will-change: transform;
+  animation: menu-ticker-scroll linear infinite;
+}
+
+/* Pause the wire while the reader hovers over it */
+.menu-ticker:hover .menu-ticker-track {
+  animation-play-state: paused;
+}
+
+.menu-ticker-text {
+  padding-right: 56px;
+}
+
+@keyframes menu-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Too cramped for a wire on phones — menus + clock take priority */
+@media (max-width: 680px) {
+  .menu-ticker {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-ticker-track {
+    animation: none;
+  }
+}
+
+/* SFX controls — mute toggle + hover volume slider, just before the clock */
+.menu-sfx-wrap {
   margin-left: auto;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.menu-sfx {
   display: flex;
   align-items: center;
   padding: 0 9px;
@@ -44,9 +118,72 @@
   font: inherit;
 }
 
-.menu-sfx:hover {
+.menu-sfx:hover,
+.menu-sfx-wrap:hover .menu-sfx {
   background: #000000;
   color: #ffffff;
+}
+
+/* Hover panel — same chrome as the menu dropdowns */
+.menu-volume-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1001;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  box-shadow: 2px 2px 0 0 #000000;
+  padding: 12px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.menu-volume-label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+}
+
+/* 1-bit slider: thin black track, chunky square thumb */
+.menu-volume-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 96px;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.menu-volume-slider::-webkit-slider-runnable-track {
+  height: 2px;
+  background: #000000;
+}
+
+.menu-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 14px;
+  margin-top: -6px;
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 0;
+}
+
+.menu-volume-slider::-moz-range-track {
+  height: 2px;
+  background: #000000;
+}
+
+.menu-volume-slider::-moz-range-thumb {
+  width: 6px;
+  height: 10px;
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 0;
 }
 
 .menu-clock {
@@ -718,7 +855,7 @@
 }
 
 .readme-portrait {
-  width: clamp(140px, 30cqw, 300px);
+  width: clamp(130px, 26cqw, 240px);
   height: auto;
   aspect-ratio: 168 / 138;
   object-fit: cover;
@@ -730,20 +867,20 @@
 
 /* Intro ("Read Me") window: larger, more welcoming type than other windows */
 .readme-content {
-  font-size: clamp(21px, 3vw, 30px);
+  font-size: clamp(20px, 2.6vw, 25px);
   line-height: 1.3;
 }
 
 .readme-content .win-h {
-  font-size: clamp(15px, 2.1vw, 20px);
+  font-size: clamp(14px, 2vw, 18px);
 }
 
 .readme-content .win-sub {
-  font-size: clamp(12px, 1.7vw, 15px);
+  font-size: clamp(11px, 1.6vw, 13px);
 }
 
 .readme-content .win-meta {
-  font-size: clamp(18px, 2.5vw, 25px);
+  font-size: clamp(17px, 2.3vw, 21px);
 }
 
 .lightbox-window {
@@ -895,4 +1032,564 @@
 
 .chess-move-san {
   white-space: nowrap;
+}
+
+/* --- News window ----------------------------------------------------------- */
+.news-masthead {
+  text-align: center;
+}
+
+.news-dateline {
+  margin-top: 6px;
+}
+
+.news-status {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.news-status .mac-button {
+  margin-top: 8px;
+}
+
+.news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.news-item {
+  display: flex;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px dotted rgba(0, 0, 0, 0.35);
+}
+
+.news-rank {
+  min-width: 2.1em;
+  text-align: right;
+  opacity: 0.6;
+}
+
+.news-body {
+  display: block;
+  min-width: 0;
+}
+
+.news-headline {
+  color: #000000;
+  text-decoration: none;
+}
+
+.news-headline:hover {
+  text-decoration: underline;
+}
+
+.news-source {
+  opacity: 0.55;
+  font-size: 0.85em;
+}
+
+.news-byline {
+  display: block;
+  font-size: 0.8em;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+.news-byline a {
+  color: #000000;
+}
+
+.news-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* --- Read Me "check these out" tour ----------------------------------------- */
+/* Wide windows: intro on the left, checklist on the right. The window body is
+   a size container, so this reacts to the *window* width, not the viewport —
+   narrow/resized windows keep the stacked layout. */
+@container (min-width: 600px) {
+  .readme-columns {
+    display: flex;
+    align-items: flex-start;
+    gap: 22px;
+  }
+
+  .readme-intro {
+    flex: 1.15;
+    min-width: 0;
+  }
+
+  .readme-tour-pane {
+    flex: 1;
+    min-width: 0;
+    border-left: 1px solid rgba(0, 0, 0, 0.35);
+    padding-left: 20px;
+  }
+
+  /* the stacked layout's separator above the checklist is redundant here */
+  .readme-tour-rule {
+    display: none;
+  }
+}
+
+.readme-tour-count {
+  opacity: 0.55;
+}
+
+.readme-tour {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tour-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: #000000;
+  text-align: left;
+}
+
+.tour-item:hover .tour-label {
+  background: #000000;
+  color: #ffffff;
+}
+
+.tour-box {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 2px solid #000000;
+  background-color: #ffffff;
+}
+
+/* The X is drawn as two diagonal stripes over the box itself, so it's
+   always perfectly centred — no font metrics involved. */
+.tour-box.checked {
+  background-image:
+    linear-gradient(45deg, transparent 41%, #000000 41%, #000000 59%, transparent 59%),
+    linear-gradient(-45deg, transparent 41%, #000000 41%, #000000 59%, transparent 59%);
+}
+
+.tour-item.done .tour-label {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.tour-label {
+  padding: 0 3px;
+}
+
+/* --- Paint window ---------------------------------------------------------- */
+/* Full-bleed: cancel the window body's padding so the canvas sits flush */
+.paint-content {
+  margin: -20px -22px;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+.paint-main {
+  display: flex;
+  align-items: stretch;
+}
+
+.paint-tools {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #000000;
+  flex-shrink: 0;
+}
+
+.paint-tool {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  padding: 9px 8px;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  border-bottom: 1px solid #000000;
+  cursor: pointer;
+}
+
+.paint-tool.selected {
+  background: #000000;
+  color: #ffffff;
+}
+
+.paint-canvas-wrap {
+  flex: 1;
+  min-width: 0;
+  background: #ffffff;
+  display: flex;
+}
+
+.paint-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.paint-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 8px 10px;
+  border-top: 1px solid #000000;
+}
+
+.paint-swatches {
+  display: flex;
+}
+
+.paint-swatch {
+  padding: 2px;
+  background: #ffffff;
+  border: 1px solid #000000;
+  border-left-width: 0;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.paint-swatch:first-child {
+  border-left-width: 1px;
+}
+
+.paint-swatch.selected {
+  outline: 2px solid #000000;
+  outline-offset: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.paint-swatch-chip {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+}
+
+.paint-opacity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paint-bar-label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+}
+
+.paint-sizes {
+  display: flex;
+  gap: 4px;
+}
+
+.paint-size {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #000000;
+  cursor: pointer;
+  padding: 0;
+}
+
+.paint-size.selected {
+  background: #000000;
+}
+
+.paint-size-dot {
+  background: #000000;
+  border-radius: 50%;
+}
+
+.paint-size.selected .paint-size-dot {
+  background: #ffffff;
+}
+
+.paint-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* --- Calculator window ----------------------------------------------------- */
+.calc-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  outline: none;
+}
+
+.calc-display {
+  border: 2px solid #000000;
+  background: #ffffff;
+  padding: 8px 10px;
+  text-align: right;
+  font-family: "VT323", monospace;
+  font-size: 30px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.calc-key {
+  font-family: "VT323", monospace;
+  font-size: 22px;
+  padding: 7px 0;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.calc-key:active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.calc-key.active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.calc-key.wide {
+  grid-column: span 2;
+}
+
+.calc-hint {
+  text-align: center;
+  margin: 0;
+}
+
+/* --- Games folder ----------------------------------------------------------- */
+.folder-app-row {
+  display: flex;
+  gap: 26px;
+  margin-top: 12px;
+}
+
+.folder-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: #000000;
+  padding: 8px;
+}
+
+.folder-app:hover .folder-app-label,
+.folder-app:focus-visible .folder-app-label {
+  background: #000000;
+  color: #ffffff;
+}
+
+.folder-app-glyph {
+  width: 52px;
+  height: 52px;
+}
+
+.folder-app-icon {
+  line-height: 0;
+}
+
+.folder-app-label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  padding: 2px 4px;
+}
+
+/* --- Minesweeper ------------------------------------------------------------ */
+.mine-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.mine-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.mine-counter {
+  font-family: "Press Start 2P", monospace;
+  font-size: 13px;
+  border: 2px solid #000000;
+  padding: 5px 7px;
+  min-width: 58px;
+  text-align: center;
+}
+
+.mine-face {
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+  padding: 6px 10px;
+}
+
+.mine-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 30px);
+  grid-auto-rows: 30px;
+  border: 2px solid #000000;
+}
+
+.mine-cell {
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  /* unrevealed cells get the classic 50%-dither "raised" texture */
+  background-image: repeating-conic-gradient(
+    rgba(0, 0, 0, 0.18) 0% 25%,
+    #ffffff 0% 50%
+  );
+  background-size: 4px 4px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.mine-cell.revealed {
+  background-image: none;
+  cursor: default;
+}
+
+.mine-cell.boom {
+  background: #000000;
+  color: #ffffff;
+}
+
+.mine-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mine-flag-on {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* --- Snake ------------------------------------------------------------------ */
+.snake-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  outline: none;
+}
+
+.snake-status {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 320px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+}
+
+.snake-board-wrap {
+  position: relative;
+  line-height: 0;
+}
+
+.snake-board {
+  border: 2px solid #000000;
+  image-rendering: pixelated;
+  max-width: 100%;
+  height: auto;
+}
+
+.snake-overlay {
+  position: absolute;
+  inset: 2px;
+  background: rgba(255, 255, 255, 0.88);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.snake-dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.snake-dpad .mac-button {
+  min-width: 52px;
+}
+
+.snake-dpad-row {
+  display: flex;
+  gap: 4px;
+}
+
+/* The D-pad is for fingers — hide it where a keyboard is the norm */
+@media (hover: hover) and (pointer: fine) {
+  .snake-dpad {
+    display: none;
+  }
+}
+
+/* --- Screensaver ------------------------------------------------------------ */
+.screensaver {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000000;
+  cursor: none;
+  overflow: hidden;
+}
+
+.screensaver-logo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  will-change: transform;
+}
+
+.screensaver-text {
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
 }

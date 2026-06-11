@@ -19,9 +19,10 @@ import chessMoveOpponentUrl from '../assets/audio/chess/move-opponent.mp3';
 import chessMoveSelfUrl from '../assets/audio/chess/move-self.mp3';
 import chessPromoteUrl from '../assets/audio/chess/promote.mp3';
 
-/* --- Mute (SFX toggle in the menu bar) ------------------------------------ */
+/* --- Mute & volume (SFX controls in the menu bar) ------------------------- */
 
 const MUTE_STORAGE_KEY = 'sfx-muted';
+const VOLUME_STORAGE_KEY = 'sfx-volume';
 
 function readStoredMute(): boolean {
   try {
@@ -31,7 +32,34 @@ function readStoredMute(): boolean {
   }
 }
 
+function readStoredVolume(): number {
+  try {
+    const raw = localStorage.getItem(VOLUME_STORAGE_KEY);
+    if (raw === null) return 1;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : 1;
+  } catch {
+    return 1;
+  }
+}
+
 let muted = readStoredMute();
+let masterVolume = readStoredVolume();
+
+/** Master SFX volume, 0–1. Scales every clip's own mix level. */
+export function getSfxVolume(): number {
+  return masterVolume;
+}
+
+/** Set master SFX volume (clamped to 0–1); persists across reloads. */
+export function setSfxVolume(value: number): void {
+  masterVolume = Math.min(1, Math.max(0, value));
+  try {
+    localStorage.setItem(VOLUME_STORAGE_KEY, String(masterVolume));
+  } catch {
+    /* storage unavailable — volume still applies for this session */
+  }
+}
 
 /** Whether all sound effects are currently muted. */
 export function isSfxMuted(): boolean {
@@ -49,10 +77,10 @@ export function setSfxMuted(value: boolean): void {
 }
 
 function play(url: string, volume = 1): void {
-  if (muted) return;
+  if (muted || masterVolume <= 0) return;
   try {
     const audio = new Audio(url);
-    audio.volume = volume;
+    audio.volume = Math.min(1, Math.max(0, volume * masterVolume));
     void audio.play().catch(() => {});
   } catch {
     /* no audio support — stay silent */

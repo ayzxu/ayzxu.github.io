@@ -148,6 +148,154 @@ export function HappyMac({ className }: IconProps) {
   );
 }
 
+/* Paint brush over a canvas — the Paint app icon */
+export function PaintIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* canvas */}
+      <rect
+        x="3"
+        y="8"
+        width="22"
+        height="20"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* painted squiggle */}
+      <path
+        d="M6 22 Q10 14 14 19 Q18 24 21 16"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* brush handle + tip, angled over the corner */}
+      <path d="M21 11 L27 3 L30 6 L24 13 Z" fill="#000000" />
+      <path d="M19 16 L21 11 L24 13 Z" fill="#ffffff" stroke="#000000" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+/* Pocket calculator — the Calculator desk accessory icon */
+export function CalcIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* body */}
+      <rect
+        x="7"
+        y="2"
+        width="18"
+        height="28"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* display */}
+      <rect
+        x="10"
+        y="5"
+        width="12"
+        height="5"
+        fill="#000000"
+      />
+      {/* keys — 3×4 grid */}
+      <g fill="#000000">
+        <rect x="10" y="13" width="3" height="3" />
+        <rect x="15" y="13" width="3" height="3" />
+        <rect x="20" y="13" width="2" height="3" />
+        <rect x="10" y="18" width="3" height="3" />
+        <rect x="15" y="18" width="3" height="3" />
+        <rect x="20" y="18" width="2" height="3" />
+        <rect x="10" y="23" width="3" height="3" />
+        <rect x="15" y="23" width="3" height="3" />
+        <rect x="20" y="23" width="2" height="3" />
+      </g>
+    </svg>
+  );
+}
+
+/* Round bomb with a fuse — the Minesweeper icon */
+export function MineIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* spikes */}
+      <g stroke="#000000" strokeWidth="2">
+        <line x1="16" y1="6" x2="16" y2="28" />
+        <line x1="5" y1="17" x2="27" y2="17" />
+        <line x1="8" y1="9" x2="24" y2="25" />
+        <line x1="24" y1="9" x2="8" y2="25" />
+      </g>
+      {/* body */}
+      <circle cx="16" cy="17" r="8" fill="#000000" />
+      {/* glint */}
+      <rect x="13" y="14" width="3" height="3" fill="#ffffff" />
+      {/* fuse */}
+      <path d="M20 9 Q24 5 28 7" fill="none" stroke="#000000" strokeWidth="2" />
+    </svg>
+  );
+}
+
+/* Coiled snake — the Snake icon */
+export function SnakeIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* blocky snake path, drawn as the classic grid segments */}
+      <g fill="#000000">
+        <rect x="4" y="22" width="16" height="4" />
+        <rect x="16" y="14" width="4" height="12" />
+        <rect x="8" y="14" width="12" height="4" />
+        <rect x="8" y="6" width="4" height="12" />
+        <rect x="8" y="6" width="14" height="4" />
+      </g>
+      {/* head + eye */}
+      <rect x="22" y="4" width="6" height="8" fill="#000000" />
+      <rect x="25" y="6" width="2" height="2" fill="#ffffff" />
+      {/* apple */}
+      <rect x="26" y="24" width="4" height="4" fill="#000000" />
+      <rect x="27" y="22" width="2" height="2" fill="#000000" />
+    </svg>
+  );
+}
+
+/* Newspaper — the News reader icon */
+export function NewsIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* folded paper */}
+      <path
+        d="M4 5 H24 V27 H4 Z"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* rolled right edge */}
+      <path
+        d="M24 9 H28 V25 Q28 27 26 27 H24"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* masthead */}
+      <rect x="7" y="8" width="14" height="3" fill="#000000" />
+      {/* photo block + column lines */}
+      <rect
+        x="7"
+        y="14"
+        width="6"
+        height="6"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      <g stroke="#000000" strokeWidth="2">
+        <line x1="16" y1="15" x2="21" y2="15" />
+        <line x1="16" y1="19" x2="21" y2="19" />
+        <line x1="7" y1="23" x2="21" y2="23" />
+      </g>
+    </svg>
+  );
+}
+
 /* Speaker (sound on) — used by the menu-bar SFX toggle */
 export function SpeakerOnIcon({ className }: IconProps) {
   return (
