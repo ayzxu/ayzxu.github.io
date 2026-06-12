@@ -21,14 +21,13 @@ export const RIGHT_ICON_IDS = [
   'resume',
 ] as const;
 
-/** Applications — left-justified. First 5 fill the leftmost column. */
+/** Applications — left-justified. First 5 fill the leftmost column.
+    Calculator, Paint, AndyWrite and News live inside the 'apps' folder
+    rather than on the desktop, to keep the icon spread uncluttered. */
 export const LEFT_ICON_IDS = [
   'chess',
   'music',
-  'andywrite',
-  'paint',
-  'calc',
-  'news',
+  'apps',
   'terminal',
   'asteroids',
   'games',
@@ -51,6 +50,7 @@ export const ICON_DROP_TARGETS: DesktopIconId[] = [
   'fun',
   'about',
   'games',
+  'apps',
 ];
 
 export const ICON_W = 108;

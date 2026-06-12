@@ -21,21 +21,21 @@ import iphoneClipart from '../assets/iphone.png';
 /* PNG → viewBox placement. The bitmap is 873×1530 with the chassis at
    x≈76..766 and its foot at y≈1415 (the rest is soft shadow). Scale ≈0.366
    draws it 560 tall; IMG_X centres the *screen* (PNG centre x = 421) on
-   viewBox x=200, and IMG_Y rests the foot on the desk at viewBox y≈550. */
+   viewBox x=200, and IMG_Y rests the foot on the desk at viewBox y≈535. */
 const IMG_X = 45.9;
-const IMG_Y = 32;
+const IMG_Y = 17;
 const IMG_W = 319.5; // 873 * 0.366
 const IMG_H = 560; // 1530 * 0.366
 
 /* Screen glass in viewBox coords — a touch larger than the bitmap's white
-   screen (which lands at ≈90.9..309.4 × 95.7..485.5) so no white halo
-   peeks out. Centred at (200,291). */
+   screen (which lands at ≈90.9..309.4 × 80.7..470.5) so no white halo
+   peeks out. Centred at (200,276). */
 const GLASS_X = 89;
-const GLASS_Y = 94;
+const GLASS_Y = 79;
 const GLASS_W = 222;
 const GLASS_H = 394;
 const GLASS_CX = GLASS_X + GLASS_W / 2; // = 200
-const GLASS_CY = GLASS_Y + GLASS_H / 2; // = 291
+const GLASS_CY = GLASS_Y + GLASS_H / 2; // = 276
 
 type IphoneProps = {
   screen: 'off' | 'boot';
@@ -138,7 +138,7 @@ export default function Iphone({
         <line x1="-60" y1="534" x2="460" y2="530" />
         <line x1="-60" y1="582" x2="460" y2="586" />
       </g>
-      <ellipse cx="200" cy="515" rx="220" ry="115" fill="url(#ipDeskPool)" />
+      <ellipse cx="200" cy="500" rx="220" ry="115" fill="url(#ipDeskPool)" />
 
       {/* Dissolve the scene into pure black at the left/right edges — solid
           black exactly at the viewBox boundary, drawn before the phone so they
@@ -151,7 +151,7 @@ export default function Iphone({
       {/* grounding shadow following the phone's footprint */}
       <rect
         x="84"
-        y="544"
+        y="529"
         width="232"
         height="13"
         rx="6"

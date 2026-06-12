@@ -16,10 +16,6 @@ import {
   FolderIcon,
   TrashIcon,
   ChessIcon,
-  NewsIcon,
-  PaintIcon,
-  CalcIcon,
-  AndyWriteIcon,
   MusicIcon,
   TrophyIcon,
   TerminalIcon,
@@ -76,6 +72,7 @@ import PuzzleWindow from '../windows/PuzzleWindow';
 import AchievementsWindow from '../windows/AchievementsWindow';
 import CalculatorWindow from '../windows/CalculatorWindow';
 import GamesWindow from '../windows/GamesWindow';
+import AppsWindow from '../windows/AppsWindow';
 import MinesweeperWindow from '../windows/MinesweeperWindow';
 import SnakeWindow from '../windows/SnakeWindow';
 import AsteroidsWindow from '../windows/AsteroidsWindow';
@@ -113,14 +110,11 @@ const DESKTOP_ICONS: {
   { id: 'about', label: 'About Me', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'resume', label: 'Résumé', icon: <DocumentIcon className="w-full h-full" /> },
   { id: 'chess', label: 'Andy Chess', icon: <ChessIcon className="w-full h-full" /> },
-  { id: 'news', label: 'News', icon: <NewsIcon className="w-full h-full" /> },
-  { id: 'paint', label: 'Paint', icon: <PaintIcon className="w-full h-full" /> },
-  { id: 'andywrite', label: 'AndyWrite', icon: <AndyWriteIcon className="w-full h-full" /> },
   { id: 'writings', label: 'Writings', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'music', label: 'AndyMusic', icon: <MusicIcon className="w-full h-full" /> },
   { id: 'achievements', label: 'Achievements', icon: <TrophyIcon className="w-full h-full" /> },
   { id: 'games', label: 'Games', icon: <FolderIcon className="w-full h-full" /> },
-  { id: 'calc', label: 'Calculator', icon: <CalcIcon className="w-full h-full" /> },
+  { id: 'apps', label: 'Apps', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'terminal', label: 'MacTerminal', icon: <TerminalIcon className="w-full h-full" /> },
   { id: 'asteroids', label: 'Asteroids', icon: <AsteroidsIcon className="w-full h-full" /> },
   { id: 'trash', label: 'Trash', icon: <TrashIcon className="w-full h-full" /> },
@@ -517,6 +511,8 @@ function renderWindow(
       return <CalculatorWindow />;
     case 'games':
       return <GamesWindow onOpenWindow={onOpenWindow} />;
+    case 'apps':
+      return <AppsWindow onOpenWindow={onOpenWindow} />;
     case 'minesweeper':
       return <MinesweeperWindow />;
     case 'snake':

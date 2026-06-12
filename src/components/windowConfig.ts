@@ -25,6 +25,7 @@ export type StaticWindowId =
   | 'andywrite'
   | 'writings'
   | 'music'
+  | 'apps'
   | 'achievements'
   | 'calc'
   | 'puzzle'
@@ -64,6 +65,7 @@ export const WINDOW_META: Record<StaticWindowId, WindowMeta> = {
   andywrite: { title: 'AndyWrite', w: 760, h: 640 },
   writings: { title: 'Writings', w: 640, h: 420 },
   music: { title: 'AndyMusic', w: 780, h: 620 },
+  apps: { title: 'Apps', w: 560, h: 320 },
   achievements: { title: 'Achievements', w: 560, h: 600 },
   puzzle: { title: 'Puzzle', w: 320, h: 430 },
   calc: { title: 'Calculator', w: 252, h: 356 },
@@ -131,6 +133,7 @@ const ROUTE_FOR_STATIC_WINDOW: Partial<Record<StaticWindowId, string>> = {
   andywrite: '/write',
   writings: '/writings',
   music: '/music',
+  apps: '/apps',
   achievements: '/achievements',
   calc: '/calc',
   puzzle: '/puzzle',
