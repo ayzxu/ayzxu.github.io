@@ -23,6 +23,7 @@ import {
   MusicIcon,
   TrophyIcon,
   TerminalIcon,
+  AsteroidsIcon,
 } from './PixelIcons';
 import AchievementToast from './AchievementToast';
 import Screensaver from './Screensaver';
@@ -77,6 +78,7 @@ import CalculatorWindow from '../windows/CalculatorWindow';
 import GamesWindow from '../windows/GamesWindow';
 import MinesweeperWindow from '../windows/MinesweeperWindow';
 import SnakeWindow from '../windows/SnakeWindow';
+import AsteroidsWindow from '../windows/AsteroidsWindow';
 import TrashWindow from '../windows/TrashWindow';
 import desktopBg1 from '../assets/bg.jpg';
 import desktopBg2 from '../assets/bg2.jpg';
@@ -120,6 +122,7 @@ const DESKTOP_ICONS: {
   { id: 'games', label: 'Games', icon: <FolderIcon className="w-full h-full" /> },
   { id: 'calc', label: 'Calculator', icon: <CalcIcon className="w-full h-full" /> },
   { id: 'terminal', label: 'MacTerminal', icon: <TerminalIcon className="w-full h-full" /> },
+  { id: 'asteroids', label: 'Asteroids', icon: <AsteroidsIcon className="w-full h-full" /> },
   { id: 'trash', label: 'Trash', icon: <TrashIcon className="w-full h-full" /> },
 ];
 
@@ -518,6 +521,8 @@ function renderWindow(
       return <MinesweeperWindow />;
     case 'snake':
       return <SnakeWindow />;
+    case 'asteroids':
+      return <AsteroidsWindow />;
     case 'aboutmac':
       return <AboutMacContent />;
     case 'trash':

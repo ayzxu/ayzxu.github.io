@@ -438,6 +438,39 @@ export function NewsIcon({ className }: IconProps) {
   );
 }
 
+/* Asteroids — a planet ringed by an orbit with a tumbling rock on it */
+export function AsteroidsIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* orbit ring (tilted ellipse) */}
+      <ellipse
+        cx="16"
+        cy="16"
+        rx="14"
+        ry="7"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="2"
+        transform="rotate(-20 16 16)"
+      />
+      {/* central planet */}
+      <circle
+        cx="16"
+        cy="16"
+        r="6"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
+      {/* a couple of surface pits for the 1-bit globe feel */}
+      <rect x="14" y="13" width="2" height="2" fill="#000000" />
+      <rect x="17" y="17" width="2" height="2" fill="#000000" />
+      {/* the asteroid riding the orbit */}
+      <rect x="25" y="9" width="4" height="4" fill="#000000" />
+    </svg>
+  );
+}
+
 /* Speaker (sound on) — used by the menu-bar SFX toggle */
 export function SpeakerOnIcon({ className }: IconProps) {
   return (

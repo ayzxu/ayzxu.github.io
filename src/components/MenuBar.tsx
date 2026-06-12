@@ -157,6 +157,11 @@ export default function MenuBar({
             label: 'Open MacTerminal',
             onClick: () => onOpenWindow('terminal'),
           },
+          {
+            kind: 'item',
+            label: 'Open Asteroids',
+            onClick: () => onOpenWindow('asteroids'),
+          },
           { kind: 'sep' },
           {
             kind: 'item',
