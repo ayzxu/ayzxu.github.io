@@ -6,6 +6,10 @@
 import pfp from '../assets/portraits/pfp.webp';
 import portrait3 from '../assets/portraits/portrait3.webp';
 import portrait4 from '../assets/portraits/portrait4.webp';
+import portrait5 from '../assets/portraits/portrait5.webp';
+import portrait6 from '../assets/portraits/portrait6.webp';
+import portrait7 from '../assets/portraits/portrait7.webp';
+import portrait8 from '../assets/portraits/portrait8.webp';
 import azuki1 from '../assets/experiencepics/azuki/azuki1.webp';
 import azuki2 from '../assets/experiencepics/azuki/azuki2.webp';
 import ibm12 from '../assets/experiencepics/ibm1/ibm12.webp';
@@ -48,8 +52,12 @@ export const socials: LinkItem[] = [
 
 export const about = {
   portraits: [
+    { src: portrait5, alt: 'Graduation day at Carnegie Mellon, May 2026' },
+    { src: portrait6, alt: 'Mirror check, May 2026' },
     { src: portrait4, alt: 'New York City, October 2025' },
     { src: portrait3, alt: 'Me and my scooter, September 2025' },
+    { src: portrait7, alt: 'Bamboo grove in Japan, March 2025' },
+    { src: portrait8, alt: 'Yakitori night in Japan, March 2025' },
   ],
   background:
     'I grew up in the Bay Area, California, and attended Lynbrook High School. ' +

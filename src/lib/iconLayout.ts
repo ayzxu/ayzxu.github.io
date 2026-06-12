@@ -4,26 +4,40 @@
 
 import { MENU_TOP, type Point, type Viewport } from './windowBounds';
 
-/* Order determines on-screen position: the rightmost column fills top-to-
-   bottom first. With 16 icons the grid balances to four columns of four,
-   and 'trash' in slot 4 keeps the classic bottom-right. */
-export const DESKTOP_ICON_IDS = [
+/* The desktop splits into two groups, Finder-style: documents and folders
+   hug the right edge (the classic System 1 arrangement, with Trash at the
+   bottom-right), applications hug the left edge. Within each group, order
+   fills the edge-most column top-to-bottom first, then stacks inward. */
+
+/** Folders & documents — right-justified. First 4 fill the rightmost
+    column, so 'trash' lands at the classic bottom-right. */
+export const RIGHT_ICON_IDS = [
   'readme',
   'projects',
   'writings',
   'trash',
   'fun',
-  'achievements',
-  'resume',
-  'chess',
-  'news',
-  'paint',
-  'andywrite',
-  'music',
-  'games',
-  'calc',
-  'terminal',
   'about',
+  'resume',
+] as const;
+
+/** Applications — left-justified. First 5 fill the leftmost column. */
+export const LEFT_ICON_IDS = [
+  'chess',
+  'music',
+  'andywrite',
+  'paint',
+  'calc',
+  'news',
+  'terminal',
+  'games',
+  'achievements',
+] as const;
+
+/* Combined order also drives the compact (iOS home-screen) grid. */
+export const DESKTOP_ICON_IDS = [
+  ...RIGHT_ICON_IDS,
+  ...LEFT_ICON_IDS,
 ] as const;
 
 export type DesktopIconId = (typeof DESKTOP_ICON_IDS)[number];
@@ -63,30 +77,52 @@ export function getDefaultIconPositions(
 const MAX_PER_COLUMN = 5;
 /** Horizontal spacing between stacked columns. */
 const COLUMN_GAP = 12;
+/** Distance between the screen edge and the edge-most icon column. */
+const EDGE_MARGIN = 28;
 
-function columnIconPositions(viewport: Viewport): IconPositions {
+/** Lay one icon group out in columns anchored to the given screen edge.
+    The edge-most column fills top-to-bottom first; extra columns stack
+    inward (right group grows leftward, left group grows rightward). */
+function placeColumnGroup(
+  ids: readonly DesktopIconId[],
+  anchor: 'left' | 'right',
+  viewport: Viewport,
+  positions: IconPositions,
+) {
   const containerH = viewport.h - MENU_TOP;
-  const count = DESKTOP_ICON_IDS.length;
 
   // Split into as many columns as needed so no column holds more than
   // MAX_PER_COLUMN icons, then balance the icons evenly across those columns.
-  const cols = Math.ceil(count / MAX_PER_COLUMN);
-  const perColumn = Math.ceil(count / cols);
-
-  // Rightmost column sits at the classic right margin; extra columns stack to
-  // its left.
-  const rightX = Math.max(8, viewport.w - ICON_W - 28);
+  const cols = Math.ceil(ids.length / MAX_PER_COLUMN);
+  const perColumn = Math.ceil(ids.length / cols);
   const gap = (containerH - perColumn * ICON_H) / (perColumn + 1);
 
-  const positions = {} as IconPositions;
-  DESKTOP_ICON_IDS.forEach((id, i) => {
+  const edgeX =
+    anchor === 'right'
+      ? Math.max(8, viewport.w - ICON_W - EDGE_MARGIN)
+      : EDGE_MARGIN;
+
+  ids.forEach((id, i) => {
     const col = Math.floor(i / perColumn);
     const row = i % perColumn;
+    const x =
+      anchor === 'right'
+        ? Math.max(8, edgeX - col * (ICON_W + COLUMN_GAP))
+        : Math.min(
+            Math.max(8, viewport.w - ICON_W - 8),
+            edgeX + col * (ICON_W + COLUMN_GAP),
+          );
     positions[id] = {
-      x: Math.max(8, rightX - col * (ICON_W + COLUMN_GAP)),
+      x,
       y: Math.round(gap + row * (ICON_H + gap)),
     };
   });
+}
+
+function columnIconPositions(viewport: Viewport): IconPositions {
+  const positions = {} as IconPositions;
+  placeColumnGroup(RIGHT_ICON_IDS, 'right', viewport, positions);
+  placeColumnGroup(LEFT_ICON_IDS, 'left', viewport, positions);
   return positions;
 }
 
