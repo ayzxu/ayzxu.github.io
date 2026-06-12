@@ -41,12 +41,12 @@ type RawNeo = {
   }[];
 };
 
-/* A personal NASA key is the built-in default (raises the limit to ~1,000
-   req/hr vs DEMO_KEY's ~30); an explicit VITE_NASA_API_KEY still overrides it,
-   and a blank env value falls back rather than sending an empty api_key. */
-const API_KEY =
-  import.meta.env.VITE_NASA_API_KEY?.trim() ||
-  'DEMO_KEY';
+/* The key comes from VITE_NASA_API_KEY, injected at build time (a GitHub
+   Actions secret in CI; a local .env.local for development). It falls back to
+   NASA's shared DEMO_KEY — fine for local poking but rate-limited to ~30 req/hr,
+   so production builds should always supply a personal key. A blank value falls
+   back rather than sending an empty api_key. */
+const API_KEY = import.meta.env.VITE_NASA_API_KEY?.trim() || 'DEMO_KEY';
 
 /** Cap so the orbital map stays legible even on the busiest days. */
 const MAX_OBJECTS = 40;
