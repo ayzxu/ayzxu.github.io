@@ -41,10 +41,27 @@ type RawNeo = {
   }[];
 };
 
-const API_KEY = import.meta.env.VITE_NASA_API_KEY ?? 'DEMO_KEY';
+/* A personal NASA key is the built-in default (raises the limit to ~1,000
+   req/hr vs DEMO_KEY's ~30); an explicit VITE_NASA_API_KEY still overrides it,
+   and a blank env value falls back rather than sending an empty api_key. */
+const API_KEY =
+  import.meta.env.VITE_NASA_API_KEY?.trim() ||
+  'DEMO_KEY';
 
 /** Cap so the orbital map stays legible even on the busiest days. */
 const MAX_OBJECTS = 40;
+
+/** Why a feed fetch failed — lets the UI explain rate limits vs. being offline. */
+export type NeoErrorCode = 'rate-limit' | 'http' | 'offline';
+
+export class NeoError extends Error {
+  code: NeoErrorCode;
+  constructor(code: NeoErrorCode, message: string) {
+    super(message);
+    this.name = 'NeoError';
+    this.code = code;
+  }
+}
 
 /** Local date as YYYY-MM-DD for the NeoWs feed date parameters. */
 function todayParam(): string {
@@ -55,13 +72,38 @@ function todayParam(): string {
   return `${y}-${m}-${d}`;
 }
 
-/** Fetch today's near-Earth close approaches, closest miss distance first. */
+/** Fetch today's near-Earth close approaches, closest miss distance first.
+    Retries once on a transient network/5xx hiccup, but not on a 429 (the
+    rate limit won't clear instantly). */
 export async function fetchNeoFeed(): Promise<NearEarthObject[]> {
   const day = todayParam();
-  const res = await fetch(
-    `https://api.nasa.gov/neo/rest/v1/feed?start_date=${day}&end_date=${day}&api_key=${API_KEY}`,
-  );
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const url = `https://api.nasa.gov/neo/rest/v1/feed?start_date=${day}&end_date=${day}&api_key=${API_KEY}`;
+
+  let res: Response;
+  try {
+    res = await fetch(url);
+    if (res.status >= 500) {
+      // One short retry for a transient server error.
+      await new Promise((r) => setTimeout(r, 600));
+      res = await fetch(url);
+    }
+  } catch {
+    // Network error — retry once, then give up as "offline".
+    try {
+      await new Promise((r) => setTimeout(r, 600));
+      res = await fetch(url);
+    } catch {
+      throw new NeoError('offline', 'Could not reach NASA');
+    }
+  }
+
+  if (res.status === 429) {
+    throw new NeoError('rate-limit', 'NASA rate limit reached');
+  }
+  if (!res.ok) {
+    throw new NeoError('http', `HTTP ${res.status}`);
+  }
+
   const data: { near_earth_objects: Record<string, RawNeo[]> } =
     await res.json();
 

@@ -7,11 +7,16 @@
    ========================================================================== */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchNeoFeed, type NearEarthObject } from '../lib/asteroids';
+import {
+  fetchNeoFeed,
+  NeoError,
+  type NeoErrorCode,
+  type NearEarthObject,
+} from '../lib/asteroids';
 
 type FetchState =
   | { status: 'loading' }
-  | { status: 'error' }
+  | { status: 'error'; code: NeoErrorCode }
   | { status: 'ready'; objects: NearEarthObject[]; fetchedAt: Date };
 
 /* Per-asteroid render model. Orbit size is stored as a fraction (0..1) of the
@@ -180,8 +185,9 @@ export default function AsteroidsWindow() {
     try {
       const objects = await fetchNeoFeed();
       setState({ status: 'ready', objects, fetchedAt: new Date() });
-    } catch {
-      setState({ status: 'error' });
+    } catch (err) {
+      const code = err instanceof NeoError ? err.code : 'offline';
+      setState({ status: 'error', code });
     }
   }, []);
 
@@ -545,7 +551,11 @@ export default function AsteroidsWindow() {
 
       {state.status === 'error' && (
         <div className="asteroids-status">
-          <p>Lost contact with Deep Space Network — couldn&apos;t reach NASA.</p>
+          <p>
+            {state.code === 'rate-limit'
+              ? "NASA's tracking station is busy (rate limit) — give it a minute and try again."
+              : "Lost contact with Deep Space Network — couldn't reach NASA."}
+          </p>
           <button type="button" className="mac-button" onClick={() => void load()}>
             Try Again
           </button>
