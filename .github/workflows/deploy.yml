@@ -34,6 +34,11 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Personal NASA API key (raises the NeoWs limit above DEMO_KEY's
+          # ~30 req/hr). Add it under Settings → Secrets and variables →
+          # Actions → New repository secret, named VITE_NASA_API_KEY.
+          VITE_NASA_API_KEY: ${{ secrets.VITE_NASA_API_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

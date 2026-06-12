@@ -7,11 +7,16 @@
    ========================================================================== */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchNeoFeed, type NearEarthObject } from '../lib/asteroids';
+import {
+  fetchNeoFeed,
+  NeoError,
+  type NeoErrorCode,
+  type NearEarthObject,
+} from '../lib/asteroids';
 
 type FetchState =
   | { status: 'loading' }
-  | { status: 'error' }
+  | { status: 'error'; code: NeoErrorCode }
   | { status: 'ready'; objects: NearEarthObject[]; fetchedAt: Date };
 
 /* Per-asteroid render model. Orbit size is stored as a fraction (0..1) of the
@@ -21,12 +26,16 @@ type Body = {
   neo: NearEarthObject;
   orbitFrac: number; // 0 (closest) .. 1 (farthest) → maps to orbit radius
   ecc: number; // orbit ellipse flattening
-  rot: number; // ellipse rotation (rad)
+  inclination: number; // orbital-plane tilt about the X axis (rad)
+  node: number; // longitude of ascending node — plane spin about Y (rad)
   angle: number; // current position along the orbit (rad), mutated each frame
   dir: 1 | -1; // travel direction
   speed: number; // rad per ms
   sizeFrac: number; // 0..1 → dot radius
 };
+
+/* A point in 3D world space (Earth at the origin), in pixel-ish units. */
+type Vec3 = { x: number; y: number; z: number };
 
 /* Cheap deterministic hash so each asteroid's orbit looks distinct but stable
    across renders (same id → same eccentricity, phase, direction). */
@@ -66,7 +75,9 @@ function buildBodies(objects: NearEarthObject[]): Body[] {
       neo,
       orbitFrac,
       ecc: 0.06 + ((h >>> 3) % 22) / 100, // 0.06 .. 0.28
-      rot: ((h >>> 8) % 360) * (Math.PI / 180),
+      // tilt each orbital plane through 3D: inclination ±70°, node 0..360°
+      inclination: (((h >>> 8) % 140) - 70) * (Math.PI / 180),
+      node: ((h >>> 18) % 360) * (Math.PI / 180),
       angle: ((h >>> 16) % 360) * (Math.PI / 180),
       dir: (h & 1 ? 1 : -1) as 1 | -1,
       // inner orbits sweep a little faster; faster asteroids a little faster
@@ -75,6 +86,57 @@ function buildBodies(objects: NearEarthObject[]): Body[] {
       sizeFrac,
     };
   });
+}
+
+/* --- 3D geometry ----------------------------------------------------------- */
+
+/** A body's position along its tilted elliptical orbit, in 3D world space. */
+function orbitPoint(b: Body, angle: number, minR: number, maxR: number): Vec3 {
+  const a = minR + b.orbitFrac * (maxR - minR);
+  const bb = a * (1 - b.ecc);
+  // Point in the orbital plane (z = 0).
+  const px = a * Math.cos(angle);
+  const pz = bb * Math.sin(angle);
+  // Tilt the plane by inclination (about X), then spin by node (about Y).
+  const ci = Math.cos(b.inclination);
+  const si = Math.sin(b.inclination);
+  const y1 = pz * si;
+  const z1 = pz * ci;
+  const cn = Math.cos(b.node);
+  const sn = Math.sin(b.node);
+  return {
+    x: px * cn + z1 * sn,
+    y: y1,
+    z: -px * sn + z1 * cn,
+  };
+}
+
+type Projected = { x: number; y: number; z: number; scale: number };
+
+/** Rotate a world point by the camera (yaw then pitch) and perspective-project
+    it to screen space. `z` is camera depth (larger = nearer the viewer) and
+    `scale` is the perspective foreshortening used for sizing. */
+function project(
+  p: Vec3,
+  yaw: number,
+  pitch: number,
+  cx: number,
+  cy: number,
+  focal: number,
+  camDist: number,
+): Projected {
+  // Yaw about Y.
+  const cyaw = Math.cos(yaw);
+  const syaw = Math.sin(yaw);
+  const x1 = p.x * cyaw + p.z * syaw;
+  const z1 = -p.x * syaw + p.z * cyaw;
+  // Pitch about X.
+  const cp = Math.cos(pitch);
+  const sp = Math.sin(pitch);
+  const y2 = p.y * cp - z1 * sp;
+  const z2 = p.y * sp + z1 * cp;
+  const scale = focal / Math.max(1, camDist - z2);
+  return { x: cx + x1 * scale, y: cy - y2 * scale, z: z2, scale };
 }
 
 /* --- formatting helpers ---------------------------------------------------- */
@@ -101,6 +163,13 @@ export default function AsteroidsWindow() {
   const hoveredRef = useRef<string | null>(null);
   const selectedRef = useRef<string | null>(null);
 
+  // Orbiting camera — a pleasant 3/4 view by default.
+  const DEFAULT_YAW = 0.6;
+  const DEFAULT_PITCH = 0.5;
+  const yawRef = useRef(DEFAULT_YAW);
+  const pitchRef = useRef(DEFAULT_PITCH);
+  const lastInteractRef = useRef(0);
+
   // Keep the animation loop's view of selection in sync without re-running it.
   useEffect(() => {
     hoveredRef.current = hoveredId;
@@ -116,8 +185,9 @@ export default function AsteroidsWindow() {
     try {
       const objects = await fetchNeoFeed();
       setState({ status: 'ready', objects, fetchedAt: new Date() });
-    } catch {
-      setState({ status: 'error' });
+    } catch (err) {
+      const code = err instanceof NeoError ? err.code : 'offline';
+      setState({ status: 'error', code });
     }
   }, []);
 
@@ -131,20 +201,12 @@ export default function AsteroidsWindow() {
       state.status === 'ready' ? buildBodies(state.objects) : [];
   }, [state]);
 
-  /* Position of a body along its (rotated, elliptical) orbit at a given angle,
-     in logical canvas coordinates. */
-  const posAt = useCallback(
-    (b: Body, angle: number, cx: number, cy: number, minR: number, maxR: number) => {
-      const a = minR + b.orbitFrac * (maxR - minR);
-      const bb = a * (1 - b.ecc);
-      const px = a * Math.cos(angle);
-      const py = bb * Math.sin(angle);
-      const c = Math.cos(b.rot);
-      const s = Math.sin(b.rot);
-      return { x: cx + px * c - py * s, y: cy + px * s + py * c };
-    },
-    [],
-  );
+  // Recenter the camera to the default 3/4 view.
+  const resetView = useCallback(() => {
+    yawRef.current = DEFAULT_YAW;
+    pitchRef.current = DEFAULT_PITCH;
+    lastInteractRef.current = performance.now();
+  }, []);
 
   // Canvas setup + animation loop. Runs once we have data to show.
   useEffect(() => {
@@ -175,13 +237,33 @@ export default function AsteroidsWindow() {
 
     const dot = (x: number, y: number, r: number) => {
       ctx.beginPath();
-      ctx.arc(Math.round(x), Math.round(y), r, 0, Math.PI * 2);
+      ctx.arc(Math.round(x), Math.round(y), Math.max(0.5, r), 0, Math.PI * 2);
       ctx.fill();
     };
 
-    // Earth: a black-outlined disc with a 2px checker dither for that 1-bit
-    // "globe" look, drawn at the centre.
-    const drawEarth = (cx: number, cy: number, r: number) => {
+    /* The viewing geometry derived from the current canvas size. Earth's world
+       radius doubles as its (near-constant) on-screen radius for occlusion. */
+    const geom = () => {
+      const cx = W / 2;
+      const cy = H / 2;
+      const earthR = 13;
+      const minR = earthR + 18;
+      const maxR = Math.max(minR + 10, Math.min(W, H) / 2 - 18);
+      const camDist = maxR * 2.4;
+      return { cx, cy, earthR, minR, maxR, camDist, focal: camDist };
+    };
+
+    // Earth: a dithered disc plus two projected great-circle rings so the globe
+    // visibly turns as the camera orbits.
+    const drawEarth = (
+      cx: number,
+      cy: number,
+      r: number,
+      yaw: number,
+      pitch: number,
+      focal: number,
+      camDist: number,
+    ) => {
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -194,6 +276,18 @@ export default function AsteroidsWindow() {
           }
         }
       }
+      // Front-facing wireframe rings (equator + meridian).
+      const ring = (fn: (t: number) => Vec3) => {
+        for (let i = 0; i < 60; i++) {
+          const t = (i / 60) * Math.PI * 2;
+          const rp = project(fn(t), yaw, pitch, cx, cy, focal, camDist);
+          if (rp.z < 0) continue; // hidden on the far side of the globe
+          ctx.fillRect(Math.round(rp.x), Math.round(rp.y), 1, 1);
+        }
+      };
+      ctx.fillStyle = '#000000';
+      ring((t) => ({ x: r * Math.cos(t), y: 0, z: r * Math.sin(t) }));
+      ring((t) => ({ x: 0, y: r * Math.cos(t), z: r * Math.sin(t) }));
       ctx.lineWidth = 2;
       ctx.strokeStyle = '#000000';
       ctx.beginPath();
@@ -208,12 +302,14 @@ export default function AsteroidsWindow() {
       const dt = Math.min(60, now - last);
       last = now;
 
-      const bodies = bodiesRef.current;
-      const cx = W / 2;
-      const cy = H / 2;
-      const earthR = 12;
-      const minR = earthR + 16;
-      const maxR = Math.max(minR + 10, Math.min(W, H) / 2 - 16);
+      const { cx, cy, earthR, minR, maxR, camDist, focal } = geom();
+
+      // Gentle auto-spin once the user has been idle for a moment.
+      if (now - lastInteractRef.current > 2500) {
+        yawRef.current += 0.00006 * dt;
+      }
+      const yaw = yawRef.current;
+      const pitch = pitchRef.current;
 
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
@@ -221,42 +317,78 @@ export default function AsteroidsWindow() {
       const hovered = hoveredRef.current;
       const selected = selectedRef.current;
 
-      for (const b of bodies) {
+      // True when a projected point is hidden behind Earth's disc.
+      const occluded = (p: Projected) =>
+        p.z < 0 && (p.x - cx) ** 2 + (p.y - cy) ** 2 < earthR * earthR;
+
+      // Advance + project every body, then draw back-to-front so the globe and
+      // nearer asteroids correctly overlap the ones behind them.
+      const draws = bodiesRef.current.map((b) => {
         b.angle += b.dir * b.speed * dt;
+        const proj = project(
+          orbitPoint(b, b.angle, minR, maxR),
+          yaw,
+          pitch,
+          cx,
+          cy,
+          focal,
+          camDist,
+        );
+        return { b, proj };
+      });
+      draws.sort((a, z) => a.proj.z - z.proj.z);
+
+      const drawBody = ({ b, proj }: { b: Body; proj: Projected }) => {
         const focused = b.neo.id === hovered || b.neo.id === selected;
 
-        // Faint dotted orbit ring (denser when focused) for context.
+        // Dotted orbit path (denser when focused).
         ctx.fillStyle = '#000000';
         const ringSteps = focused ? 96 : 56;
         for (let i = 0; i < ringSteps; i++) {
-          if (!focused && i % 2) continue; // sparse stipple when idle
+          if (!focused && i % 2) continue;
           const ang = (i / ringSteps) * Math.PI * 2;
-          const p = posAt(b, ang, cx, cy, minR, maxR);
-          ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
+          const rp = project(
+            orbitPoint(b, ang, minR, maxR),
+            yaw,
+            pitch,
+            cx,
+            cy,
+            focal,
+            camDist,
+          );
+          if (occluded(rp)) continue;
+          ctx.fillRect(Math.round(rp.x), Math.round(rp.y), 1, 1);
         }
 
         // Trailing arc behind the asteroid — fades by spacing toward the tail.
         const arcSpan = 1.3;
         const samples = 20;
         for (let k = 1; k <= samples; k++) {
-          const t = k / samples; // 0 near asteroid → 1 tail
+          const t = k / samples;
           const step = 1 + Math.floor(t * 3);
-          if (k % step) continue; // sparser (=fainter) the further back we go
+          if (k % step) continue;
           const ang = b.angle - b.dir * t * arcSpan;
-          const p = posAt(b, ang, cx, cy, minR, maxR);
-          dot(p.x, p.y, Math.max(0.5, (1 - t) * 1.6));
+          const tp = project(
+            orbitPoint(b, ang, minR, maxR),
+            yaw,
+            pitch,
+            cx,
+            cy,
+            focal,
+            camDist,
+          );
+          if (occluded(tp)) continue;
+          dot(tp.x, tp.y, (1 - t) * 1.6 * tp.scale);
         }
 
-        // The asteroid itself.
-        const p = posAt(b, b.angle, cx, cy, minR, maxR);
-        const dotR = 1.8 + b.sizeFrac * 2.6;
-        dot(p.x, p.y, dotR);
+        // The asteroid itself — perspective-scaled so nearer ones look bigger.
+        const dotR = (1.8 + b.sizeFrac * 2.6) * proj.scale;
+        dot(proj.x, proj.y, dotR);
         if (b.neo.hazardous) {
-          // Potentially-hazardous asteroids get a warning ring.
           ctx.lineWidth = 1;
           ctx.strokeStyle = '#000000';
           ctx.beginPath();
-          ctx.arc(Math.round(p.x), Math.round(p.y), dotR + 3, 0, Math.PI * 2);
+          ctx.arc(Math.round(proj.x), Math.round(proj.y), dotR + 3, 0, Math.PI * 2);
           ctx.stroke();
         }
 
@@ -264,70 +396,132 @@ export default function AsteroidsWindow() {
           ctx.lineWidth = 2;
           ctx.strokeStyle = '#000000';
           ctx.beginPath();
-          ctx.arc(Math.round(p.x), Math.round(p.y), dotR + 6, 0, Math.PI * 2);
+          ctx.arc(Math.round(proj.x), Math.round(proj.y), dotR + 6, 0, Math.PI * 2);
           ctx.stroke();
           ctx.fillStyle = '#000000';
           ctx.font = '16px "VT323", monospace';
           ctx.textBaseline = 'middle';
           const label = b.neo.name;
-          const lx = p.x + dotR + 9;
+          const lx = proj.x + dotR + 9;
           const tw = ctx.measureText(label).width;
-          // Flip the label to the other side near the right edge.
-          const x = lx + tw > W - 4 ? p.x - dotR - 9 - tw : lx;
-          ctx.fillRect(Math.round(x - 2), Math.round(p.y - 9), tw + 4, 18);
+          const x = lx + tw > W - 4 ? proj.x - dotR - 9 - tw : lx;
+          ctx.fillRect(Math.round(x - 2), Math.round(proj.y - 9), tw + 4, 18);
           ctx.fillStyle = '#ffffff';
-          ctx.fillText(label, Math.round(x), Math.round(p.y));
+          ctx.fillText(label, Math.round(x), Math.round(proj.y));
           ctx.fillStyle = '#000000';
         }
-      }
+      };
 
-      drawEarth(cx, cy, earthR);
+      let i = 0;
+      for (; i < draws.length && draws[i].proj.z < 0; i++) drawBody(draws[i]);
+      drawEarth(cx, cy, earthR, yaw, pitch, focal, camDist);
+      for (; i < draws.length; i++) drawBody(draws[i]);
 
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
 
-    // Hit-test the pointer against current asteroid positions.
+    // Hit-test the pointer against the projected asteroid positions.
     const bodyAt = (clientX: number, clientY: number): string | null => {
       const rect = canvas.getBoundingClientRect();
       const mx = clientX - rect.left;
       const my = clientY - rect.top;
-      const cx = W / 2;
-      const cy = H / 2;
-      const earthR = 12;
-      const minR = earthR + 16;
-      const maxR = Math.max(minR + 10, Math.min(W, H) / 2 - 16);
+      const { cx, cy, minR, maxR, camDist, focal } = geom();
+      const yaw = yawRef.current;
+      const pitch = pitchRef.current;
       let best: string | null = null;
-      let bestD = 12 * 12; // within ~12px
+      let bestD = 14 * 14; // within ~14px
+      let bestZ = -Infinity;
       for (const b of bodiesRef.current) {
-        const p = posAt(b, b.angle, cx, cy, minR, maxR);
+        const p = project(
+          orbitPoint(b, b.angle, minR, maxR),
+          yaw,
+          pitch,
+          cx,
+          cy,
+          focal,
+          camDist,
+        );
         const d = (p.x - mx) ** 2 + (p.y - my) ** 2;
-        if (d < bestD) {
+        // Nearest in screen space; on a near-tie prefer the one closer to camera.
+        if (d < bestD - 4 || (d < bestD + 4 && p.z > bestZ)) {
           bestD = d;
+          bestZ = p.z;
           best = b.neo.id;
         }
       }
       return best;
     };
 
-    const onMove = (e: PointerEvent) => setHoveredId(bodyAt(e.clientX, e.clientY));
-    const onLeave = () => setHoveredId(null);
-    const onClick = (e: PointerEvent) => {
-      const id = bodyAt(e.clientX, e.clientY);
-      if (id) setSelectedId(id);
+    // Drag rotates the camera; a click that doesn't drag selects an asteroid.
+    let isDown = false;
+    let isDrag = false;
+    let startX = 0;
+    let startY = 0;
+    let prevX = 0;
+    let prevY = 0;
+
+    const onDown = (e: PointerEvent) => {
+      isDown = true;
+      isDrag = false;
+      startX = prevX = e.clientX;
+      startY = prevY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
     };
+    const onMove = (e: PointerEvent) => {
+      if (isDown) {
+        const dx = e.clientX - prevX;
+        const dy = e.clientY - prevY;
+        prevX = e.clientX;
+        prevY = e.clientY;
+        if (!isDrag && Math.hypot(e.clientX - startX, e.clientY - startY) > 3) {
+          isDrag = true;
+          canvas.style.cursor = 'grabbing';
+          if (hoveredRef.current !== null) setHoveredId(null);
+        }
+        if (isDrag) {
+          yawRef.current += dx * 0.01;
+          pitchRef.current = Math.max(
+            -1.45,
+            Math.min(1.45, pitchRef.current + dy * 0.01),
+          );
+          lastInteractRef.current = performance.now();
+        }
+        return;
+      }
+      setHoveredId(bodyAt(e.clientX, e.clientY));
+    };
+    const onUp = (e: PointerEvent) => {
+      if (isDown && !isDrag) {
+        const id = bodyAt(e.clientX, e.clientY);
+        if (id) setSelectedId(id);
+      }
+      isDown = false;
+      isDrag = false;
+      canvas.style.cursor = 'grab';
+      try {
+        canvas.releasePointerCapture(e.pointerId);
+      } catch {
+        /* pointer already released */
+      }
+    };
+    const onLeave = () => {
+      if (!isDown) setHoveredId(null);
+    };
+    canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
+    canvas.addEventListener('pointerup', onUp);
     canvas.addEventListener('pointerleave', onLeave);
-    canvas.addEventListener('pointerdown', onClick);
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      canvas.removeEventListener('pointerdown', onDown);
       canvas.removeEventListener('pointermove', onMove);
+      canvas.removeEventListener('pointerup', onUp);
       canvas.removeEventListener('pointerleave', onLeave);
-      canvas.removeEventListener('pointerdown', onClick);
     };
-  }, [state, posAt]);
+  }, [state]);
 
   const objects = state.status === 'ready' ? state.objects : [];
   const detailId = hoveredId ?? selectedId;
@@ -357,7 +551,11 @@ export default function AsteroidsWindow() {
 
       {state.status === 'error' && (
         <div className="asteroids-status">
-          <p>Lost contact with Deep Space Network — couldn&apos;t reach NASA.</p>
+          <p>
+            {state.code === 'rate-limit'
+              ? "NASA's tracking station is busy (rate limit) — give it a minute and try again."
+              : "Lost contact with Deep Space Network — couldn't reach NASA."}
+          </p>
           <button type="button" className="mac-button" onClick={() => void load()}>
             Try Again
           </button>
@@ -369,6 +567,7 @@ export default function AsteroidsWindow() {
           <div className="asteroids-stage">
             <div className="asteroids-viewport" ref={wrapRef}>
               <canvas ref={canvasRef} className="asteroids-canvas" />
+              <span className="asteroids-drag-hint">drag to rotate</span>
             </div>
 
             <div className="asteroids-side">
@@ -445,6 +644,9 @@ export default function AsteroidsWindow() {
               onClick={() => void load()}
             >
               Refresh
+            </button>
+            <button type="button" className="mac-button" onClick={resetView}>
+              Reset View
             </button>
             <span className="win-meta">
               {objects.length} tracked · {hazardCount} hazardous · updated{' '}
