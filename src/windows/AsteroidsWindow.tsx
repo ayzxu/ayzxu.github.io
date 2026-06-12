@@ -362,7 +362,7 @@ export default function AsteroidsWindow() {
 
         // Trailing arc behind the asteroid — fades by spacing toward the tail.
         const arcSpan = 1.3;
-        const samples = 20;
+        const samples = 25; // +25% trail density
         for (let k = 1; k <= samples; k++) {
           const t = k / samples;
           const step = 1 + Math.floor(t * 3);
