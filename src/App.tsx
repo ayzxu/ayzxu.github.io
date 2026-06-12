@@ -66,7 +66,7 @@ const MAC_PROFILE: DeviceProfile = {
 };
 
 /* Iphone.tsx: viewBox 400×650; the phone stands on the desk with its screen
-   glass centred at (200,321) → 222×394. Keep in sync with the GLASS_*
+   glass centred at (200,291) → 222×394. Keep in sync with the GLASS_*
    constants in Iphone.tsx. */
 const IPHONE_PROFILE: DeviceProfile = {
   Component: Iphone,
@@ -74,7 +74,7 @@ const IPHONE_PROFILE: DeviceProfile = {
   viewH: 650,
   glassW: 222,
   glassH: 394,
-  glassCy: 321,
+  glassCy: 291,
 };
 
 function getSvgVh(device: DeviceProfile): number {
