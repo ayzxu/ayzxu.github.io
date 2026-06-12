@@ -31,6 +31,7 @@ export type StaticWindowId =
   | 'games'
   | 'minesweeper'
   | 'snake'
+  | 'asteroids'
   | 'terminal'
   | 'aboutmac'
   | 'trash'
@@ -69,6 +70,7 @@ export const WINDOW_META: Record<StaticWindowId, WindowMeta> = {
   games: { title: 'Games', w: 470, h: 320 },
   minesweeper: { title: 'Minesweeper', w: 400, h: 510 },
   snake: { title: 'Snake', w: 440, h: 560 },
+  asteroids: { title: 'Asteroids', w: 720, h: 640 },
   terminal: { title: 'MacTerminal', w: 680, h: 520 },
   aboutmac: { title: 'About This Macintosh', w: 475, h: 300 },
   trash: { title: 'Trash', w: 560, h: 420 },
@@ -135,6 +137,7 @@ const ROUTE_FOR_STATIC_WINDOW: Partial<Record<StaticWindowId, string>> = {
   games: '/games',
   minesweeper: '/minesweeper',
   snake: '/snake',
+  asteroids: '/asteroids',
   terminal: '/terminal',
 };
 

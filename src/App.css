@@ -1107,6 +1107,144 @@
   gap: 14px;
 }
 
+/* --- Asteroids window ------------------------------------------------------ */
+.asteroids-masthead {
+  text-align: center;
+}
+
+.asteroids-status {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.asteroids-status .mac-button {
+  margin-top: 8px;
+}
+
+/* Map on the left, detail + legend on the right; stacks on narrow windows. */
+.asteroids-stage {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+
+@container (max-width: 560px) {
+  .asteroids-stage {
+    flex-direction: column;
+  }
+}
+
+.asteroids-viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 380px;
+  border: 2px solid #000000;
+  background: #ffffff;
+  position: relative;
+}
+
+.asteroids-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.asteroids-side {
+  flex: 0 0 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.asteroids-detail {
+  border: 2px solid #000000;
+  padding: 10px 12px;
+  min-height: 132px;
+}
+
+.asteroids-detail-name {
+  word-break: break-word;
+}
+
+.asteroids-pha {
+  font-family: "VT323", monospace;
+  font-size: 18px;
+}
+
+.asteroids-stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1px 10px;
+  margin: 8px 0;
+}
+
+.asteroids-stats dt {
+  opacity: 0.6;
+}
+
+.asteroids-stats dd {
+  margin: 0;
+  text-align: right;
+}
+
+.asteroids-link {
+  color: #000000;
+  text-decoration: underline;
+}
+
+.asteroids-hint {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.asteroids-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  max-height: 232px;
+  overflow: auto;
+  border: 2px solid #000000;
+}
+
+.asteroids-legend-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-bottom: 1px dotted rgba(0, 0, 0, 0.35);
+}
+
+.asteroids-legend-item:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.asteroids-legend-item.is-selected {
+  background: #000000;
+  color: #ffffff;
+}
+
+.asteroids-legend-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asteroids-legend-dist {
+  flex: 0 0 auto;
+  opacity: 0.75;
+}
+
+.asteroids-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 /* --- Read Me "check these out" tour ----------------------------------------- */
 /* Wide windows: intro on the left, checklist on the right. The window body is
    a size container, so this reacts to the *window* width, not the viewport —
