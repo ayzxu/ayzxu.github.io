@@ -30,6 +30,7 @@ export const LEFT_ICON_IDS = [
   'calc',
   'news',
   'terminal',
+  'asteroids',
   'games',
   'achievements',
 ] as const;
