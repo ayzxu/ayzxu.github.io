@@ -8,9 +8,10 @@
      desktop  → the live, interactive desktop (windows, menus, icons)
      shutdown → the screen blacks out and the camera pulls back to exterior
 
-   The Macintosh is used on every device — on mobile it is simply scaled to fit
-   the screen (see getSvgVh, which caps the height so the chassis never spills
-   past a narrow viewport's width).
+   The startup hardware matches the device: desktops get the Mac 128K, while
+   phone-sized viewports get an iPhone (whose desktop renders as an iOS home
+   screen anyway). Either way getSvgVh caps the height so the chassis never
+   spills past a narrow viewport's width.
 
    The zoom scale is computed dynamically so that the Mac's screen-glass lands
    exactly fitted to the viewport — never so big the Happy Mac logo is cropped.
@@ -20,6 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 import Macintosh from './components/Macintosh';
+import Iphone from './components/Iphone';
 import Desktop from './components/Desktop';
 import { windowForRoute, type WindowId } from './components/windowConfig';
 import { getViewport, isCompactIcons, isPinchZoomed } from './lib/windowBounds';
@@ -63,16 +65,27 @@ const MAC_PROFILE: DeviceProfile = {
   glassCy: 198,
 };
 
-const MAC_ASPECT = MAC_PROFILE.viewW / MAC_PROFILE.viewH;
+/* Iphone.tsx: viewBox 400×650; the phone stands on the desk with its screen
+   glass centred at (200,321) → 222×394. Keep in sync with the GLASS_*
+   constants in Iphone.tsx. */
+const IPHONE_PROFILE: DeviceProfile = {
+  Component: Iphone,
+  viewW: 400,
+  viewH: 650,
+  glassW: 222,
+  glassH: 394,
+  glassCy: 321,
+};
 
-function getSvgVh(): number {
+function getSvgVh(device: DeviceProfile): number {
   if (typeof window === 'undefined') return 0.9;
   const { w, h } = getViewport();
   const base = w < 480 ? 0.85 : 0.9;
-  // On narrow / portrait screens the Mac is sized by height (width: auto), so a
-  // tall viewport would push the chassis wider than the screen. Cap the height
-  // so the rendered width stays within ~94% of the viewport width.
-  const maxVhForWidth = (0.94 * w) / (h * MAC_ASPECT);
+  // On narrow / portrait screens the chassis is sized by height (width: auto),
+  // so a tall viewport would push it wider than the screen. Cap the height so
+  // the rendered width stays within ~94% of the viewport width.
+  const aspect = device.viewW / device.viewH;
+  const maxVhForWidth = (0.94 * w) / (h * aspect);
   return Math.min(base, maxVhForWidth);
 }
 
@@ -102,8 +115,13 @@ function computeFitScale(svgVh: number, device: DeviceProfile): number {
 export default function App() {
   const navigate = useNavigate();
 
-  // The Macintosh is the startup hardware on every device.
-  const device = MAC_PROFILE;
+  // Startup hardware matches the device class (chosen once at mount): phones
+  // get the iPhone, everything else the Macintosh.
+  const [device] = useState<DeviceProfile>(() =>
+    typeof window !== 'undefined' && isCompactIcons(getViewport())
+      ? IPHONE_PROFILE
+      : MAC_PROFILE,
+  );
 
   // Route is read once at mount — deep links jump straight to the desktop
   const [initialWindow] = useState<WindowId | undefined>(
@@ -130,7 +148,7 @@ export default function App() {
 
   // Dynamic zoom scale and exterior device height — recomputed on resize
   const [exteriorLayout, setExteriorLayout] = useState(() => {
-    const svgVh = typeof window === 'undefined' ? 0.9 : getSvgVh();
+    const svgVh = typeof window === 'undefined' ? 0.9 : getSvgVh(device);
     const originY = glassOriginYPct(device);
     return {
       svgVh,
@@ -143,7 +161,7 @@ export default function App() {
       // Ignore visualViewport resizes caused by pinch-zooming on iOS — the
       // layout viewport hasn't changed, only the user's zoom level.
       if (isPinchZoomed()) return;
-      const svgVh = getSvgVh();
+      const svgVh = getSvgVh(device);
       setExteriorLayout({
         svgVh,
         fitScale: computeFitScale(svgVh, device),

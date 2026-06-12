@@ -61,8 +61,14 @@ export default function MenuBar({
     return () => window.clearInterval(id);
   }, []);
 
-  // Each menu is keyed by title; "apple" uses the icon instead of text
-  const menus: { key: string; label: React.ReactNode; entries: MenuEntry[] }[] =
+  // Each menu is keyed by title; "apple" uses the icon instead of text.
+  // desktopOnly menus are hidden on phone-sized screens (see .menu-title--desktop-only).
+  const menus: {
+    key: string;
+    label: React.ReactNode;
+    entries: MenuEntry[];
+    desktopOnly?: boolean;
+  }[] =
     [
       {
         key: 'apple',
@@ -86,6 +92,7 @@ export default function MenuBar({
       {
         key: 'File',
         label: 'File',
+        desktopOnly: true,
         entries: [
           {
             kind: 'item',
@@ -174,6 +181,7 @@ export default function MenuBar({
       {
         key: 'Edit',
         label: 'Edit',
+        desktopOnly: true,
         entries: [
           { kind: 'item', label: 'Undo', disabled: true },
           { kind: 'sep' },
@@ -185,6 +193,7 @@ export default function MenuBar({
       {
         key: 'View',
         label: 'View',
+        desktopOnly: true,
         entries: [
           { kind: 'item', label: 'by Icon', disabled: true },
           { kind: 'item', label: 'by Name', disabled: true },
@@ -208,7 +217,9 @@ export default function MenuBar({
         {menus.map((menu) => (
           <div
             key={menu.key}
-            className={`menu-title${openMenu === menu.key ? ' open' : ''}`}
+            className={`menu-title${
+              menu.desktopOnly ? ' menu-title--desktop-only' : ''
+            }${openMenu === menu.key ? ' open' : ''}`}
             style={{ position: 'relative' }}
             onClick={() =>
               setOpenMenu(openMenu === menu.key ? null : menu.key)

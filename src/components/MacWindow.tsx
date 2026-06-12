@@ -69,7 +69,7 @@ export default function MacWindow({
       >
         <div className={`title-bar${active ? ' active' : ''}`}>
           {/* balances the home button so the title stays centred */}
-          <div style={{ width: 34, flexShrink: 0 }} />
+          <div className="home-box-balance" />
           <div className="title-bar-text">
             <span>{title}</span>
           </div>
@@ -84,7 +84,7 @@ export default function MacWindow({
               (onHome ?? onClose)();
             }}
           >
-            <span className="home-box-glyph" />
+            <span className="home-box-label">HOME</span>
           </button>
         </div>
 
