@@ -22,7 +22,7 @@ import './App.css';
 import Macintosh from './components/Macintosh';
 import Desktop from './components/Desktop';
 import { windowForRoute, type WindowId } from './components/windowConfig';
-import { getViewport, isCompactIcons } from './lib/windowBounds';
+import { getViewport, isCompactIcons, isPinchZoomed } from './lib/windowBounds';
 import { playStartupChime } from './lib/sounds';
 
 type Phase = 'exterior' | 'booting' | 'settling' | 'desktop' | 'shutdown';
@@ -67,12 +67,12 @@ const MAC_ASPECT = MAC_PROFILE.viewW / MAC_PROFILE.viewH;
 
 function getSvgVh(): number {
   if (typeof window === 'undefined') return 0.9;
-  const base = window.innerWidth < 480 ? 0.85 : 0.9;
+  const { w, h } = getViewport();
+  const base = w < 480 ? 0.85 : 0.9;
   // On narrow / portrait screens the Mac is sized by height (width: auto), so a
   // tall viewport would push the chassis wider than the screen. Cap the height
   // so the rendered width stays within ~94% of the viewport width.
-  const maxVhForWidth =
-    (0.94 * window.innerWidth) / (window.innerHeight * MAC_ASPECT);
+  const maxVhForWidth = (0.94 * w) / (h * MAC_ASPECT);
   return Math.min(base, maxVhForWidth);
 }
 
@@ -89,16 +89,14 @@ function getZoomTranslateYVh(svgVh: number, originYPct: number): number {
 }
 
 function computeFitScale(svgVh: number, device: DeviceProfile): number {
-  const svgHpx = svgVh * window.innerHeight;
+  const { w, h } = getViewport();
+  const svgHpx = svgVh * h;
   const svgWpx = svgHpx * (device.viewW / device.viewH);
   const glassWpx = svgWpx * (device.glassW / device.viewW);
   const glassHpx = svgHpx * (device.glassH / device.viewH);
   // Fit the screen-glass *just inside* the viewport — pick the smaller axis
   // so neither dimension overshoots (which would crop the Happy Mac logo).
-  return Math.min(
-    window.innerWidth / glassWpx,
-    window.innerHeight / glassHpx,
-  );
+  return Math.min(w / glassWpx, h / glassHpx);
 }
 
 export default function App() {
@@ -142,6 +140,9 @@ export default function App() {
   });
   useEffect(() => {
     const onResize = () => {
+      // Ignore visualViewport resizes caused by pinch-zooming on iOS — the
+      // layout viewport hasn't changed, only the user's zoom level.
+      if (isPinchZoomed()) return;
       const svgVh = getSvgVh();
       setExteriorLayout({
         svgVh,

@@ -18,13 +18,11 @@ const TOUR: { id: WindowId; label: string }[] = [
   { id: 'projects', label: 'Browse my Projects' },
   { id: 'chess', label: 'Lose to Andy Chess Bot' },
   { id: 'paint', label: 'Doodle something in Paint' },
-  { id: 'games', label: 'Play Minesweeper & Snake in Games' },
+  { id: 'games', label: 'Play Games' },
   { id: 'news', label: "Skim today's News" },
-  { id: 'fun', label: 'Snoop around the Fun folder' },
   { id: 'writings', label: 'Read an essay in Writings' },
   { id: 'terminal', label: 'Poke around the MacTerminal' },
   { id: 'resume', label: 'Read my Résumé' },
-  { id: 'calc', label: 'Crunch numbers in the Calculator' },
   { id: 'achievements', label: 'Check your Achievements' },
 ];
 

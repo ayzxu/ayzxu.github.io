@@ -35,7 +35,23 @@ function capLargeFolder(size: Size, viewport: Viewport): Size {
 
 export function getViewport(): Viewport {
   if (typeof window === 'undefined') return { w: 1024, h: 768 };
-  return { w: window.innerWidth, h: window.innerHeight };
+  // Use the *layout* viewport, not window.innerWidth/innerHeight. On iOS
+  // Safari the inner* values track the visual viewport, so they shrink while
+  // the user pinch-zooms — which would make the whole desktop re-layout to
+  // the zoomed region. clientWidth/Height stay stable during pinch-zoom.
+  const doc = document.documentElement;
+  return {
+    w: doc.clientWidth || window.innerWidth,
+    h: doc.clientHeight || window.innerHeight,
+  };
+}
+
+/** True while the user is pinch-zoomed in (visual viewport scaled). Layout
+    recomputation should be skipped in this state. */
+export function isPinchZoomed(): boolean {
+  if (typeof window === 'undefined') return false;
+  const scale = window.visualViewport?.scale ?? 1;
+  return Math.abs(scale - 1) > 0.01;
 }
 
 export function getWindowMargins() {

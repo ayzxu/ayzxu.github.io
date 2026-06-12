@@ -3,13 +3,18 @@
    ========================================================================== */
 
 import { useEffect, useState } from 'react';
-import { getViewport, type Viewport } from '../lib/windowBounds';
+import { getViewport, isPinchZoomed, type Viewport } from '../lib/windowBounds';
 
 export function useViewport(): Viewport {
   const [viewport, setViewport] = useState<Viewport>(getViewport);
 
   useEffect(() => {
-    const update = () => setViewport(getViewport());
+    const update = () => {
+      // Pinch-zoom on iOS fires visualViewport resizes with a shrunken
+      // visual viewport — don't re-layout the desktop mid-zoom.
+      if (isPinchZoomed()) return;
+      setViewport(getViewport());
+    };
 
     window.addEventListener('resize', update);
     window.visualViewport?.addEventListener('resize', update);
