@@ -1193,7 +1193,22 @@
 .asteroids-detail {
   border: 2px solid #000000;
   padding: 10px 12px;
-  min-height: 132px;
+  /* FIXED height (tallest content: 2-line name + 4 stat rows + link).
+     The box must never resize with its content: hovering a legend item swaps
+     the detail content, and if that changed this box's height the legend
+     would shift under the pointer, re-firing hover — an endless jitter loop. */
+  height: 230px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Pin the NASA/JPL link to the bottom of the fixed box so it doesn't ride
+   up and down as names wrap to one or two lines. */
+.asteroids-detail .asteroids-link {
+  margin-top: auto;
+  align-self: flex-start;
 }
 
 .asteroids-detail-name {
