@@ -275,14 +275,19 @@ export function AndyWriteIcon({ className }: IconProps) {
 export function MusicIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 32 32" className={className} shapeRendering="crispEdges">
+      {/* beam — outlined parallelogram, slanting up to the right */}
+      <path
+        d="M12 7 L27 4 L27 9 L12 12 Z"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="2"
+      />
       {/* stems */}
-      <rect x="11" y="5" width="2.5" height="18" fill="#000000" />
-      <rect x="23" y="3" width="2.5" height="18" fill="#000000" />
-      {/* beam connecting the stems */}
-      <path d="M11 5 L25.5 3 L25.5 8 L11 10 Z" fill="#000000" />
-      {/* note heads */}
-      <ellipse cx="9" cy="24" rx="4.5" ry="3.5" fill="#000000" />
-      <ellipse cx="21" cy="22" rx="4.5" ry="3.5" fill="#000000" />
+      <line x1="13" y1="11" x2="13" y2="24" stroke="#000000" strokeWidth="2.5" />
+      <line x1="26" y1="8.5" x2="26" y2="21" stroke="#000000" strokeWidth="2.5" />
+      {/* open note heads */}
+      <circle cx="9.5" cy="24" r="4" fill="#ffffff" stroke="#000000" strokeWidth="2.5" />
+      <circle cx="22.5" cy="21" r="4" fill="#ffffff" stroke="#000000" strokeWidth="2.5" />
     </svg>
   );
 }
