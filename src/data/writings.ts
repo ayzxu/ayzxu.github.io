@@ -22,6 +22,89 @@ export type Writing = {
 
 export const writings: Writing[] = [
   {
+    slug: 'asteroids',
+    title: 'The Sky Is Closer Than You Think',
+    date: 'Jun 2026',
+    readTime: '5 min read',
+    blurb: 'From a middle-school astronomy event to a live orrery of today\u2019s near misses.',
+    body: [
+      {
+        type: 'p',
+        text:
+          'In middle school I did Reach for the Stars, the astronomy event in Science ' +
+          'Olympiad. You memorize constellations, deep-sky objects, the names of stars that ' +
+          'have been dead for longer than there have been people to name them. Most of it I ' +
+          'studied off flashcards under fluorescent lights. But the part that actually stuck ' +
+          'was the first time I went outside afterward and recognized something. Orion was ' +
+          'not a flashcard anymore. It was up there, and I knew it. That is the whole hook of ' +
+          'looking up: the sky stops being decoration and starts being a place with addresses.',
+      },
+      {
+        type: 'p',
+        text:
+          'I still have not seen the thing I most want to see. The dream is Iceland, in ' +
+          'winter, far enough from any town that the aurora fills the whole sky instead of ' +
+          'smudging one corner of it. I have watched enough shaky phone footage to know the ' +
+          'footage is lying to me, and that the only way to actually have it is to stand ' +
+          'there and be cold. I have not gone yet. The Asteroids window on this site is, if I ' +
+          'am honest, the thing I built while waiting to go.',
+      },
+      { type: 'h', text: 'The orbits are real' },
+      {
+        type: 'p',
+        text:
+          'It would have been easy to make a pretty starfield and call the rocks decorative. ' +
+          'I did the harder version. The app pulls NASA\u2019s NeoWs feed, the Near Earth ' +
+          'Object Web Service, and asks a simple question: what is making a close approach to ' +
+          'Earth today, closest first. Then for each object it fetches the real Keplerian ' +
+          'elements from JPL\u2019s small-body solution and propagates them by solving ' +
+          'Kepler\u2019s equation, with Earth placed by a standard analytic ephemeris. Every ' +
+          'trajectory on screen is the actual geocentric path of that rock over a ' +
+          'forty-eight-hour window on either side of the encounter. A time bar lets you scrub ' +
+          'through the flyby, or fast-forward it, and watch the geometry change.',
+      },
+      { type: 'h', text: 'Two ways of seeing the same sky' },
+      {
+        type: 'p',
+        text:
+          'There is a scale toggle, and it is the most honest control in the whole project. ' +
+          'The classic view is the original System 1 toy: every asteroid sweeps a decorative ' +
+          'ring at its catalogued miss distance, busy and hypnotic and proudly unphysical. ' +
+          'The real view propagates the true orbital elements and draws everything to scale, ' +
+          'with the Moon\u2019s orbit included for reference. The honest picture is humbling. ' +
+          'Most of these rocks miss us by several times the distance to the Moon, which is ' +
+          'either reassuring or terrifying depending on how you feel about the word ' +
+          '"several." The toy version is more fun to look at. Both are true to something.',
+      },
+      { type: 'h', text: 'Drawing 1984 in WebGL' },
+      {
+        type: 'p',
+        text:
+          'The rendering is where the astronomy meets the Macintosh. The scene is drawn in ' +
+          'grayscale off-screen in WebGL2, then snapped to one-bit black and white by a Bayer ' +
+          'ordered-dither shader. That single shader does a lot of work: it shades the day and ' +
+          'night terminator across the globe and it stipples the asteroid trails into the kind ' +
+          'of dotted texture a 1984 screen would have produced. Labels, hazard rings, and the ' +
+          'little pick-rings you click live on a separate 2D overlay, because text wants to ' +
+          'stay crisp while the sky gets dithered. The constraint of one-bit graphics turned ' +
+          'out to be a gift again. A real telescope view would be noise. A dithered one reads ' +
+          'as a diagram.',
+      },
+      { type: 'h', text: 'Why bother' },
+      {
+        type: 'p',
+        text:
+          'The thing I keep coming back to is that none of this required a personal API key ' +
+          'or a server. It runs on NASA\u2019s public demo endpoint and a pile of orbital ' +
+          'mechanics that have been settled science for three hundred years. A kid with ' +
+          'flashcards and a browser can watch the actual rocks go by today. I built it ' +
+          'because the same feeling from that first night outside is still the point: the ' +
+          'sky is not decoration. It has addresses, the rocks keep real appointments, and you ' +
+          'can go check. Iceland is still on the list. This was practice for paying attention.',
+      },
+    ],
+  },
+  {
     slug: 'chess-bot',
     title: 'How I Trained a Chess Bot on My Own Games',
     date: 'Jun 2026',
