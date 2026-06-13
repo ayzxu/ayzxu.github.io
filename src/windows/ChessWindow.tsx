@@ -213,16 +213,20 @@ export default function ChessWindow() {
       const sq = square as Square;
       const g = gameRef.current;
 
+      const piece = g.get(sq);
+      const mine = piece && (piece.color === 'w') === (userColor === 'white');
+
       if (selected) {
         if (sq === selected) {
           setSelected(null);
           return;
         }
-        if (tryUserMove(selected, sq)) return; // moved
+        // Clicking another of your own pieces just switches the selection —
+        // don't run it through tryUserMove, which would treat the (always
+        // illegal) self-capture as a bad move and play the error sound.
+        if (!mine && tryUserMove(selected, sq)) return; // moved
       }
       // (Re)select if the square holds one of the user's pieces.
-      const piece = g.get(sq);
-      const mine = piece && (piece.color === 'w') === (userColor === 'white');
       setSelected(mine ? sq : null);
     },
     [selected, status.kind, isUserTurn, thinking, userColor, tryUserMove],
@@ -364,35 +368,30 @@ export default function ChessWindow() {
       <div className="chess-howto">
         <div className="win-sub">How it works</div>
         <p>
-          This isn&apos;t Stockfish with the difficulty turned down — it&apos;s a
-          hand-written engine modeled on my actual games. A data pipeline pulls my
-          full Chess.com history and builds two things: an opening book of every
+          This isn&apos;t Stockfish with the difficulty turned down. It&apos;s a
+          hand-written engine trained on my actual Chess.com games. A data pipeline
+          builds two things from my full game history: an opening book of every
           position I&apos;ve reached, weighted by how often I played each move and
-          how it scored, and a style profile measuring my tendencies — how often I
-          grab captures, give checks, develop pieces, attack the kingside.
+          how it scored, and a style profile capturing my tendencies like how often
+          I grab captures, give checks, develop pieces, or attack the kingside.
         </p>
         <p>
-          In the opening, the bot simply plays my repertoire. Once we&apos;re out
-          of book, a negamax search with alpha-beta pruning and a capture-only
-          quiescence search scores every legal move, then a style layer nudges the
-          ranking toward moves that look like me. Finally, a &quot;humanizer&quot;
-          decides what actually gets played: usually a good move, sometimes an
-          inaccuracy, and occasionally a natural-looking blunder — with error
-          rates that climb in sharp positions (blitz time pressure is real) and
-          drop in the endgame. That error model is what lands it at ~1500 instead
-          of 3000.
+          In the opening, the bot plays my repertoire. Out of book, a negamax search
+          with alpha-beta pruning scores every legal move, then a style layer nudges
+          the ranking toward moves that look like me. A humanizer then decides what
+          actually gets played: usually something good, sometimes an inaccuracy,
+          occasionally a natural-looking blunder. Error rates climb in sharp positions
+          and drop in the endgame, which is what lands it at around 1500.
         </p>
         <p>
-          Even the pauses are me. The pipeline reads the clock tag Chess.com
-          stamps on every move and models how long I actually spend in each kind
-          of position — so the bot snaps off recaptures and book moves, tanks in
-          sharp middlegames, and speeds up as the game runs long, just like a
-          real blitz clock would force me to.
+          Even the pauses are modeled on me. The pipeline reads the clock tags
+          Chess.com stamps on every move and learns how long I actually spend in
+          different positions. The bot snaps off recaptures and book moves, tanks
+          in sharp middlegames, and speeds up as the clock runs low, just like I do.
         </p>
         <p className="win-meta">
-          Everything runs in your browser in a Web Worker — no server. The book
-          and profile are rebuilt from my latest games, so as I improve, so does
-          the bot.
+          Everything runs in your browser in a Web Worker with no server. The book
+          and profile rebuild from my latest games, so as I improve, so does the bot.
         </p>
       </div>
     </div>
