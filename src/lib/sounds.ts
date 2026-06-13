@@ -125,7 +125,7 @@ export function playBasso(): void {
 /** Startup chime on power-on: Mac chime on desktop, iPhone chime on the
     phone-sized layout (which renders home-screen style app tiles). */
 export function playStartupChime(compact: boolean): void {
-  play(compact ? startupIphoneUrl : startupDesktopUrl, 0.6);
+  play(compact ? startupIphoneUrl : startupDesktopUrl, 0.3);
 }
 
 /* --- Chess (Andy Chess Bot) ---------------------------------------------- */

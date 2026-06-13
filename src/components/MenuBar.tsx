@@ -13,6 +13,7 @@ import {
   setSfxMuted,
   setSfxVolume,
 } from '../lib/sounds';
+import { getNowPlaying, subscribe } from '../lib/nowPlaying';
 import type { WindowId } from './windowConfig';
 
 type MenuEntry =
@@ -37,6 +38,11 @@ export default function MenuBar({
   const [muted, setMuted] = useState(isSfxMuted);
   const [volume, setVolume] = useState(getSfxVolume);
   const [volumeOpen, setVolumeOpen] = useState(false);
+  const [nowPlaying, setNowPlayingState] = useState(getNowPlaying);
+
+  // Track the menu-bar now-playing song: seeded from the top 10, then switched
+  // to whatever the visitor plays in AndyMusic.
+  useEffect(() => subscribe(setNowPlayingState), []);
 
   const toggleMute = () => {
     const next = !muted;
@@ -256,6 +262,21 @@ export default function MenuBar({
         ))}
 
         <NewsTicker onOpenNews={() => onOpenWindow('news')} />
+
+        <button
+          type="button"
+          className="menu-now-playing menu-title--desktop-only"
+          onClick={() => onOpenWindow('music')}
+          title={`Now playing: ${nowPlaying.title} — ${nowPlaying.artist}`}
+          aria-label={`Now playing ${nowPlaying.title} by ${nowPlaying.artist} — open AndyMusic`}
+        >
+          <span className="menu-now-playing-note" aria-hidden>
+            ♪
+          </span>
+          <span className="menu-now-playing-text">
+            {nowPlaying.title} — {nowPlaying.artist}
+          </span>
+        </button>
 
         <div
           className="menu-sfx-wrap"

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { findPreview } from '../lib/itunesPreview';
 import { loadTopTracks, type TopTrack } from '../lib/topTracks';
+import { setNowPlaying } from '../lib/nowPlaying';
 import { unlockAchievement } from '../lib/achievements';
 
 type Track = TopTrack;
@@ -186,6 +187,9 @@ export default function MusicWindow() {
     setState('loading');
     setElapsed(0);
     setDuration(0);
+    // Mirror the visitor's pick up to the menu-bar now-playing indicator the
+    // moment they start it — before the preview even resolves.
+    setNowPlaying({ title: track.title, artist: track.artist });
 
     const info = await findPreview(track.title, track.artist);
     if (seq !== playSeq.current) return; // user moved on meanwhile
