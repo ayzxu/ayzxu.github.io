@@ -19,6 +19,7 @@ const TOUR: { id: WindowId; label: string }[] = [
   { id: 'chess', label: 'Lose to Andy Chess Bot' },
   { id: 'paint', label: 'Doodle something in Paint' },
   { id: 'games', label: 'Play Games' },
+  { id: 'asteroids', label: 'Peep some Asteroids' },
   { id: 'news', label: "Skim today's News" },
   { id: 'writings', label: 'Read an essay in Writings' },
   { id: 'terminal', label: 'Poke around the MacTerminal' },

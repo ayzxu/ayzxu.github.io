@@ -77,14 +77,17 @@ import MinesweeperWindow from '../windows/MinesweeperWindow';
 import SnakeWindow from '../windows/SnakeWindow';
 import AsteroidsWindow from '../windows/AsteroidsWindow';
 import TrashWindow from '../windows/TrashWindow';
-import desktopBg1 from '../assets/bg.jpg';
-import desktopBg2 from '../assets/bg2.jpg';
+import desktopBg1 from '../assets/backgrounds/bg1.webp';
+import desktopBg2 from '../assets/backgrounds/bg2.webp';
+import desktopBg3 from '../assets/backgrounds/bg3.webp';
+import desktopBg4 from '../assets/backgrounds/bg4.webp';
+import desktopBg5 from '../assets/backgrounds/bg5.webp';
 
-/* Pick a desktop wallpaper at random for each visit. Chosen once at module
-   load so it stays stable for the lifetime of the page. */
-const DESKTOP_BACKGROUNDS = [desktopBg1, desktopBg2];
-const desktopBg =
-  DESKTOP_BACKGROUNDS[Math.floor(Math.random() * DESKTOP_BACKGROUNDS.length)];
+/* Desktop wallpapers cycle with a slow crossfade. The starting wallpaper is
+   randomized per visit (chosen once at module load so it survives remounts). */
+const DESKTOP_BACKGROUNDS = [desktopBg1, desktopBg2, desktopBg3, desktopBg4, desktopBg5];
+const INITIAL_BG_INDEX = Math.floor(Math.random() * DESKTOP_BACKGROUNDS.length);
+const BG_ROTATE_INTERVAL_MS = 30_000;
 
 type OpenWin = { id: WindowId; x: number; y: number };
 
@@ -166,6 +169,17 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const compactIcons = isCompactIcons(viewport);
   const maxWindowSize = getMaxWindowSize(viewport);
   const prevCompact = useRef(compactIcons);
+
+  /* Rotating wallpaper: advance every BG_ROTATE_INTERVAL_MS; layers crossfade
+     via CSS opacity transitions (see .mac-desktop-bg in index.css). */
+  const [bgIndex, setBgIndex] = useState(INITIAL_BG_INDEX);
+  useEffect(() => {
+    const t = setInterval(
+      () => setBgIndex((i) => (i + 1) % DESKTOP_BACKGROUNDS.length),
+      BG_ROTATE_INTERVAL_MS,
+    );
+    return () => clearInterval(t);
+  }, []);
 
   const [openWins, setOpenWins] = useState<OpenWin[]>(() =>
     buildInitialWindows(initialWindow),
@@ -354,10 +368,20 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const onOpenImage = (src: string, alt: string) => setLightbox({ src, alt });
 
   return (
-    <div
-      className="desktop-root mac-desktop-surface"
-      style={{ '--desktop-bg': `url(${desktopBg})` } as React.CSSProperties}
-    >
+    <div className="desktop-root mac-desktop-surface">
+      {DESKTOP_BACKGROUNDS.map((bg, i) => (
+        <div
+          key={bg}
+          aria-hidden
+          className="mac-desktop-bg"
+          style={
+            {
+              '--desktop-bg': `url(${bg})`,
+              opacity: i === bgIndex ? 1 : 0,
+            } as React.CSSProperties
+          }
+        />
+      ))}
       <MenuBar
         onOpenWindow={openWindow}
         onCloseActive={closeActive}

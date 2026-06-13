@@ -73,14 +73,14 @@ body.mac-busy * {
   background-size: 4px 4px;
 }
 
-/* Photo desktop — bg.jpg under a warm 128K wash, 1-bit dither, and film grain.
-   --desktop-bg is set inline from Desktop.tsx (Vite asset URL). */
+/* Photo desktop — rotating wallpapers under a warm 128K wash, 1-bit dither,
+   and film grain. Desktop.tsx renders one .mac-desktop-bg layer per wallpaper
+   (--desktop-bg set inline per layer); layers crossfade via opacity. */
 .mac-desktop-surface {
   background-color: #d6cfb8;
   isolation: isolate;
 }
 
-.mac-desktop-surface::before,
 .mac-desktop-surface::after {
   content: "";
   position: absolute;
@@ -89,7 +89,10 @@ body.mac-busy * {
 }
 
 /* Layer 1: photograph, flattened to CRT gray with a beige phosphor tint */
-.mac-desktop-surface::before {
+.mac-desktop-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   z-index: 0;
   background-image:
     linear-gradient(
@@ -104,6 +107,8 @@ body.mac-busy * {
   background-repeat: no-repeat;
   filter: grayscale(0.9) contrast(1.06) brightness(0.88) saturate(0.7);
   transform: scale(1.04);
+  opacity: 0;
+  transition: opacity 2.4s ease-in-out;
 }
 
 /* Layer 2: checker dither + noise grain, multiplied into the photo */
@@ -121,7 +126,10 @@ body.mac-busy * {
   opacity: 64.0;
 }
 
-.mac-desktop-surface > * {
+/* :where() keeps specificity identical to the original `> *` rule so later
+   per-component rules (e.g. .desktop-icons-layer's absolute positioning)
+   still win. */
+.mac-desktop-surface > :where(:not(.mac-desktop-bg)) {
   position: relative;
   z-index: 1;
 }

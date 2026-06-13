@@ -1193,11 +1193,11 @@
 .asteroids-detail {
   border: 2px solid #000000;
   padding: 10px 12px;
-  /* FIXED height (tallest content: 2-line name + 4 stat rows + link).
+  /* FIXED height (tallest content: 2-line name + 6 stat rows + link).
      The box must never resize with its content: hovering a legend item swaps
      the detail content, and if that changed this box's height the legend
      would shift under the pointer, re-firing hover — an endless jitter loop. */
-  height: 230px;
+  height: 268px;
   box-sizing: border-box;
   overflow: hidden;
   display: flex;
@@ -1290,6 +1290,83 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Labels, hover rings and ⊕ markers draw on a 2D canvas above the WebGL map. */
+.asteroids-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.asteroids-gl-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 24px;
+  background: #ffffff;
+}
+
+/* --- time machine ----------------------------------------------------------- */
+.asteroids-timebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.asteroids-play {
+  min-width: 44px;
+}
+
+.asteroids-speed {
+  min-width: 84px;
+  white-space: nowrap;
+}
+
+.asteroids-clock {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* A chunky 1-bit slider in the spirit of a System 1 scroll thumb. */
+.asteroids-scrub {
+  flex: 1 1 auto;
+  min-width: 60px;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 18px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #000000 0 2px,
+      #ffffff 2px 4px
+    )
+    center / 100% 2px no-repeat;
+  border: none;
+  cursor: pointer;
+}
+
+.asteroids-scrub::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 18px;
+  background: #ffffff;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0 #000000;
+}
+
+.asteroids-scrub::-moz-range-thumb {
+  width: 10px;
+  height: 14px;
+  border-radius: 0;
+  background: #ffffff;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0 #000000;
 }
 
 /* --- Read Me "check these out" tour ----------------------------------------- */

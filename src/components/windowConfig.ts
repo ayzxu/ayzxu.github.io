@@ -72,7 +72,7 @@ export const WINDOW_META: Record<StaticWindowId, WindowMeta> = {
   games: { title: 'Games', w: 470, h: 320 },
   minesweeper: { title: 'Minesweeper', w: 400, h: 510 },
   snake: { title: 'Snake', w: 440, h: 560 },
-  asteroids: { title: 'Asteroids', w: 720, h: 640 },
+  asteroids: { title: 'Asteroids', w: 720, h: 700 },
   terminal: { title: 'MacTerminal', w: 680, h: 520 },
   aboutmac: { title: 'About This Macintosh', w: 475, h: 300 },
   trash: { title: 'Trash', w: 560, h: 420 },
