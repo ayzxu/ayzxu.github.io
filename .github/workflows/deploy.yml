@@ -4,6 +4,10 @@ on:
   push:
     branches: [ main ]  # or 'master' if that's your default
   workflow_dispatch:
+  schedule:
+    # Refresh the Spotify top-10 (and redeploy) every 6 hours. This is what
+    # makes the song list update on its own — cron times are UTC.
+    - cron: '0 */6 * * *'
 
 permissions:
   contents: read
@@ -31,6 +35,17 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      # Refresh Andy's top 10 from Spotify into public/data/top-tracks.json.
+      # Uses OAuth secrets (the client secret stays server-side, never shipped
+      # to the browser). If the secrets aren't set, the script logs a notice and
+      # exits 0, so the build still succeeds with the last-good committed JSON.
+      - name: Refresh Spotify top tracks
+        run: node tools/spotify-data/fetch-top-tracks.mjs
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
 
       - name: Build
         run: npm run build

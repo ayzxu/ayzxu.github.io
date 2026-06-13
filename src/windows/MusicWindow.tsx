@@ -7,18 +7,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { findPreview } from '../lib/itunesPreview';
+import { loadTopTracks, type TopTrack } from '../lib/topTracks';
 import { unlockAchievement } from '../lib/achievements';
 
-type Track = {
-  title: string;
-  artist: string;
-  album: string;
-  /** display duration, mm:ss — refined with iTunes' real length once known */
-  time: string;
-};
+type Track = TopTrack;
 
-/* Andy's top 10 (via Spotify) */
-const TRACKS: Track[] = [
+/* Built-in fallback — the live list comes from public/data/top-tracks.json,
+   refreshed on a schedule by GitHub Actions (see tools/spotify-data/). This
+   list is only used if that fetch fails, so the window always has songs. */
+const FALLBACK_TRACKS: Track[] = [
   { title: "DON'T BELIEVE IT", artist: 'John Summit, Absolutely', album: 'CTRL ESCAPE', time: '3:11' },
   { title: 'Where You Are', artist: 'John Summit, HAYLA', album: 'Comfort In Chaos', time: '3:34' },
   { title: 'how2fly', artist: 'ISOxo', album: 'kidsgonemad!', time: '3:06' },
@@ -47,6 +44,12 @@ function fmt(sec: number): string {
 type PlayState = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
 
 export default function MusicWindow() {
+  /* The live top-10 (with a built-in fallback). A ref mirrors it so the async
+     playback closures below always read the latest list, never a stale one. */
+  const [tracks, setTracks] = useState<Track[]>(FALLBACK_TRACKS);
+  const tracksRef = useRef(tracks);
+  tracksRef.current = tracks;
+
   const [selected, setSelected] = useState(0);
   const [current, setCurrent] = useState<number | null>(null);
   const [state, setState] = useState<PlayState>('idle');
@@ -61,6 +64,20 @@ export default function MusicWindow() {
   const volumeRef = useRef(volume);
   volumeRef.current = volume;
   const fadeRaf = useRef<number | null>(null);
+
+  /* Pull the live top-10 once on open. On any failure we silently keep the
+     fallback list. Clamp the selection in case the live list is shorter. */
+  useEffect(() => {
+    let cancelled = false;
+    void loadTopTracks().then((live) => {
+      if (cancelled || !live) return;
+      setTracks(live);
+      setSelected((s) => Math.min(s, live.length - 1));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   /** Cancel a running fade. A cancelled fade must never leave the element
       stuck near volume 0 — that reads as "the player went mute" — so unless
@@ -142,7 +159,7 @@ export default function MusicWindow() {
   const failAndAdvance = (seq: number, i: number) => {
     if (seq !== playSeq.current) return;
     setState('error');
-    if (i + 1 < TRACKS.length) {
+    if (i + 1 < tracksRef.current.length) {
       window.setTimeout(() => {
         if (seq === playSeq.current) void play(i + 1);
       }, 1200);
@@ -163,7 +180,7 @@ export default function MusicWindow() {
       prevAudio.pause();
     }
 
-    const track = TRACKS[i];
+    const track = tracksRef.current[i];
     setSelected(i);
     setCurrent(i);
     setState('loading');
@@ -187,7 +204,7 @@ export default function MusicWindow() {
     const a = ensureAudio();
     a.onended = () => {
       if (seq !== playSeq.current) return;
-      if (i + 1 < TRACKS.length) void play(i + 1);
+      if (i + 1 < tracksRef.current.length) void play(i + 1);
       else stop();
     };
     a.src = info.previewUrl;
@@ -241,13 +258,14 @@ export default function MusicWindow() {
   };
 
   const skip = (dir: 1 | -1) => {
+    const len = tracks.length;
     const base = current ?? selected;
-    const next = (base + dir + TRACKS.length) % TRACKS.length;
+    const next = (base + dir + len) % len;
     if (current !== null) void play(next);
     else setSelected(next);
   };
 
-  const now = current !== null ? TRACKS[current] : null;
+  const now = current !== null ? tracks[current] : null;
   const progress = duration > 0 ? Math.min(1, elapsed / duration) : 0;
   const active = state === 'playing' || state === 'paused';
 
@@ -350,7 +368,7 @@ export default function MusicWindow() {
           <span>Album</span>
           <span className="music-cell-time">Time</span>
         </div>
-        {TRACKS.map((t, i) => (
+        {tracks.map((t, i) => (
           <div
             key={t.title}
             role="option"
@@ -377,14 +395,18 @@ export default function MusicWindow() {
       {/* status bar */}
       <div className="music-statusbar">
         <span className="win-meta">
-          10 songs · top tracks from{' '}
+          {tracks.length} songs · top tracks from{' '}
           <a href={PROFILE_URL} target="_blank" rel="noreferrer">
             Andy&apos;s Spotify
           </a>
         </span>
         <span className="win-meta">
           {now ? (
-            <a href={spotifySearchUrl(now)} target="_blank" rel="noreferrer">
+            <a
+              href={now.url || spotifySearchUrl(now)}
+              target="_blank"
+              rel="noreferrer"
+            >
               Full song on Spotify ↗
             </a>
           ) : (
