@@ -552,10 +552,10 @@ export default function AsteroidsWindow() {
       };
 
       if (viewModeRef.current === 'classic') {
-        // The original look: a dotted ring per asteroid, nothing else.
+        // The original look: a dense dotted ring per asteroid, nothing else.
         for (const b of bodies) {
-          for (let s = 0; s < 96; s += 2) {
-            const p = ringPos(b, (s / 96) * 2 * Math.PI);
+          for (let s = 0; s < 144; s++) {
+            const p = ringPos(b, (s / 144) * 2 * Math.PI);
             push(p.x, p.y, p.z, 1.05, 0.12);
           }
         }
@@ -714,7 +714,7 @@ export default function AsteroidsWindow() {
             ? ringPos(b, ang - b.fb.dir * (k / WAKE_SAMPLES) * 1.3)
             : geocentric(b, tMs - (k / WAKE_SAMPLES) * WAKE_SPAN_MS, b.el ? wakeEarth[k - 1] : null);
           const ww = toWorld(wp.x, wp.y, wp.z);
-          if (ww) push(ww.x, ww.y, ww.z, (1 - f) * 1.7 + 0.4, f * 0.85);
+          if (ww) push(ww.x, ww.y, ww.z, ((1 - f) * 1.7 + 0.4) * 2, f * 0.85);
         }
 
         // Embolden the focused body's track: its full ring in classic mode,
