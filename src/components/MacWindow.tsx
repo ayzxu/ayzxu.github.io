@@ -7,7 +7,8 @@
 
    On compact (phone) viewports the desktop runs in "iPhone mode": windows
    render as fullscreen standalone apps — no dragging, no resizing, no close
-   box — with a home button at the top right that returns to the icon grid.
+   box — with a circular home button in a bottom bar (like an old iPhone's
+   physical button) that returns to the icon grid.
    ========================================================================== */
 
 import { useWindowGeometry, type Point } from './useWindowGeometry';
@@ -68,14 +69,20 @@ export default function MacWindow({
         onPointerDown={onFocus}
       >
         <div className={`title-bar${active ? ' active' : ''}`}>
-          {/* balances the home button so the title stays centred */}
-          <div className="home-box-balance" />
           <div className="title-bar-text">
             <span>{title}</span>
           </div>
+        </div>
+
+        <div className="window-body mac-scroll">{children}</div>
+
+        {/* The "chin": a circular home button centred at the bottom, the way an
+            old iPhone's physical home button sat below the screen. A thumb-easy
+            tap target that returns to the icon grid. */}
+        <div className="ios-home-bar">
           <button
             type="button"
-            className="close-box home-box"
+            className="ios-home-button"
             aria-label="Home"
             onPointerDown={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
@@ -84,11 +91,9 @@ export default function MacWindow({
               (onHome ?? onClose)();
             }}
           >
-            <span className="home-box-label">HOME</span>
+            <span className="ios-home-glyph" />
           </button>
         </div>
-
-        <div className="window-body mac-scroll">{children}</div>
       </div>
     );
   }

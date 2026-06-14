@@ -2523,33 +2523,62 @@
   box-shadow: none;
 }
 
-/* The home button — reuses .close-box's tap-target plumbing, sits top right.
-   Rendered as an all-caps "HOME" label in the title-bar font. */
-.home-box {
-  width: auto;
-  margin: 0 -6px 0 0;
-}
-
-.home-box-label {
-  border: 1px solid #000000;
-  background: #ffffff;
-  color: #000000;
-  font-family: "Press Start 2P", monospace;
-  font-size: 8px;
-  line-height: 1;
-  padding: 4px 5px;
-  pointer-events: none; /* taps register on the larger button, not the label */
-}
-
-.home-box:active .home-box-label {
-  background: #000000;
-  color: #ffffff;
-}
-
-/* Invisible twin of the home button on the left so the title stays centred */
-.home-box-balance {
-  width: 38px; /* button width (~44px) minus its -6px right margin */
+/* The home "chin" — a fixed bar across the bottom of a fullscreen app holding
+   the circular home button, echoing the bezel below an old iPhone's screen.
+   The body above scrolls; this bar never moves. env() keeps the button clear
+   of the iOS gesture area on notch/home-indicator phones. */
+.ios-home-bar {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 58px;
+  border-top: 2px solid #000000;
+  background: #ffffff;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* The button itself — a 1-bit circle with a rounded-square glyph, the classic
+   home-button icon, in the same black/white palette as the window chrome. */
+.ios-home-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 2px solid #000000;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  /* A tap should fire a fast click (no 300ms delay) without scrolling/zooming */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-home-glyph {
+  width: 15px;
+  height: 15px;
+  border: 2px solid #000000;
+  border-radius: 4px;
+  background: transparent;
+  pointer-events: none; /* taps register on the larger button, not the glyph */
+}
+
+/* Press: invert to a filled black button, System 1 style, and settle into the
+   drop shadow so it reads as physically pushed down. */
+.ios-home-button:active {
+  background: #000000;
+  box-shadow: 1px 1px 0 0 rgba(0, 0, 0, 0.45);
+  transform: translate(1px, 1px);
+}
+
+.ios-home-button:active .ios-home-glyph {
+  border-color: #ffffff;
 }
 
 /* Seekable progress bar: bigger hit target, scrub cursor, no touch scrolling */
