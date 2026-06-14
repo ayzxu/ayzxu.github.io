@@ -743,9 +743,7 @@ export default function AsteroidsWindow() {
       }
 
       renderer.setDynamicPoints(dyn, n);
-      // Pass the zoom-independent focal so the Sun sits as a stable, distant
-      // backdrop rather than ballooning when you zoom into the scene.
-      renderer.render(cam, earthR, sunWorld, focalBase);
+      renderer.render(cam, earthR, sunWorld);
 
       /* Overlay: hazard rings, focus ring + label, CA marker, Moon label. */
       octx.clearRect(0, 0, W, H);

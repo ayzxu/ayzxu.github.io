@@ -177,45 +177,6 @@ void main() {
   outColor = vec4(vec3(lum), 1.0);
 }`;
 
-/* The Sun itself: a large billboard disc placed far away in the Sun's true
-   direction, so it drifts correctly as the view rotates and hides when it
-   swings behind the camera. Drawn in grayscale with limb darkening and an
-   inked rim, so the Bayer dither turns it into a stippled disc with a crisp
-   black outline, a body shown to scale against the white sky. */
-const SUN_VS = `#version 300 es
-precision highp float;
-layout(location=0) in vec2 aCorner;
-uniform vec3 uSunCam;
-uniform float uSunR;
-uniform float uCamDist;
-uniform float uFocal;
-uniform vec2 uHalfView;
-out vec2 vUV;
-void main() {
-  float denom = max(1.0, uCamDist - uSunCam.z);
-  float scale = uFocal / denom;
-  vec2 center = uSunCam.xy * scale;
-  float screenR = uSunR * scale;
-  vUV = aCorner;
-  vec2 pos = center + aCorner * screenR;
-  float depth = clamp((uCamDist - uSunCam.z) / (2.0 * uCamDist), 0.0, 1.0);
-  gl_Position = vec4(pos / uHalfView, depth * 2.0 - 1.0, 1.0);
-}`;
-
-const SUN_FS = `#version 300 es
-precision highp float;
-in vec2 vUV;
-out vec4 outColor;
-void main() {
-  float r = length(vUV);
-  if (r > 1.0) discard;
-  float ld = smoothstep(0.15, 1.0, r);
-  float lum = mix(0.96, 0.66, ld);
-  float rim = smoothstep(0.9, 0.99, r);
-  lum = mix(lum, 0.05, rim);
-  outColor = vec4(vec3(lum), 1.0);
-}`;
-
 const DITHER_FS = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -266,8 +227,6 @@ export class DitherRenderer {
   private gl: WebGL2RenderingContext;
   private pointProg: WebGLProgram;
   private earthProg: WebGLProgram;
-  private bgProg: WebGLProgram;
-  private sunProg: WebGLProgram;
   private ditherProg: WebGLProgram;
   private staticVao: WebGLVertexArrayObject;
   private staticBuf: WebGLBuffer;
@@ -298,8 +257,6 @@ export class DitherRenderer {
 
     this.pointProg = link(gl, POINT_VS, POINT_FS);
     this.earthProg = link(gl, EARTH_VS, EARTH_FS);
-    this.bgProg = link(gl, DITHER_VS, BG_FS);
-    this.sunProg = link(gl, SUN_VS, SUN_FS);
     this.ditherProg = link(gl, DITHER_VS, DITHER_FS);
 
     const makePointVao = (): [WebGLVertexArrayObject, WebGLBuffer] => {
@@ -408,24 +365,15 @@ export class DitherRenderer {
     this.dynCount = count;
   }
 
-  render(
-    cam: Camera,
-    earthR: number,
-    sunWorld: [number, number, number],
-    bgFocal: number = cam.focal,
-  ): void {
+  render(cam: Camera, earthR: number, sunWorld: [number, number, number]): void {
     const gl = this.gl;
     const rot = rotationMatrix(cam.yaw, cam.pitch);
-    // Sun direction in camera space (for the globe's lighting + the backdrop).
+    // Sun direction in camera space (for the globe's lighting).
     const sx = rot[0] * sunWorld[0] + rot[3] * sunWorld[1] + rot[6] * sunWorld[2];
     const sy = rot[1] * sunWorld[0] + rot[4] * sunWorld[1] + rot[7] * sunWorld[2];
     const sz = rot[2] * sunWorld[0] + rot[5] * sunWorld[1] + rot[8] * sunWorld[2];
-    const slen = Math.hypot(sx, sy, sz) || 1;
-    const ux = sx / slen;
-    const uy = sy / slen;
-    const uz = sz / slen;
 
-    /* Pass 1 - grayscale scene into the FBO. */
+    /* Pass 1 — grayscale scene into the FBO. */
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
     gl.viewport(0, 0, this.fboW, this.fboH);
     gl.enable(gl.DEPTH_TEST);
@@ -433,49 +381,6 @@ export class DitherRenderer {
     gl.clearColor(1, 1, 1, 1);
     gl.clearDepth(1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    /* Pass 1a - sun-lit sky: a gentle gradient, brightest on the Sun's side,
-       falling to a light stipple on the far side. Fills the backdrop before
-       the scene so the same Bayer dither shades it into space. */
-    gl.depthMask(false);
-    gl.disable(gl.DEPTH_TEST);
-    gl.useProgram(this.bgProg);
-    const inPlane = Math.hypot(ux, uy);
-    const sunScreenX = inPlane > 1e-4 ? ux / inPlane : 0;
-    const sunScreenY = inPlane > 1e-4 ? uy / inPlane : 1;
-    gl.uniform2f(gl.getUniformLocation(this.bgProg, 'uSunScreen'), sunScreenX, sunScreenY);
-    gl.uniform1f(gl.getUniformLocation(this.bgProg, 'uStrength'), Math.min(1, inPlane));
-    gl.uniform1f(gl.getUniformLocation(this.bgProg, 'uFloor'), 0.8);
-    gl.uniform1f(gl.getUniformLocation(this.bgProg, 'uAspect'), this.wCss / Math.max(1, this.hCss));
-    gl.bindVertexArray(this.screenVao);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-    /* Pass 1b - the Sun: a large disc far away in its true direction. Skip it
-       when it swings behind the camera (you would be looking away from it). */
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthMask(true);
-    const sunDist = cam.camDist * 1.07; // just past the camera -> deep backdrop
-    const sunWorldR = cam.camDist * 0.34; // big, yet reads as a distant body
-    const sunCamZ = uz * sunDist;
-    if (cam.camDist - sunCamZ > cam.camDist * 0.35) {
-      gl.useProgram(this.sunProg);
-      gl.uniform3f(
-        gl.getUniformLocation(this.sunProg, 'uSunCam'),
-        ux * sunDist,
-        uy * sunDist,
-        sunCamZ,
-      );
-      gl.uniform1f(gl.getUniformLocation(this.sunProg, 'uSunR'), sunWorldR);
-      gl.uniform1f(gl.getUniformLocation(this.sunProg, 'uCamDist'), cam.camDist);
-      gl.uniform1f(gl.getUniformLocation(this.sunProg, 'uFocal'), bgFocal);
-      gl.uniform2f(
-        gl.getUniformLocation(this.sunProg, 'uHalfView'),
-        this.wCss / 2,
-        this.hCss / 2,
-      );
-      gl.bindVertexArray(this.quadVao);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-    }
 
     gl.useProgram(this.pointProg);
     gl.uniformMatrix3fv(gl.getUniformLocation(this.pointProg, 'uRot'), false, rot);
@@ -497,7 +402,8 @@ export class DitherRenderer {
     gl.uniform1f(gl.getUniformLocation(this.earthProg, 'uCamDist'), cam.camDist);
     gl.uniform1f(gl.getUniformLocation(this.earthProg, 'uFocal'), cam.focal);
     gl.uniform2f(gl.getUniformLocation(this.earthProg, 'uHalfView'), this.wCss / 2, this.hCss / 2);
-    gl.uniform3f(gl.getUniformLocation(this.earthProg, 'uSunCam'), ux, uy, uz);
+    const slen = Math.hypot(sx, sy, sz) || 1;
+    gl.uniform3f(gl.getUniformLocation(this.earthProg, 'uSunCam'), sx / slen, sy / slen, sz / slen);
     gl.bindVertexArray(this.quadVao);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -519,8 +425,6 @@ export class DitherRenderer {
     const gl = this.gl;
     gl.deleteProgram(this.pointProg);
     gl.deleteProgram(this.earthProg);
-    gl.deleteProgram(this.bgProg);
-    gl.deleteProgram(this.sunProg);
     gl.deleteProgram(this.ditherProg);
     gl.deleteFramebuffer(this.fbo);
     gl.deleteTexture(this.fboTex);
