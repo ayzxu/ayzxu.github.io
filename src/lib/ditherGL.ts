@@ -156,6 +156,27 @@ void main() {
   gl_Position = vec4(aPos, 0.0, 1.0);
 }`;
 
+/* Sun-lit backdrop: a flat luminance gradient that is bright on the side of the
+   sky the Sun is on and falls to a dark floor on the far side. Drawn into the
+   FBO before the scene, so the same Bayer dither stipples it into space. */
+const BG_FS = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform vec2 uSunScreen;   // unit direction toward the Sun (screen space, y up)
+uniform float uStrength;   // how much the Sun lies in-plane (0 = on the view axis)
+uniform float uFloor;      // darkest luminance, far from the Sun
+uniform float uAspect;     // width / height
+out vec4 outColor;
+void main() {
+  vec2 p = (vUv - 0.5) * 2.0;          // [-1,1], y up
+  p.x *= uAspect;
+  float t = dot(p, uSunScreen);        // + toward the Sun, - away
+  float k = clamp(t * 0.5 + 0.5, 0.0, 1.0);
+  k = mix(0.55, k, uStrength);         // Sun near the view axis → flatter field
+  float lum = mix(uFloor, 1.0, k);
+  outColor = vec4(vec3(lum), 1.0);
+}`;
+
 const DITHER_FS = `#version 300 es
 precision highp float;
 in vec2 vUv;

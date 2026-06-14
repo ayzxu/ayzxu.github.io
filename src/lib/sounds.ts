@@ -42,11 +42,11 @@ function readStoredMute(): boolean {
 function readStoredVolume(): number {
   try {
     const raw = localStorage.getItem(VOLUME_STORAGE_KEY);
-    if (raw === null) return 1;
+    if (raw === null) return 0.7;
     const parsed = Number(raw);
     return Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : 1;
   } catch {
-    return 1;
+    return 0.7;
   }
 }
 
