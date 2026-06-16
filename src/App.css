@@ -33,11 +33,11 @@
 
 /* News ticker — scrolling headline wire between the menus and the clock */
 .menu-ticker {
-  /* Grow factor < 1 → the wire claims only part of the bar's free space; the
+  /* Grow factor sets how much of the bar's free space the wire claims; the
      auto side margins split the rest evenly so the wire sits centred
-     between the menus and the SFX/clock controls. Trimmed 15% (0.5 → 0.425)
+     between the menus and the SFX/clock controls. Trimmed 25% (1 → 0.75)
      to shrink the ticker section. */
-  flex: 1 1 0%;
+  flex: 0.75 1 0%;
   min-width: 0;
   display: flex;
   align-items: center;

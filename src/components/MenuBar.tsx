@@ -1,7 +1,6 @@
 /* ==========================================================================
-   MenuBar — the System 1 menu bar: Apple / File / Edit / View menus plus a
-   live clock. Edit and View carry the classic (disabled) items; the menus
-   that do real work are Apple and File.
+   MenuBar — the System 1 menu bar: Apple / File menus plus a live clock. The
+   menus that do real work are Apple and File.
    ========================================================================== */
 
 import { useEffect, useState } from 'react';
@@ -188,29 +187,8 @@ export default function MenuBar({
           },
         ],
       },
-      {
-        key: 'Edit',
-        label: 'Edit',
-        desktopOnly: true,
-        entries: [
-          { kind: 'item', label: 'Undo', disabled: true },
-          { kind: 'sep' },
-          { kind: 'item', label: 'Cut', disabled: true },
-          { kind: 'item', label: 'Copy', disabled: true },
-          { kind: 'item', label: 'Paste', disabled: true },
-        ],
-      },
-      {
-        key: 'View',
-        label: 'View',
-        desktopOnly: true,
-        entries: [
-          { kind: 'item', label: 'by Icon', disabled: true },
-          { kind: 'item', label: 'by Name', disabled: true },
-        ],
-      },
       // Recruiter fast-path - top-level, one-click, no dropdown. Sits to the
-      // right of the classic File/Edit/View menus.
+      // right of the File menu.
       {
         key: 'Résumé',
         label: 'Résumé',
