@@ -69,10 +69,14 @@ export default function MenuBar({
 
   // Each menu is keyed by title; "apple" uses the icon instead of text.
   // desktopOnly menus are hidden on phone-sized screens (see .menu-title--desktop-only).
+  // A menu with `action` (and no `entries`) is a direct-open title: clicking it
+  // opens a window immediately instead of dropping a menu. These give recruiters
+  // a one-click path to the Resume and Experience without hunting through File.
   const menus: {
     key: string;
     label: React.ReactNode;
-    entries: MenuEntry[];
+    entries?: MenuEntry[];
+    action?: () => void;
     desktopOnly?: boolean;
   }[] =
     [
@@ -205,6 +209,20 @@ export default function MenuBar({
           { kind: 'item', label: 'by Name', disabled: true },
         ],
       },
+      // Recruiter fast-path - top-level, one-click, no dropdown. Sits to the
+      // right of the classic File/Edit/View menus.
+      {
+        key: 'Résumé',
+        label: 'Résumé',
+        desktopOnly: true,
+        action: () => onOpenWindow('resume'),
+      },
+      {
+        key: 'Experience',
+        label: 'Experience',
+        desktopOnly: true,
+        action: () => onOpenWindow('about'),
+      },
     ];
 
   const close = () => setOpenMenu(null);
@@ -227,14 +245,24 @@ export default function MenuBar({
               menu.desktopOnly ? ' menu-title--desktop-only' : ''
             }${openMenu === menu.key ? ' open' : ''}`}
             style={{ position: 'relative' }}
-            onClick={() =>
-              setOpenMenu(openMenu === menu.key ? null : menu.key)
+            onClick={() => {
+              if (menu.action) {
+                // Direct-open title: fire the action and dismiss any open menu.
+                setOpenMenu(null);
+                menu.action();
+                return;
+              }
+              setOpenMenu(openMenu === menu.key ? null : menu.key);
+            }}
+            // Hovering a direct-open title while another menu is open should
+            // close that menu (there's nothing to switch to here).
+            onMouseEnter={() =>
+              openMenu && setOpenMenu(menu.action ? null : menu.key)
             }
-            onMouseEnter={() => openMenu && setOpenMenu(menu.key)}
           >
             {menu.label}
 
-            {openMenu === menu.key && (
+            {openMenu === menu.key && menu.entries && (
               <div className="menu-dropdown" style={{ left: 0 }}>
                 {menu.entries.map((entry, i) =>
                   entry.kind === 'sep' ? (

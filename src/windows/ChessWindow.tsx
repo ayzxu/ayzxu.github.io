@@ -14,7 +14,13 @@ import { playChessSound, type ChessSound } from '../lib/sounds';
 import { Chessboard } from 'react-chessboard';
 import type { ChessboardOptions } from 'react-chessboard';
 import { useAndyBot } from '../chess/useAndyBot';
+import type { GameReview, MoveReview } from '../chess/engine/types';
 import { unlockAchievement } from '../lib/achievements';
+import {
+  buildResultCard,
+  downloadCard,
+  shareOrDownloadCard,
+} from '../lib/chessCard';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -71,10 +77,34 @@ function toRows(history: string[]): { n: number; w: string; b?: string }[] {
   return rows;
 }
 
+/** Classic annotation suffix for a move's quality (blank for solid moves). */
+function qualityMark(q: MoveReview['quality']): string {
+  if (q === 'blunder') return '??';
+  if (q === 'mistake') return '?';
+  if (q === 'inaccuracy') return '?!';
+  return '';
+}
+
+/** "12." for a white move, "12…" for a black move. */
+function moveLabel(m: MoveReview): string {
+  return m.color === 'w' ? `${m.moveNumber}.` : `${m.moveNumber}…`;
+}
+
+/** A short, shareable headline from the result text and length. */
+function shareHeadline(statusText: string, fullMoves: number): string {
+  const moves = `${fullMoves} move${fullMoves === 1 ? '' : 's'}`;
+  if (/you win/i.test(statusText)) return `I beat Andy's bot in ${moves}`;
+  if (/andy wins/i.test(statusText)) return `Andy's bot got me in ${moves}`;
+  if (/draw|stalemate|repetition|insufficient/i.test(statusText)) {
+    return `I drew Andy's bot in ${moves}`;
+  }
+  return `I played Andy's chess bot`;
+}
+
 export default function ChessWindow() {
   const gameRef = useRef(new Chess());
   const gameIdRef = useRef(0); // bumped on New Game to void in-flight bot moves
-  const { requestMove, thinking } = useAndyBot();
+  const { requestMove, requestAnalysis, thinking, analyzing } = useAndyBot();
 
   const [userColor, setUserColor] = useState<UserColor>('white');
   const [fen, setFen] = useState(START_FEN);
@@ -84,6 +114,11 @@ export default function ChessWindow() {
   /* True when the engine failed to produce a move (worker error or no result)
      — surfaces a Retry button instead of soft-locking on "Andy's move". */
   const [engineError, setEngineError] = useState(false);
+  /* Post-game review, computed once per finished game by the engine worker. */
+  const [review, setReview] = useState<GameReview | null>(null);
+  const reviewedGameId = useRef(-1);
+  /* Share-card generation in flight (disables the buttons + shows feedback). */
+  const [cardBusy, setCardBusy] = useState(false);
 
   const isUserTurn = useCallback(() => {
     const turn = gameRef.current.turn() === 'w' ? 'white' : 'black';
@@ -287,6 +322,77 @@ export default function ChessWindow() {
     void askAndy();
   }, [askAndy]);
 
+  /* When a game ends, ask the worker to review it — once per game. Resetting
+     to a new game (status back to 'playing') clears the previous review. */
+  useEffect(() => {
+    if (status.kind !== 'over') {
+      setReview(null);
+      return;
+    }
+    const gid = gameIdRef.current;
+    if (reviewedGameId.current === gid) return;
+    reviewedGameId.current = gid;
+    const hist = gameRef.current.history();
+    if (hist.length === 0) return;
+    requestAnalysis(hist, userColor)
+      .then((r) => {
+        if (gid === gameIdRef.current) setReview(r);
+      })
+      .catch(() => {
+        /* leave review null — the panel falls back to the plain result */
+      });
+  }, [status.kind, userColor, requestAnalysis]);
+
+  /* Build and share/download the result card. */
+  const handleShare = useCallback(
+    async (mode: 'share' | 'download') => {
+      if (status.kind !== 'over') return;
+      setCardBusy(true);
+      try {
+        const fullMoves = Math.ceil(gameRef.current.history().length / 2);
+        const headline = shareHeadline(status.text, fullMoves);
+        const sublines = review
+          ? [
+              `Your accuracy ${review.userAccuracy}%   ·   Andy ${review.andyAccuracy}%`,
+              `${review.counts.blunders} blunders · ${review.counts.mistakes} mistakes · ${review.counts.inaccuracies} inaccuracies`,
+            ]
+          : [status.text];
+        const blob = await buildResultCard({
+          fen: gameRef.current.fen(),
+          orientation: userColor,
+          headline,
+          sublines,
+          footer: 'andyxu.dev · the bot trained on my real games',
+        });
+        if (mode === 'download') downloadCard(blob);
+        else await shareOrDownloadCard(blob, headline);
+      } catch {
+        /* swallow — nothing to share if the canvas failed */
+      } finally {
+        setCardBusy(false);
+      }
+    },
+    [status, review, userColor],
+  );
+
+  /* The player's biggest errors, worst first, for the review panel. */
+  const biggestMistakes = useMemo<MoveReview[]>(() => {
+    if (!review) return [];
+    return review.moves
+      .filter((m) => m.byUser && (m.quality === 'blunder' || m.quality === 'mistake'))
+      .sort((a, b) => b.cpLoss - a.cpLoss)
+      .slice(0, 3);
+  }, [review]);
+
+  /* Opening positions where the player chose something other than Andy's
+     most-played move — the "this is what Andy plays here" overlay. */
+  const bookDivergences = useMemo<MoveReview[]>(() => {
+    if (!review) return [];
+    return review.moves
+      .filter((m) => m.byUser && m.andyBook && !m.andyBook.matchedTop)
+      .slice(0, 3);
+  }, [review]);
+
   const rows = toRows(history);
   const turnLabel =
     status.kind === 'over'
@@ -345,6 +451,91 @@ export default function ChessWindow() {
               New Game
             </button>
           </div>
+
+          {status.kind === 'over' && (
+            <div className="chess-review">
+              {analyzing && !review && (
+                <div className="chess-review-pending win-meta">
+                  Reviewing the game…
+                </div>
+              )}
+              {review && (
+                <>
+                  <div className="win-sub chess-review-title">Game Review</div>
+                  <div className="chess-review-acc">
+                    <span>
+                      You <b>{review.userAccuracy}%</b>
+                    </span>
+                    <span>
+                      Andy <b>{review.andyAccuracy}%</b>
+                    </span>
+                  </div>
+                  <div className="chess-review-line">
+                    {review.counts.blunders} blunders · {review.counts.mistakes}{' '}
+                    mistakes · {review.counts.inaccuracies} inaccuracies
+                  </div>
+                  {review.bookTotal > 0 && (
+                    <div className="chess-review-line">
+                      You followed my book on {review.bookMatches}/
+                      {review.bookTotal} opening moves
+                    </div>
+                  )}
+
+                  {bookDivergences.length > 0 && (
+                    <div className="chess-review-block">
+                      <div className="win-meta chess-review-subhead">
+                        Where Andy differs
+                      </div>
+                      {bookDivergences.map((m) => {
+                        const ab = m.andyBook;
+                        if (!ab) return null;
+                        return (
+                          <div key={m.ply} className="chess-review-note">
+                            {moveLabel(m)} you played {m.san} — Andy plays{' '}
+                            {ab.san} ({ab.sharePct}%)
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {biggestMistakes.length > 0 && (
+                    <div className="chess-review-block">
+                      <div className="win-meta chess-review-subhead">
+                        Biggest slips
+                      </div>
+                      {biggestMistakes.map((m) => (
+                        <div key={m.ply} className="chess-review-note">
+                          {moveLabel(m)} {m.san}
+                          {qualityMark(m.quality)}
+                          {m.bestSan ? ` — engine liked ${m.bestSan}` : ''}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="chess-review-actions">
+                    <button
+                      type="button"
+                      className="mac-button default"
+                      disabled={cardBusy}
+                      onClick={() => void handleShare('share')}
+                    >
+                      {cardBusy ? 'Rendering…' : 'Share result'}
+                    </button>
+                    <button
+                      type="button"
+                      className="mac-button"
+                      disabled={cardBusy}
+                      onClick={() => void handleShare('download')}
+                    >
+                      Save PNG
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="win-meta chess-movelist-title">Moves</div>
           <div className="chess-movelist mac-scroll">

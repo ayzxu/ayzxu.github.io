@@ -130,6 +130,55 @@ export type EngineResult = {
   delayMs: number;
 };
 
+/* --- Post-game review ----------------------------------------------------- */
+
+/** Quality bucket for a single move, by centipawns lost vs the engine's best. */
+export type MoveQuality = 'best' | 'good' | 'inaccuracy' | 'mistake' | 'blunder';
+
+/** Per-move review produced by analyze.ts (engine's own judgement, not Stockfish). */
+export type MoveReview = {
+  /** 0-based half-move index */
+  ply: number;
+  /** 1-based full-move number */
+  moveNumber: number;
+  color: 'w' | 'b';
+  san: string;
+  /** True if this was the human player's move (not the bot's). */
+  byUser: boolean;
+  /** Centipawns lost versus the engine's best move (>= 0). */
+  cpLoss: number;
+  quality: MoveQuality;
+  /** Per-move accuracy 0..100 (Lichess win%-based model). */
+  accuracy: number;
+  /** The engine's preferred move in this position, if different. */
+  bestSan?: string;
+  /** What Andy actually plays most here, from the opening book (user moves only). */
+  andyBook?: {
+    san: string;
+    /** Share of Andy's games in this position that chose `san`, 0..100. */
+    sharePct: number;
+    /** True if the player picked Andy's single most-played move. */
+    matchedTop: boolean;
+    /** True if the player's move appears anywhere in Andy's repertoire here. */
+    inRepertoire: boolean;
+  };
+};
+
+/** Whole-game review summary for the post-game panel and the share card. */
+export type GameReview = {
+  userColor: 'white' | 'black';
+  /** Aggregate accuracy 0..100 for the player and for Andy's bot. */
+  userAccuracy: number;
+  andyAccuracy: number;
+  /** Player's average centipawn loss. */
+  userAcpl: number;
+  counts: { blunders: number; mistakes: number; inaccuracies: number };
+  /** Player moves that matched a move in Andy's book / had any book data. */
+  bookMatches: number;
+  bookTotal: number;
+  moves: MoveReview[];
+};
+
 /** A scored candidate produced during search, before humanization. */
 export type ScoredMove = {
   move: Move;

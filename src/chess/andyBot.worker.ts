@@ -9,9 +9,11 @@
    ========================================================================== */
 
 import { chooseMove } from './engine/andyBot';
+import { analyzeGame } from './engine/analyze';
 import type {
   AndyProfile,
   EngineResult,
+  GameReview,
   LastMoveInfo,
   OpeningBook,
 } from './engine/types';
@@ -30,17 +32,41 @@ type MoveRequest = {
   fen: string;
   lastMove?: LastMoveInfo;
 };
-type MoveResponse =
+type AnalyzeRequest = {
+  type: 'analyze';
+  id: number;
+  history: string[];
+  userColor: 'white' | 'black';
+};
+type WorkerRequest = MoveRequest | AnalyzeRequest;
+type WorkerResponse =
   | { type: 'move'; id: number; result: EngineResult | null }
+  | { type: 'analysis'; id: number; result: GameReview }
   | { type: 'error'; id: number; message: string };
 
 // Cast avoids needing the WebWorker lib alongside DOM in tsconfig.
-const post = (msg: MoveResponse): void =>
+const post = (msg: WorkerResponse): void =>
   (self as unknown as { postMessage: (m: unknown) => void }).postMessage(msg);
 
-self.onmessage = (e: MessageEvent<MoveRequest>) => {
+self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
-  if (!msg || msg.type !== 'move') return;
+  if (!msg) return;
+
+  if (msg.type === 'analyze') {
+    try {
+      const result = analyzeGame(msg.history, msg.userColor, BOOK);
+      post({ type: 'analysis', id: msg.id, result });
+    } catch (err) {
+      post({
+        type: 'error',
+        id: msg.id,
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
+    return;
+  }
+
+  if (msg.type !== 'move') return;
 
   const start = Date.now();
   let result: EngineResult | null;
