@@ -4,11 +4,12 @@
    column, nudges an icon (and puts it back), then drags, resizes and finally
    closes a phantom demo window with its close box.
 
-   Plays on roomy desktop viewports only, and bails the moment the visitor
-   presses anything — a "Skip Tutorial" button also floats at the bottom of
-   the screen while the ghost is visible. The ghost layer sits below every
-   real window (windows start at z-index 10), so open windows cover the
-   ghost — it lives on the desktop, not over the UI.
+   Plays on roomy desktop viewports only. The visitor can keep using the
+   desktop while it runs; the only way to end it early is the "Skip
+   Tutorial" button floating at the bottom of the screen while the ghost is
+   visible. The ghost layer sits below every real window (windows start at
+   z-index 10), so open windows cover the ghost — it lives on the desktop,
+   not over the UI.
    ========================================================================== */
 
 import { useEffect, useRef, useState } from 'react';
@@ -369,18 +370,19 @@ export default function ShadowUser({
 
     const tick = (now: number) => {
       if (stopped) return;
-      while (segIdx < segs.length) {
+      if (segIdx < segs.length) {
         const s = segs[segIdx];
         const t = s.ms <= 0 ? 1 : (now - segStart) / s.ms;
         if (t >= 1) {
           s.frame?.(1);
           s.end?.();
           segIdx += 1;
-          segStart += s.ms;
-          continue;
+          // Re-anchor to now (not += s.ms): every section's end state gets
+          // its own rendered frame, stretching each beat slightly.
+          segStart = now;
+        } else {
+          s.frame?.((s.ease ?? linear)(Math.max(0, t)));
         }
-        s.frame?.((s.ease ?? linear)(Math.max(0, t)));
-        break;
       }
       publish();
       if (segIdx >= segs.length) {
@@ -394,9 +396,9 @@ export default function ShadowUser({
       tick(now);
     });
 
-    /* Any real input ends the demo: undo everything the ghost was holding.
-       Runs in the capture phase, so the visitor's own click (e.g. selecting
-       an icon) still lands afterwards untouched. */
+    /* Ends the demo (Skip Tutorial button only — regular clicks around the
+       desktop leave the tour running): undo everything the ghost was
+       holding, then fade the whole layer out. */
     const cancel = () => {
       if (stopped) return;
       stopped = true;
@@ -408,16 +410,12 @@ export default function ShadowUser({
       leaveTimer = window.setTimeout(() => setDone(true), 380);
     };
     cancelRef.current = cancel;
-    window.addEventListener('pointerdown', cancel, true);
-    window.addEventListener('keydown', cancel, true);
 
     return () => {
       stopped = true;
       cancelAnimationFrame(raf);
       cancelRef.current = null;
       if (leaveTimer !== null) window.clearTimeout(leaveTimer);
-      window.removeEventListener('pointerdown', cancel, true);
-      window.removeEventListener('keydown', cancel, true);
     };
     // The tour is a one-shot: everything is captured at mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
