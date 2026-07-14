@@ -29,7 +29,7 @@ import {
   type Point,
   type Viewport,
 } from '../lib/windowBounds';
-import { WINDOW_META } from './windowConfig';
+import { WINDOW_META, type WindowId } from './windowConfig';
 
 /** Matches .desktop-icons-layer { top: 28px } — converts icon-layer ↔ client Y */
 const ICON_LAYER_TOP = 28;
@@ -49,6 +49,8 @@ type ShadowUserProps = {
   onMarquee: (rect: MarqueeRect | null) => void;
   onSelectIcons: (ids: DesktopIconId[]) => void;
   onMoveIcon: (id: DesktopIconId, pos: Point) => void;
+  onOpenWindow: (id: WindowId) => void;
+  onCloseWindow: (id: WindowId) => void;
 };
 
 type GhostView = {
@@ -61,6 +63,10 @@ type GhostView = {
     opacity: number;
     closeArmed: boolean;
   } | null;
+  /** Caption narrating the current act, shown above the Skip button */
+  caption: string;
+  /** While clicking a real (topmost) window, the cursor renders above it */
+  elevated: boolean;
 };
 
 /* The tour plays in the strip left of the centred boot Read Me window, so it
@@ -91,6 +97,8 @@ export default function ShadowUser({
   onMarquee,
   onSelectIcons,
   onMoveIcon,
+  onOpenWindow,
+  onCloseWindow,
 }: ShadowUserProps) {
   const [view, setView] = useState<GhostView | null>(null);
   const [leaving, setLeaving] = useState(false);
@@ -99,8 +107,22 @@ export default function ShadowUser({
   const [play] = useState(() => tourEligible(viewport));
 
   /* Latest props for the rAF loop without restarting the effect */
-  const propsRef = useRef({ iconPositions, onMarquee, onSelectIcons, onMoveIcon });
-  propsRef.current = { iconPositions, onMarquee, onSelectIcons, onMoveIcon };
+  const propsRef = useRef({
+    iconPositions,
+    onMarquee,
+    onSelectIcons,
+    onMoveIcon,
+    onOpenWindow,
+    onCloseWindow,
+  });
+  propsRef.current = {
+    iconPositions,
+    onMarquee,
+    onSelectIcons,
+    onMoveIcon,
+    onOpenWindow,
+    onCloseWindow,
+  };
   /* Lets the Skip Tutorial button end the tour from render land */
   const cancelRef = useRef<(() => void) | null>(null);
 
@@ -158,6 +180,28 @@ export default function ShadowUser({
     let iconGrab: { id: DesktopIconId; orig: Point; at: Point } | null = null;
     let winGrab: { orig: Point; at: Point } | null = null;
     let winResize: { orig: { w: number; h: number }; at: Point } | null = null;
+    let captionText = '';
+    const caption = (text: string) => {
+      captionText = text;
+    };
+    let elevated = false;
+    /** Real window the ghost opened (so skipping mid-act can close it) */
+    let openedWindow: WindowId | null = null;
+
+    /* Locate a real (non-phantom) window by title — the opened window's spot
+       depends on runtime state, so its close box is found from the DOM. */
+    const realCloseBox = (title: string) => (): Point => {
+      const els = Array.from(
+        document.querySelectorAll('.mac-window:not(.shadow-window)'),
+      );
+      for (const el of els) {
+        if (el.querySelector('.title-bar-text')?.textContent === title) {
+          const r = el.getBoundingClientRect();
+          return { x: r.left + 20, y: r.top + 14 };
+        }
+      }
+      return { x: cur.x, y: cur.y }; // window vanished — stay put
+    };
 
     const setSelection = (ids: DesktopIconId[]) => {
       const key = ids.join(',');
@@ -202,58 +246,63 @@ export default function ShadowUser({
     const segs: Seg[] = [];
     const wait = (ms: number, end?: () => void) => segs.push({ ms, end });
 
-    /* Glide along a light quadratic arc — reads as a hand, not a robot */
+    /* Glide along a light quadratic arc — reads as a hand, not a robot.
+       Function targets resolve when the move starts (for runtime-positioned
+       targets like a freshly opened window's close box). */
     const moveTo = (
-      target: Point,
+      target: Point | (() => Point),
       ms: number,
       arc = 0.12,
       onFrame?: (t: number) => void,
     ) => {
       let from: Point | null = null;
       let ctrl: Point | null = null;
+      let to: Point | null = null;
       segs.push({
         ms,
         ease: easeInOut,
         frame: (t) => {
-          if (!from || !ctrl) {
+          if (!from || !ctrl || !to) {
             from = { x: cur.x, y: cur.y };
-            const dx = target.x - from.x;
-            const dy = target.y - from.y;
+            to = typeof target === 'function' ? target() : target;
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
             ctrl = {
-              x: (from.x + target.x) / 2 - dy * arc,
-              y: (from.y + target.y) / 2 + dx * arc,
+              x: (from.x + to.x) / 2 - dy * arc,
+              y: (from.y + to.y) / 2 + dx * arc,
             };
           }
           const u = 1 - t;
-          cur.x = u * u * from.x + 2 * u * t * ctrl.x + t * t * target.x;
-          cur.y = u * u * from.y + 2 * u * t * ctrl.y + t * t * target.y;
+          cur.x = u * u * from.x + 2 * u * t * ctrl.x + t * t * to.x;
+          cur.y = u * u * from.y + 2 * u * t * ctrl.y + t * t * to.y;
           onFrame?.(t);
         },
       });
     };
 
     /* --- the script -------------------------------------------------------- */
-    wait(START_DELAY_MS);
+    wait(START_DELAY_MS, () => caption("hi! it's AndyAI — here's a quick tour"));
     moveTo(toClient(mStart), 900, 0.12, (t) => {
       cur.opacity = CURSOR_ALPHA * Math.min(1, t * 1.8);
     });
 
     // 1. Rubber-band the whole left icon column, then let go.
     wait(180, () => {
+      caption('drag on the desktop to select icons');
       cur.pressed = true;
       marqueeAnchor = { x: cur.x, y: cur.y - ICON_LAYER_TOP };
     });
-    moveTo(toClient(mEnd), 1400, 0.03, () => updateMarquee());
-    wait(340);
+    moveTo(toClient(mEnd), 950, 0.03, () => updateMarquee());
+    wait(240);
     wait(140, () => {
       cur.pressed = false;
       marqueeAnchor = null;
       propsRef.current.onMarquee(null);
     });
-    wait(420);
+    wait(300);
 
     // Click empty desktop above the column to deselect.
-    moveTo(toClient({ x: chessCenter.x - 10, y: mStart.y - 46 }), 480, 0.1);
+    moveTo(toClient({ x: chessCenter.x - 10, y: mStart.y - 46 }), 400, 0.1);
     wait(130, () => {
       cur.pressed = true;
     });
@@ -261,9 +310,10 @@ export default function ShadowUser({
       cur.pressed = false;
       setSelection([]);
     });
-    wait(260);
+    wait(180);
 
     // 2. Nudge an icon and put it right back.
+    wait(0, () => caption('icons can be moved around'));
     moveTo(toClient(chessCenter), 520, 0.1);
     wait(160, () => {
       cur.pressed = true;
@@ -289,8 +339,46 @@ export default function ShadowUser({
     });
     wait(300, () => setSelection([]));
 
-    // 3. Drag the phantom window by its title bar.
+    // 3. Double-click a real folder open, then close it with its close box.
+    //    The cursor pops above the window stack while it works the close box
+    //    (a real pointer would be above the topmost window too).
+    wait(0, () => caption('double-click icons to open them'));
+    moveTo(toClient({ x: icons.apps.x + ICON_W / 2, y: icons.apps.y + ICON_H / 2 }), 600, 0.1);
+    wait(110, () => {
+      cur.pressed = true;
+      setSelection(['apps']);
+    });
+    wait(100, () => {
+      cur.pressed = false;
+    });
+    wait(90, () => {
+      cur.pressed = true;
+    });
+    wait(100, () => {
+      cur.pressed = false;
+      elevated = true;
+      openedWindow = 'apps';
+      propsRef.current.onOpenWindow('apps');
+    });
+    wait(750); // hourglass beat while the window "loads"
+    wait(0, () => caption('the ✕ box closes a window'));
+    moveTo(realCloseBox(WINDOW_META.apps.title), 650, 0.08);
+    wait(200, () => {
+      cur.pressed = true;
+    });
+    wait(150, () => {
+      cur.pressed = false;
+      openedWindow = null;
+      propsRef.current.onCloseWindow('apps');
+    });
+    wait(260, () => {
+      elevated = false;
+      setSelection([]);
+    });
+
+    // 4. Drag the phantom window by its title bar.
     wait(80, () => {
+      caption('drag windows by their title bar');
       win.shown = true;
     });
     moveTo(winGrabPoint, 780, 0.12, (t) => {
@@ -308,7 +396,8 @@ export default function ShadowUser({
       cur.pressed = false;
     });
 
-    // 4. Grow it from the bottom-right size box.
+    // 5. Grow it from the bottom-right size box.
+    wait(0, () => caption('resize from the corner size box'));
     moveTo(sizeBoxPoint, 520, 0.08);
     wait(160, () => {
       cur.pressed = true;
@@ -326,7 +415,8 @@ export default function ShadowUser({
     });
     wait(200);
 
-    // 5. Close it properly, with the close box.
+    // 6. Tidy up: close the phantom too (the ✕ lesson already ran on the
+    //    real folder window, so this one goes uncaptioned).
     moveTo(closeBoxPoint, 560, 0.1);
     wait(150, () => {
       cur.pressed = true;
@@ -338,10 +428,13 @@ export default function ShadowUser({
     });
     wait(220);
 
-    // Ghost drifts off-screen and fades — tutorial over.
+    // Ghost drifts off-screen and fades — tutorial over. The farewell
+    // caption hangs on for a beat after the cursor is gone.
+    wait(0, () => caption('BTW- the Read Me has a checklist of things to try!'));
     moveTo({ x: Math.max(-40, winSpawn.x - 70), y: vp.h + 40 }, 700, 0.15, (t) => {
       cur.opacity = CURSOR_ALPHA * (1 - t);
     });
+    wait(1100, () => caption(''));
 
     /* --- runner -------------------------------------------------------------- */
     let raf = 0;
@@ -366,6 +459,8 @@ export default function ShadowUser({
               closeArmed: win.closeArmed,
             }
           : null,
+        caption: captionText,
+        elevated,
       });
 
     const tick = (now: number) => {
@@ -406,6 +501,7 @@ export default function ShadowUser({
       propsRef.current.onMarquee(null);
       if (iconGrab) propsRef.current.onMoveIcon(iconGrab.id, iconGrab.orig);
       if (selectionKey) propsRef.current.onSelectIcons([]);
+      if (openedWindow) propsRef.current.onCloseWindow(openedWindow);
       setLeaving(true);
       leaveTimer = window.setTimeout(() => setDone(true), 380);
     };
@@ -423,7 +519,8 @@ export default function ShadowUser({
 
   if (!play || done || !view) return null;
 
-  const ghostVisible = view.cursor !== null || view.win !== null;
+  const ghostVisible =
+    view.cursor !== null || view.win !== null || view.caption !== '';
 
   return (
     <>
@@ -432,7 +529,10 @@ export default function ShadowUser({
         style={{
           position: 'absolute',
           inset: 0,
-          zIndex: GHOST_Z,
+          // While clicking the real (topmost) window the cursor rides above
+          // the window stack, like a real pointer would; 500 stays below the
+          // menu bar (1000) and the tour HUD (999).
+          zIndex: view.elevated ? 500 : GHOST_Z,
           pointerEvents: 'none',
         }}
         aria-hidden
@@ -488,13 +588,21 @@ export default function ShadowUser({
         )}
       </div>
       {ghostVisible && !leaving && (
-        <button
-          type="button"
-          className="mac-button shadow-skip"
-          onClick={() => cancelRef.current?.()}
-        >
-          Skip Tutorial
-        </button>
+        <div className="shadow-hud">
+          {view.caption !== '' && (
+            /* keyed so each new caption replays its little pop-in */
+            <div className="shadow-caption" key={view.caption}>
+              {view.caption}
+            </div>
+          )}
+          <button
+            type="button"
+            className="mac-button shadow-skip"
+            onClick={() => cancelRef.current?.()}
+          >
+            Skip Tutorial
+          </button>
+        </div>
       )}
     </>
   );

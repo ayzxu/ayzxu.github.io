@@ -490,6 +490,8 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
           onMoveIcon={(id, pos) =>
             setIconPositions((prev) => ({ ...prev, [id]: pos }))
           }
+          onOpenWindow={openWindow}
+          onCloseWindow={closeWindow}
         />
       )}
 
