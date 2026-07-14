@@ -33,6 +33,10 @@ import { WINDOW_META, type WindowId } from './windowConfig';
 
 /** Matches .desktop-icons-layer { top: 28px } — converts icon-layer ↔ client Y */
 const ICON_LAYER_TOP = 28;
+/** Global pace multiplier — an unhurried tour keeps visitors on the site
+    longer. Applies to every beat except the double-click, which must stay
+    at real click speed to read as one. */
+const TEMPO = 1.6;
 /** Above the icon layer (z 1), below every real window (z 10+) */
 const GHOST_Z = 5;
 const START_DELAY_MS = 1600;
@@ -127,6 +131,9 @@ export default function ShadowUser({
   };
   /* Lets the Skip Tutorial button end the tour from render land */
   const cancelRef = useRef<(() => void) | null>(null);
+  /* Rendered caption position — trails its target so cursor wiggles and
+     clamp flips glide instead of jumping (renders happen once per rAF) */
+  const capPosRef = useRef<Point | null>(null);
 
   useEffect(() => {
     if (!play) return;
@@ -246,7 +253,10 @@ export default function ShadowUser({
 
     /* --- tiny segment engine ---------------------------------------------- */
     const segs: Seg[] = [];
-    const wait = (ms: number, end?: () => void) => segs.push({ ms, end });
+    const wait = (ms: number, end?: () => void) =>
+      segs.push({ ms: Math.round(ms * TEMPO), end });
+    /** Unscaled beat — for gestures whose timing must stay realistic */
+    const waitExact = (ms: number, end?: () => void) => segs.push({ ms, end });
 
     /* Glide along a light quadratic arc — reads as a hand, not a robot.
        Function targets resolve when the move starts (for runtime-positioned
@@ -261,7 +271,7 @@ export default function ShadowUser({
       let ctrl: Point | null = null;
       let to: Point | null = null;
       segs.push({
-        ms,
+        ms: Math.round(ms * TEMPO),
         ease: easeInOut,
         frame: (t) => {
           if (!from || !ctrl || !to) {
@@ -346,17 +356,17 @@ export default function ShadowUser({
     //    (a real pointer would be above the topmost window too).
     wait(0, () => caption('double-click icons to open them'));
     moveTo(toClient({ x: icons.apps.x + ICON_W / 2, y: icons.apps.y + ICON_H / 2 }), 600, 0.1);
-    wait(110, () => {
+    waitExact(110, () => {
       cur.pressed = true;
       setSelection(['apps']);
     });
-    wait(100, () => {
+    waitExact(100, () => {
       cur.pressed = false;
     });
-    wait(90, () => {
+    waitExact(90, () => {
       cur.pressed = true;
     });
-    wait(100, () => {
+    waitExact(100, () => {
       cur.pressed = false;
       elevated = true;
       openedWindow = 'apps';
@@ -438,7 +448,8 @@ export default function ShadowUser({
     moveTo({ x: Math.max(-40, winSpawn.x - 70), y: vp.h + 40 }, 700, 0.15, (t) => {
       cur.opacity = CURSOR_ALPHA * (1 - t);
     });
-    wait(1100, () => caption(''));
+    // Long farewell hold — the checklist tip deserves an unhurried read.
+    wait(1600, () => caption(''));
 
     /* --- runner -------------------------------------------------------------- */
     let raf = 0;
@@ -539,6 +550,21 @@ export default function ShadowUser({
   }
   capTop = Math.max(36, capTop);
 
+  /* Ease the rendered position toward the target: the bubble trails the
+     cursor smoothly rather than mirroring every wiggle, and clamp flips
+     become short glides instead of ~100px jumps. */
+  if (view.caption === '') {
+    capPosRef.current = null;
+  } else if (!capPosRef.current) {
+    capPosRef.current = { x: capLeft, y: capTop };
+  } else {
+    capPosRef.current = {
+      x: capPosRef.current.x + (capLeft - capPosRef.current.x) * 0.16,
+      y: capPosRef.current.y + (capTop - capPosRef.current.y) * 0.16,
+    };
+  }
+  const capPos = capPosRef.current;
+
   return (
     <>
       <div
@@ -604,13 +630,15 @@ export default function ShadowUser({
           </div>
         )}
       </div>
-      {view.caption !== '' && !leaving && (
+      {view.caption !== '' && capPos && !leaving && (
         <div className="shadow-caption-layer" aria-hidden>
-          {/* keyed so each new caption replays its little pop-in */}
+          {/* keyed so each new caption replays its fade-in */}
           <div
             className="shadow-caption"
             key={view.caption}
-            style={{ left: capLeft, top: capTop }}
+            style={{
+              transform: `translate(${Math.round(capPos.x)}px, ${Math.round(capPos.y)}px)`,
+            }}
           >
             {view.caption}
           </div>
