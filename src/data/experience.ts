@@ -53,7 +53,7 @@ export const socials: LinkItem[] = [
 export const about = {
   portraits: [
     { src: portrait5, alt: 'Graduation day at Carnegie Mellon, May 2026' },
-    { src: portrait6, alt: 'Mirror check, May 2026' },
+    { src: portrait6, alt: 'China, May 2026' },
     { src: portrait4, alt: 'New York City, October 2025' },
     { src: portrait3, alt: 'Me and my scooter, September 2025' },
     { src: portrait7, alt: 'Bamboo grove in Japan, March 2025' },

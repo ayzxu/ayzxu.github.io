@@ -2820,3 +2820,81 @@
     animation: none;
   }
 }
+
+/* --- AndyAI shadow user ----------------------------------------------------
+   A translucent ghost cursor that demos the desktop for first-time visitors
+   (ShadowUser.tsx). The layer's position/z-index are inline on the element;
+   here we style the cursor, its name tag and the phantom demo window. */
+.shadow-layer {
+  transition: opacity 0.35s ease;
+}
+
+.shadow-layer--out {
+  opacity: 0;
+}
+
+.shadow-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+.shadow-cursor svg {
+  display: block;
+}
+
+/* Tiny dip on "mouse down", like a hand pressing the button */
+.shadow-cursor--pressed svg {
+  transform: translate(1px, 1px);
+}
+
+/* Figma-style name tag, in System 1 clothes */
+.shadow-cursor-tag {
+  position: absolute;
+  left: 15px;
+  top: 21px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.45);
+  padding: 3px 5px 2px;
+  white-space: nowrap;
+}
+
+/* Phantom demo window — real .mac-window chrome, but inert and see-through */
+.shadow-window {
+  pointer-events: none;
+  will-change: left, top, width, height, opacity;
+}
+
+.shadow-window .window-body {
+  overflow: hidden;
+  font-size: 24px;
+  padding: 16px 18px;
+}
+
+/* The ghost "pressing" the close box — same inversion as a real :active */
+.shadow-close-armed .close-box-glyph {
+  background: #000000;
+}
+
+.shadow-close-armed .close-box-glyph::before,
+.shadow-close-armed .close-box-glyph::after {
+  background: #ffffff;
+}
+
+/* Skip Tutorial — floats above the windows (but never the menu bar) while
+   the ghost is on screen; any click dismisses the tour anyway, this just
+   makes the escape hatch visible. */
+.shadow-skip {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 999;
+  pointer-events: auto;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.45);
+}

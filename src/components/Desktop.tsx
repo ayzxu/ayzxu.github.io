@@ -49,9 +49,11 @@ import {
   clampIconPosition,
   type DesktopIconId,
   type IconPositions,
+  type MarqueeRect,
 } from '../lib/iconLayout';
 import { useIconDrag } from './useIconDrag';
 import { useMarqueeSelect } from './useMarqueeSelect';
+import ShadowUser from './ShadowUser';
 import { playBasso } from '../lib/sounds';
 
 import ReadMeWindow from '../windows/ReadMeWindow';
@@ -194,6 +196,9 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(
     null,
   );
+  /* Rubber-band drawn by the AndyAI shadow user (see ShadowUser.tsx) — kept
+     here so it renders inside the icon layer with true desktop stacking. */
+  const [ghostMarquee, setGhostMarquee] = useState<MarqueeRect | null>(null);
   const [visited, setVisited] = useState<Set<WindowId>>(readVisitedWindows);
 
   /* Every window that gets opened (icon, menu, deep link, checklist) lands in
@@ -415,6 +420,17 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
             }}
           />
         )}
+        {ghostMarquee && ghostMarquee.width + ghostMarquee.height > 0 && (
+          <div
+            className="selection-marquee"
+            style={{
+              left: ghostMarquee.left,
+              top: ghostMarquee.top,
+              width: ghostMarquee.width,
+              height: ghostMarquee.height,
+            }}
+          />
+        )}
         {DESKTOP_ICONS.map((ic) => (
           <DesktopIcon
             key={ic.id}
@@ -462,6 +478,18 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
           src={lightbox.src}
           alt={lightbox.alt}
           onClose={() => setLightbox(null)}
+        />
+      )}
+
+      {!compactIcons && (
+        <ShadowUser
+          viewport={viewport}
+          iconPositions={iconPositions}
+          onMarquee={setGhostMarquee}
+          onSelectIcons={(ids) => setSelectedIcons(new Set(ids))}
+          onMoveIcon={(id, pos) =>
+            setIconPositions((prev) => ({ ...prev, [id]: pos }))
+          }
         />
       )}
 
