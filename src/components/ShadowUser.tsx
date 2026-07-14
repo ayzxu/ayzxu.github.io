@@ -63,8 +63,10 @@ type GhostView = {
     opacity: number;
     closeArmed: boolean;
   } | null;
-  /** Caption narrating the current act, shown above the Skip button */
+  /** Caption narrating the current act, shown in a bubble by the cursor */
   caption: string;
+  /** Where the caption bubble anchors — the cursor, even while it's hidden */
+  anchor: Point;
   /** While clicking a real (topmost) window, the cursor renders above it */
   elevated: boolean;
 };
@@ -361,7 +363,8 @@ export default function ShadowUser({
       propsRef.current.onOpenWindow('apps');
     });
     wait(750); // hourglass beat while the window "loads"
-    wait(0, () => caption('the ✕ box closes a window'));
+    // Tidy the folder away again — uncaptioned; the ✕ lesson itself comes
+    // later, on the phantom window, so the teaching order stays sequential.
     moveTo(realCloseBox(WINDOW_META.apps.title), 650, 0.08);
     wait(200, () => {
       cur.pressed = true;
@@ -415,8 +418,9 @@ export default function ShadowUser({
     });
     wait(200);
 
-    // 6. Tidy up: close the phantom too (the ✕ lesson already ran on the
-    //    real folder window, so this one goes uncaptioned).
+    // 6. Close the phantom with its close box — the ✕ lesson, last so the
+    //    captions teach in order: select → move → open → drag → resize → close.
+    wait(0, () => caption('the ✕ box closes a window'));
     moveTo(closeBoxPoint, 560, 0.1);
     wait(150, () => {
       cur.pressed = true;
@@ -460,6 +464,7 @@ export default function ShadowUser({
             }
           : null,
         caption: captionText,
+        anchor: { x: cur.x, y: cur.y },
         elevated,
       });
 
@@ -521,6 +526,18 @@ export default function ShadowUser({
 
   const ghostVisible =
     view.cursor !== null || view.win !== null || view.caption !== '';
+
+  /* Caption bubble rides just below the cursor's name tag, clamped to the
+     viewport (VT323 runs ~10px/char at this size — close enough to clamp by). */
+  const capW = Math.round(view.caption.length * 10.2) + 32;
+  const capLeft = Math.max(8, Math.min(view.anchor.x + 20, viewport.w - capW - 8));
+  let capTop = view.anchor.y + 48;
+  /* Flip above the cursor near the bottom, and keep the lowest ~100px clear
+     so the bubble never sits on the Skip Tutorial button. */
+  if (capTop > viewport.h - 104) {
+    capTop = Math.min(view.anchor.y - 52, viewport.h - 104);
+  }
+  capTop = Math.max(36, capTop);
 
   return (
     <>
@@ -587,14 +604,20 @@ export default function ShadowUser({
           </div>
         )}
       </div>
+      {view.caption !== '' && !leaving && (
+        <div className="shadow-caption-layer" aria-hidden>
+          {/* keyed so each new caption replays its little pop-in */}
+          <div
+            className="shadow-caption"
+            key={view.caption}
+            style={{ left: capLeft, top: capTop }}
+          >
+            {view.caption}
+          </div>
+        </div>
+      )}
       {ghostVisible && !leaving && (
         <div className="shadow-hud">
-          {view.caption !== '' && (
-            /* keyed so each new caption replays its little pop-in */
-            <div className="shadow-caption" key={view.caption}>
-              {view.caption}
-            </div>
-          )}
           <button
             type="button"
             className="mac-button shadow-skip"

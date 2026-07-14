@@ -2886,24 +2886,30 @@
   background: #ffffff;
 }
 
-/* Tour HUD — caption + Skip Tutorial stacked at the bottom of the screen,
-   floating above the windows (but never the menu bar) while the ghost is
-   on screen. The Skip button is the only way to end the tour early. */
+/* Tour HUD — the Skip Tutorial button at the bottom of the screen, floating
+   above the windows (but never the menu bar) while the ghost is on screen.
+   It is the only way to end the tour early. */
 .shadow-hud {
   position: absolute;
   left: 50%;
   bottom: 22px;
   transform: translateX(-50%);
   z-index: 999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
   pointer-events: none;
 }
 
-/* Narrates the current act, System 1 dialog style */
+/* Caption bubble narrating the current act — follows the ghost cursor.
+   Rendered in its own overlay above the windows so it stays legible even
+   when the cursor itself is tucked beneath one. */
+.shadow-caption-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+}
+
 .shadow-caption {
+  position: absolute;
   font-family: "VT323", monospace;
   font-size: 24px;
   line-height: 1;
