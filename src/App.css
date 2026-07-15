@@ -2940,3 +2940,105 @@
   pointer-events: auto;
   box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.45);
 }
+
+/* --- AndyAI orb — the mobile twin of the shadow cursor (ShadowOrb.tsx) ------
+   Touch has no cursor, so the phone's tour guide is a bobbing 1-bit orb that
+   floats above the fullscreen apps like a fingertip. Tap ripples mark its
+   presses; the same caption bubble narrates, in a wrapping phone variant. */
+.shadow-orb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+/* Bob lives on a wrapper so the press-scale on the core composes with it */
+.shadow-orb-bob {
+  display: block;
+  animation: shadow-orb-bob 2.1s ease-in-out infinite;
+}
+
+@keyframes shadow-orb-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.shadow-orb-core {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #ffffff 0%,
+    #ffffff 45%,
+    #d2d2d2 75%,
+    #9c9c9c 100%
+  );
+  box-shadow:
+    2px 2px 0 0 rgba(0, 0, 0, 0.45),
+    0 0 12px 3px rgba(255, 255, 255, 0.65);
+  transition: transform 130ms ease;
+}
+
+/* Squish on "touch down", like a fingertip pressing the glass */
+.shadow-orb--pressed .shadow-orb-core {
+  transform: scale(0.7);
+}
+
+/* One-shot expanding tap ripple, re-keyed per tap (no `forwards` — it ends
+   back at the resting opacity: 0) */
+.shadow-orb-ring {
+  position: absolute;
+  left: 15px;
+  top: 15px;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 2px solid #000000;
+  border-radius: 50%;
+  opacity: 0;
+  animation: shadow-orb-ring 460ms ease-out;
+}
+
+@keyframes shadow-orb-ring {
+  from {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* Name tag hangs centred under the orb */
+.shadow-orb-tag {
+  position: absolute;
+  left: 15px;
+  top: 36px;
+  transform: translateX(-50%);
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.45);
+  padding: 3px 5px 2px;
+  white-space: nowrap;
+}
+
+/* Phone caption variant: narrow screens need the bubble to wrap */
+.shadow-caption--wrap {
+  white-space: normal;
+  max-width: min(78vw, 340px);
+  font-size: 21px;
+  line-height: 1.15;
+  text-align: center;
+}

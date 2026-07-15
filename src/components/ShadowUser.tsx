@@ -4,7 +4,8 @@
    column, nudges an icon (and puts it back), then drags, resizes and finally
    closes a phantom demo window with its close box.
 
-   Plays on roomy desktop viewports only. The visitor can keep using the
+   Plays on roomy desktop viewports only — compact (phone) viewports get
+   ShadowOrb, its mobile twin. The visitor can keep using the
    desktop while it runs; the only way to end it early is the "Skip
    Tutorial" button floating at the bottom of the screen while the ghost is
    visible. The ghost layer sits below every real window (windows start at
@@ -36,7 +37,7 @@ const ICON_LAYER_TOP = 28;
 /** Global pace multiplier — an unhurried tour keeps visitors on the site
     longer. Applies to every beat except the double-click, which must stay
     at real click speed to read as one. */
-const TEMPO = 1.6;
+const TEMPO = 1.8;
 /** Above the icon layer (z 1), below every real window (z 10+) */
 const GHOST_Z = 5;
 const START_DELAY_MS = 1600;

@@ -54,6 +54,7 @@ import {
 import { useIconDrag } from './useIconDrag';
 import { useMarqueeSelect } from './useMarqueeSelect';
 import ShadowUser from './ShadowUser';
+import ShadowOrb from './ShadowOrb';
 import { playBasso } from '../lib/sounds';
 
 import ReadMeWindow from '../windows/ReadMeWindow';
@@ -481,7 +482,18 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
         />
       )}
 
-      {!compactIcons && (
+      {compactIcons ? (
+        <ShadowOrb
+          viewport={viewport}
+          iconPositions={iconPositions}
+          // Deep-linked boot: the orb narrates without pressing anything, so
+          // the tour never navigates the visitor away from shared content.
+          passive={initialWindow !== undefined && initialWindow !== 'readme'}
+          onSelectIcons={(ids) => setSelectedIcons(new Set(ids))}
+          onOpenWindow={openWindow}
+          onCloseWindow={closeWindow}
+        />
+      ) : (
         <ShadowUser
           viewport={viewport}
           iconPositions={iconPositions}
