@@ -39,8 +39,8 @@ import { WINDOW_META, type WindowId } from './windowConfig';
 const ICON_LAYER_TOP = 28;
 /** Global pace multiplier — an unhurried tour keeps visitors on the site
     longer. Applies to every beat except the double-click, which must stay
-    at real click speed to read as one. */
-const TEMPO = 2.0;
+    at real click speed to read as one. (Base 2.0, run 1.15× quicker.) */
+const TEMPO = 2.0 / 1.15;
 /** Above the icon layer (z 1), below every real window (z 10+) */
 const GHOST_Z = 5;
 const START_DELAY_MS = 1600;

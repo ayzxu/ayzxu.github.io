@@ -32,8 +32,9 @@ import {
 } from '../lib/windowBounds';
 import { WINDOW_META, type WindowId } from './windowConfig';
 
-/** Same unhurried pace as the desktop tour (see ShadowUser TEMPO) */
-const TEMPO = 1.8;
+/** Same unhurried pace as the desktop tour (see ShadowUser TEMPO), run
+    1.15× quicker (base 1.8). */
+const TEMPO = 1.8 / 1.15;
 /** Above fullscreen apps (z 10+), below the menu bar (1000) and HUD (999) —
     a fingertip is always on top of the screen it touches. */
 const ORB_Z = 500;
