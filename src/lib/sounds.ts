@@ -129,32 +129,45 @@ export function playStartupChime(compact: boolean): void {
 }
 
 /* --- AndyAI tour clicks ------------------------------------------------------
-   Tiny synthesized ticks for the tutorial ghost's mouse presses — down and up
-   get slightly different pitches, like a real button. WebAudio (no asset) so
-   the ~20ms envelope stays crisp; if the browser hasn't unlocked audio yet
-   (no user gesture), the click is skipped and the tour carries on silently. */
+   Tiny synthesized ticks for the tutorial ghost's mouse presses. A real
+   mouse click is a broadband thump, not a pitched tone, so this is a ~25ms
+   burst of noise through a low bandpass — press lands a little deeper and
+   fuller than release, like a real button. WebAudio (no asset) so the
+   envelope stays crisp; if the browser hasn't unlocked audio yet (no user
+   gesture), the click is skipped and the tour carries on silently. */
 
 let tourCtx: AudioContext | null = null;
+let tourNoise: AudioBuffer | null = null;
 
 export function playTourClick(down: boolean): void {
   if (muted || masterVolume <= 0) return;
   try {
     tourCtx = tourCtx ?? new AudioContext();
-    if (tourCtx.state !== 'running') {
-      void tourCtx.resume().catch(() => {}); // unlocks after the first gesture
+    const ctx = tourCtx;
+    if (ctx.state !== 'running') {
+      void ctx.resume().catch(() => {}); // unlocks after the first gesture
       return;
     }
-    const t = tourCtx.currentTime;
-    const osc = tourCtx.createOscillator();
-    const gain = tourCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.value = down ? 1900 : 1300;
-    gain.gain.setValueAtTime(0.05 * masterVolume, t);
-    gain.gain.exponentialRampToValueAtTime(0.0005, t + 0.02);
-    osc.connect(gain);
-    gain.connect(tourCtx.destination);
-    osc.start(t);
-    osc.stop(t + 0.025);
+    if (!tourNoise) {
+      const len = Math.ceil(ctx.sampleRate * 0.03);
+      tourNoise = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = tourNoise.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    }
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = tourNoise;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = down ? 900 : 1200;
+    filter.Q.value = 1.2;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime((down ? 0.4 : 0.3) * masterVolume, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(t);
   } catch {
     /* no audio support — stay silent */
   }

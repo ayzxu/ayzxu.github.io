@@ -309,9 +309,15 @@ export default function ShadowOrb({
       wait(1400);
     }
 
-    // Orb drifts off-screen and fades — tutorial over. The farewell caption
-    // hangs on for a beat after the orb is gone.
-    moveTo({ x: vp.w * 0.5, y: vp.h + 50 }, 700, 0.15, (t) => {
+    // Very last beat: float up beside the Apple menu so visitors know where
+    // to find the tour again ("Replay Tour" lives in that menu).
+    wait(0, () => caption('replay me anytime from the apple menu up here'));
+    moveTo({ x: 26, y: MENU_TOP + 28 }, 800, 0.1);
+    wait(1500);
+
+    // Orb slips away under the menu bar and fades — tutorial over. The
+    // replay tip hangs on for a beat after the orb is gone.
+    moveTo({ x: 40, y: -60 }, 700, 0.15, (t) => {
       cur.opacity = ORB_ALPHA * (1 - t);
     });
     wait(1600, () => caption(''));

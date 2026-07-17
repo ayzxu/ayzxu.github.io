@@ -506,7 +506,17 @@ export default function ShadowUser({
       cur.opacity = CURSOR_ALPHA * Math.max(0, 1 - t * 1.6);
     });
     // Long farewell hold — the checklist tip deserves an unhurried read.
-    wait(1600, () => caption(''));
+    wait(1600);
+
+    // Very last beat: park a caption under the Apple menu so visitors know
+    // where to find the tour again ("Replay Tour" lives up there).
+    wait(0, () => {
+      caption('replay me anytime from the apple menu up here');
+      // Renderer draws the bubble at anchor + (20, 48) — this lands it at
+      // (12, 36), tucked just below the menu bar's apple.
+      capAnchor = { x: -8, y: -12 };
+    });
+    wait(1500, () => caption(''));
 
     /* --- runner -------------------------------------------------------------- */
     let raf = 0;
