@@ -23,6 +23,8 @@ type MenuBarProps = {
   onOpenWindow: (id: WindowId) => void;
   onCloseActive: () => void;
   onShutDown: () => void;
+  /** Replays the AndyAI tutorial (ShadowUser / ShadowOrb) from the top */
+  onReplayTour: () => void;
   hasActiveWindow: boolean;
 };
 
@@ -30,6 +32,7 @@ export default function MenuBar({
   onOpenWindow,
   onCloseActive,
   onShutDown,
+  onReplayTour,
   hasActiveWindow,
 }: MenuBarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -93,6 +96,11 @@ export default function MenuBar({
             kind: 'item',
             label: 'Read Me',
             onClick: () => onOpenWindow('readme'),
+          },
+          {
+            kind: 'item',
+            label: 'Replay Tour',
+            onClick: onReplayTour,
           },
           { kind: 'sep' },
           { kind: 'item', label: 'Shut Down', onClick: onShutDown },

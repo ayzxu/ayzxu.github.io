@@ -1,9 +1,10 @@
 /* ==========================================================================
-   ShadowOrb — "AndyAI" on the phone: the mobile twin of ShadowUser. Touch
-   has no cursor to ghost, so the guide is a small glowing orb that floats
-   around the screen narrating a short tour of iPhone mode: HOME leaves a
-   fullscreen app, tapping a tile opens one, and the Read Me hides a
-   checklist. Its taps are real — the orb sends the boot Read Me home,
+   ShadowOrb — "AndyAI" on the phone: the mobile twin of ShadowUser, playing
+   on a visitor's first load (and again via "Replay Tour" in the Apple
+   menu). Touch has no cursor to ghost, so the guide is a small glowing orb
+   that floats around the screen narrating a short tour of iPhone mode: HOME
+   leaves a fullscreen app, tapping a tile opens one, and the Read Me hides
+   a checklist. Its taps are real — the orb sends the boot Read Me home,
    opens the Apps folder, tidies it away, then restores the Read Me.
 
    Unlike the desktop ghost (which lives *below* the window layer), the orb
@@ -21,6 +22,8 @@ import {
   type DesktopIconId,
   type IconPositions,
 } from '../lib/iconLayout';
+import { playTourClick } from '../lib/sounds';
+import { hasSeenTour, markTourSeen } from '../lib/tourMemory';
 import {
   isCompactIcons,
   MENU_TOP,
@@ -36,12 +39,17 @@ const TEMPO = 1.8;
 const ORB_Z = 500;
 const START_DELAY_MS = 1600;
 const ORB_ALPHA = 0.92;
+/** Caption typing pace — kept at real typing speed, not TEMPO-scaled */
+const CAPTION_CHAR_MS = 28;
 /** Icon-art centre within a 108×88 tile (the rounded plate, not the label) */
 const TILE_ART_CY = 33;
 
 type ShadowOrbProps = {
   viewport: Viewport;
   iconPositions: IconPositions;
+  /** True when the visitor asked to replay the tour — bypasses the
+      played-once memory */
+  replay: boolean;
   /** Deep-linked boot: narrate only — never press HOME or open apps */
   passive: boolean;
   onSelectIcons: (ids: DesktopIconId[]) => void;
@@ -53,8 +61,12 @@ type OrbView = {
   orb: { x: number; y: number; opacity: number; pressed: boolean } | null;
   /** Monotonic tap counter — each increment replays the tap-ripple ring */
   taps: number;
-  /** Caption narrating the current act, shown in a bubble by the orb */
+  /** Caption narrating the current act, shown in a bubble by the orb —
+      revealed a character at a time, like live typing */
   caption: string;
+  /** The caption's full text — stable per act, so it keys the bubble's
+      fade-in and sizes the clamp box while the text is still typing out */
+  captionKey: string;
   /** Where the caption bubble anchors — the orb, even while it's hidden */
   anchor: Point;
 };
@@ -73,6 +85,7 @@ type Seg = {
 export default function ShadowOrb({
   viewport,
   iconPositions,
+  replay,
   passive,
   onSelectIcons,
   onOpenWindow,
@@ -81,8 +94,11 @@ export default function ShadowOrb({
   const [view, setView] = useState<OrbView | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [done, setDone] = useState(false);
-  /* Only mounted on compact viewports, but re-check like the desktop twin */
-  const [play] = useState(() => isCompactIcons(viewport));
+  /* Only mounted on compact viewports, but re-check like the desktop twin;
+     plays for first-time visitors or on an explicit "Replay Tour" request */
+  const [play] = useState(
+    () => isCompactIcons(viewport) && (replay || !hasSeenTour()),
+  );
 
   /* Latest props for the rAF loop without restarting the effect */
   const propsRef = useRef({
@@ -99,6 +115,7 @@ export default function ShadowOrb({
 
   useEffect(() => {
     if (!play) return;
+    markTourSeen();
 
     const vp = viewport;
 
@@ -110,9 +127,13 @@ export default function ShadowOrb({
       pressed: false,
     };
     let taps = 0;
-    let captionText = '';
+    /* Captions type themselves out (see publish); caption() re-arms the
+       typewriter with the next act's line. */
+    let capFull = '';
+    let capStart = 0; // rAF timestamp of the first typed frame; 0 = not started
     const caption = (text: string) => {
-      captionText = text;
+      capFull = text;
+      capStart = 0;
     };
     let selectedNow = false;
     /** Real window the orb opened (so skipping mid-act can close it) */
@@ -301,20 +322,41 @@ export default function ShadowOrb({
     let segStart = 0;
     let stopped = false;
     let leaveTimer: number | null = null;
+    let lastTick = 0;
+    let lastPressed = false;
 
-    const publish = () =>
+    const publish = (now: number) => {
+      /* Reveal the caption a character at a time; a trailing _ plays the
+         part of the terminal cursor until the line is complete. */
+      if (capFull !== '' && capStart === 0) capStart = now;
+      const typed =
+        capFull === ''
+          ? ''
+          : capFull.slice(
+              0,
+              Math.max(1, Math.ceil((now - capStart) / CAPTION_CHAR_MS)),
+            );
       setView({
         orb:
           cur.opacity > 0.02
             ? { x: cur.x, y: cur.y, opacity: cur.opacity, pressed: cur.pressed }
             : null,
         taps,
-        caption: captionText,
+        caption: typed + (typed.length < capFull.length ? '_' : ''),
+        captionKey: capFull,
         anchor: { x: cur.x, y: cur.y },
       });
+    };
 
     const tick = (now: number) => {
       if (stopped) return;
+      /* rAF stops while the tab is hidden — shift the clocks past the gap
+         so the tour resumes where it left off instead of lurching ahead. */
+      if (lastTick > 0 && now - lastTick > 200) {
+        segStart += now - lastTick;
+        if (capStart > 0) capStart += now - lastTick;
+      }
+      lastTick = now;
       if (segIdx < segs.length) {
         const s = segs[segIdx];
         const t = s.ms <= 0 ? 1 : (now - segStart) / s.ms;
@@ -329,7 +371,13 @@ export default function ShadowOrb({
           s.frame?.((s.ease ?? linear)(Math.max(0, t)));
         }
       }
-      publish();
+      /* The orb's taps are audible — one soft tick per press, fingertip
+         style (silent until the browser unlocks audio). */
+      if (cur.pressed !== lastPressed) {
+        lastPressed = cur.pressed;
+        if (cur.pressed) playTourClick(true);
+      }
+      publish(now);
       if (segIdx >= segs.length) {
         setDone(true);
         return;
@@ -357,6 +405,14 @@ export default function ShadowOrb({
     cancelRef.current = cancel;
 
     return () => {
+      if (!stopped) {
+        /* Unmounted mid-play (Replay Tour remounts the component) — put
+           back anything the orb was still holding. */
+        if (selectedNow) propsRef.current.onSelectIcons([]);
+        if (openedWindow) propsRef.current.onCloseWindow(openedWindow);
+        if (readmeDismissed && !readmeRestored)
+          propsRef.current.onOpenWindow('readme');
+      }
       stopped = true;
       cancelAnimationFrame(raf);
       cancelRef.current = null;
@@ -368,13 +424,14 @@ export default function ShadowOrb({
 
   if (!play || done || !view) return null;
 
-  const ghostVisible = view.orb !== null || view.caption !== '';
+  const ghostVisible = view.orb !== null || view.captionKey !== '';
 
   /* Caption bubble rides below the orb's name tag, centred and clamped to
      the viewport. Phone captions wrap (see .shadow-caption--wrap), so the
-     width estimate caps at the bubble's CSS max-width. */
+     width estimate caps at the bubble's CSS max-width; clamp by the full
+     text's width so the bubble doesn't slide around while it's typing. */
   const capMaxW = Math.min(Math.round(viewport.w * 0.78), 340);
-  const capW = Math.min(Math.round(view.caption.length * 9) + 30, capMaxW);
+  const capW = Math.min(Math.round(view.captionKey.length * 9) + 30, capMaxW);
   const capLeft = Math.max(
     8,
     Math.min(view.anchor.x - capW / 2, viewport.w - capW - 8),
@@ -389,7 +446,7 @@ export default function ShadowOrb({
 
   /* Ease the rendered position toward the target: the bubble trails the orb
      smoothly, and clamp flips become short glides instead of jumps. */
-  if (view.caption === '') {
+  if (view.captionKey === '') {
     capPosRef.current = null;
   } else if (!capPosRef.current) {
     capPosRef.current = { x: capLeft, y: capTop };
@@ -430,12 +487,13 @@ export default function ShadowOrb({
           </div>
         )}
       </div>
-      {view.caption !== '' && capPos && !leaving && (
+      {view.captionKey !== '' && capPos && !leaving && (
         <div className="shadow-caption-layer" aria-hidden>
-          {/* keyed so each new caption replays its fade-in */}
+          {/* keyed by the full text so the fade-in plays once per caption,
+              not once per typed character */}
           <div
             className="shadow-caption shadow-caption--wrap"
-            key={view.caption}
+            key={view.captionKey}
             style={{
               transform: `translate(${Math.round(capPos.x)}px, ${Math.round(capPos.y)}px)`,
             }}

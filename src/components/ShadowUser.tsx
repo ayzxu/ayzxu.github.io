@@ -1,8 +1,9 @@
 /* ==========================================================================
-   ShadowUser — "AndyAI", a translucent ghost cursor that silently demos the
-   desktop on every fresh page load: rubber-band selects the left icon
-   column, nudges an icon (and puts it back), then drags, resizes and finally
-   closes a phantom demo window with its close box.
+   ShadowUser — "AndyAI", a translucent ghost cursor that demos the desktop
+   on a visitor's first load (and again via "Replay Tour" in the Apple
+   menu): rubber-band selects the left icon column, nudges an icon (and puts
+   it back), then drags, resizes and finally closes a phantom demo window
+   with its close box.
 
    Plays on roomy desktop viewports only — compact (phone) viewports get
    ShadowOrb, its mobile twin. The visitor can keep using the
@@ -23,6 +24,8 @@ import {
   type IconPositions,
   type MarqueeRect,
 } from '../lib/iconLayout';
+import { playTourClick } from '../lib/sounds';
+import { hasSeenTour, markTourSeen } from '../lib/tourMemory';
 import {
   centerWindowPosition,
   getDefaultWindowSize,
@@ -37,7 +40,7 @@ const ICON_LAYER_TOP = 28;
 /** Global pace multiplier — an unhurried tour keeps visitors on the site
     longer. Applies to every beat except the double-click, which must stay
     at real click speed to read as one. */
-const TEMPO = 1.8;
+const TEMPO = 2.0;
 /** Above the icon layer (z 1), below every real window (z 10+) */
 const GHOST_Z = 5;
 const START_DELAY_MS = 1600;
@@ -47,6 +50,8 @@ const PHANTOM_H = 240;
 const RESIZE_DELTA = { x: 70, y: 55 };
 const CURSOR_ALPHA = 0.75;
 const PHANTOM_ALPHA = 0.65;
+/** Caption typing pace — kept at real typing speed, not TEMPO-scaled */
+const CAPTION_CHAR_MS = 28;
 /** Caption bubble width estimate — VT323 runs ~10px/char at this size */
 const captionWidth = (text: string) => Math.round(text.length * 10.2) + 32;
 const FAREWELL_CAPTION = 'BTW- the Read Me has a checklist of things to try!';
@@ -54,6 +59,9 @@ const FAREWELL_CAPTION = 'BTW- the Read Me has a checklist of things to try!';
 type ShadowUserProps = {
   viewport: Viewport;
   iconPositions: IconPositions;
+  /** True when the visitor asked to replay the tour — bypasses the
+      played-once memory */
+  replay: boolean;
   onMarquee: (rect: MarqueeRect | null) => void;
   onSelectIcons: (ids: DesktopIconId[]) => void;
   onMoveIcon: (id: DesktopIconId, pos: Point) => void;
@@ -71,8 +79,12 @@ type GhostView = {
     opacity: number;
     closeArmed: boolean;
   } | null;
-  /** Caption narrating the current act, shown in a bubble by the cursor */
+  /** Caption narrating the current act, shown in a bubble by the cursor —
+      revealed a character at a time, like live typing */
   caption: string;
+  /** The caption's full text — stable per act, so it keys the bubble's
+      fade-in and sizes the clamp box while the text is still typing out */
+  captionKey: string;
   /** Where the caption bubble anchors — the cursor, even while it's hidden */
   anchor: Point;
   /** While clicking a real (topmost) window, the cursor renders above it */
@@ -104,6 +116,7 @@ type Seg = {
 export default function ShadowUser({
   viewport,
   iconPositions,
+  replay,
   onMarquee,
   onSelectIcons,
   onMoveIcon,
@@ -113,8 +126,11 @@ export default function ShadowUser({
   const [view, setView] = useState<GhostView | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [done, setDone] = useState(false);
-  /* Eligibility is decided once, at mount */
-  const [play] = useState(() => tourEligible(viewport));
+  /* Eligibility is decided once, at mount: a roomy viewport, and either a
+     first-time visitor or an explicit "Replay Tour" request */
+  const [play] = useState(
+    () => tourEligible(viewport) && (replay || !hasSeenTour()),
+  );
 
   /* Latest props for the rAF loop without restarting the effect */
   const propsRef = useRef({
@@ -141,6 +157,7 @@ export default function ShadowUser({
 
   useEffect(() => {
     if (!play) return;
+    markTourSeen();
 
     const vp = viewport;
     const icons = propsRef.current.iconPositions;
@@ -199,9 +216,13 @@ export default function ShadowUser({
     let iconGrab: { id: DesktopIconId; orig: Point; at: Point } | null = null;
     let winGrab: { orig: Point; at: Point } | null = null;
     let winResize: { orig: { w: number; h: number }; at: Point } | null = null;
-    let captionText = '';
+    /* Captions type themselves out (see publish); caption() re-arms the
+       typewriter with the next act's line. */
+    let capFull = '';
+    let capStart = 0; // rAF timestamp of the first typed frame; 0 = not started
     const caption = (text: string) => {
-      captionText = text;
+      capFull = text;
+      capStart = 0;
     };
     let elevated = false;
     /** When set, the caption bubble anchors here instead of the cursor —
@@ -493,8 +514,20 @@ export default function ShadowUser({
     let segStart = 0;
     let stopped = false;
     let leaveTimer: number | null = null;
+    let lastTick = 0;
+    let lastPressed = false;
 
-    const publish = () =>
+    const publish = (now: number) => {
+      /* Reveal the caption a character at a time; a trailing _ plays the
+         part of the terminal cursor until the line is complete. */
+      if (capFull !== '' && capStart === 0) capStart = now;
+      const typed =
+        capFull === ''
+          ? ''
+          : capFull.slice(
+              0,
+              Math.max(1, Math.ceil((now - capStart) / CAPTION_CHAR_MS)),
+            );
       setView({
         cursor:
           cur.opacity > 0.02
@@ -510,13 +543,22 @@ export default function ShadowUser({
               closeArmed: win.closeArmed,
             }
           : null,
-        caption: captionText,
+        caption: typed + (typed.length < capFull.length ? '_' : ''),
+        captionKey: capFull,
         anchor: capAnchor ?? { x: cur.x, y: cur.y },
         elevated,
       });
+    };
 
     const tick = (now: number) => {
       if (stopped) return;
+      /* rAF stops while the tab is hidden — shift the clocks past the gap
+         so the tour resumes where it left off instead of lurching ahead. */
+      if (lastTick > 0 && now - lastTick > 200) {
+        segStart += now - lastTick;
+        if (capStart > 0) capStart += now - lastTick;
+      }
+      lastTick = now;
       if (segIdx < segs.length) {
         const s = segs[segIdx];
         const t = s.ms <= 0 ? 1 : (now - segStart) / s.ms;
@@ -531,7 +573,13 @@ export default function ShadowUser({
           s.frame?.((s.ease ?? linear)(Math.max(0, t)));
         }
       }
-      publish();
+      /* The ghost's presses are audible — a soft tick per edge, like a real
+         mouse button (silent until the browser unlocks audio). */
+      if (cur.pressed !== lastPressed) {
+        lastPressed = cur.pressed;
+        playTourClick(cur.pressed);
+      }
+      publish(now);
       if (segIdx >= segs.length) {
         setDone(true);
         return;
@@ -560,6 +608,14 @@ export default function ShadowUser({
     cancelRef.current = cancel;
 
     return () => {
+      if (!stopped) {
+        /* Unmounted mid-play (Replay Tour remounts the component) — put
+           back anything the ghost was still holding. */
+        propsRef.current.onMarquee(null);
+        if (iconGrab) propsRef.current.onMoveIcon(iconGrab.id, iconGrab.orig);
+        if (selectionKey) propsRef.current.onSelectIcons([]);
+        if (openedWindow) propsRef.current.onCloseWindow(openedWindow);
+      }
       stopped = true;
       cancelAnimationFrame(raf);
       cancelRef.current = null;
@@ -572,11 +628,12 @@ export default function ShadowUser({
   if (!play || done || !view) return null;
 
   const ghostVisible =
-    view.cursor !== null || view.win !== null || view.caption !== '';
+    view.cursor !== null || view.win !== null || view.captionKey !== '';
 
   /* Caption bubble rides just below the cursor's name tag, clamped to the
-     viewport. */
-  const capW = captionWidth(view.caption);
+     viewport. Clamp by the full text's width so the bubble doesn't slide
+     around while it's still typing out. */
+  const capW = captionWidth(view.captionKey);
   const capLeft = Math.max(8, Math.min(view.anchor.x + 20, viewport.w - capW - 8));
   let capTop = view.anchor.y + 48;
   /* Flip above the cursor near the bottom, and keep the lowest ~100px clear
@@ -589,7 +646,7 @@ export default function ShadowUser({
   /* Ease the rendered position toward the target: the bubble trails the
      cursor smoothly rather than mirroring every wiggle, and clamp flips
      become short glides instead of ~100px jumps. */
-  if (view.caption === '') {
+  if (view.captionKey === '') {
     capPosRef.current = null;
   } else if (!capPosRef.current) {
     capPosRef.current = { x: capLeft, y: capTop };
@@ -666,12 +723,13 @@ export default function ShadowUser({
           </div>
         )}
       </div>
-      {view.caption !== '' && capPos && !leaving && (
+      {view.captionKey !== '' && capPos && !leaving && (
         <div className="shadow-caption-layer" aria-hidden>
-          {/* keyed so each new caption replays its fade-in */}
+          {/* keyed by the full text so the fade-in plays once per caption,
+              not once per typed character */}
           <div
             className="shadow-caption"
-            key={view.caption}
+            key={view.captionKey}
             style={{
               transform: `translate(${Math.round(capPos.x)}px, ${Math.round(capPos.y)}px)`,
             }}

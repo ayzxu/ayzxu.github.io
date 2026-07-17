@@ -128,6 +128,38 @@ export function playStartupChime(compact: boolean): void {
   play(compact ? startupIphoneUrl : startupDesktopUrl, 0.3);
 }
 
+/* --- AndyAI tour clicks ------------------------------------------------------
+   Tiny synthesized ticks for the tutorial ghost's mouse presses — down and up
+   get slightly different pitches, like a real button. WebAudio (no asset) so
+   the ~20ms envelope stays crisp; if the browser hasn't unlocked audio yet
+   (no user gesture), the click is skipped and the tour carries on silently. */
+
+let tourCtx: AudioContext | null = null;
+
+export function playTourClick(down: boolean): void {
+  if (muted || masterVolume <= 0) return;
+  try {
+    tourCtx = tourCtx ?? new AudioContext();
+    if (tourCtx.state !== 'running') {
+      void tourCtx.resume().catch(() => {}); // unlocks after the first gesture
+      return;
+    }
+    const t = tourCtx.currentTime;
+    const osc = tourCtx.createOscillator();
+    const gain = tourCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = down ? 1900 : 1300;
+    gain.gain.setValueAtTime(0.05 * masterVolume, t);
+    gain.gain.exponentialRampToValueAtTime(0.0005, t + 0.02);
+    osc.connect(gain);
+    gain.connect(tourCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.025);
+  } catch {
+    /* no audio support — stay silent */
+  }
+}
+
 /* --- Chess (Andy Chess Bot) ---------------------------------------------- */
 
 const CHESS_SOUNDS = {

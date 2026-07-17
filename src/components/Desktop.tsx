@@ -200,6 +200,9 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
   /* Rubber-band drawn by the AndyAI shadow user (see ShadowUser.tsx) — kept
      here so it renders inside the icon layer with true desktop stacking. */
   const [ghostMarquee, setGhostMarquee] = useState<MarqueeRect | null>(null);
+  /* Bumped by "Replay Tour" in the Apple menu — remounts the AndyAI tour;
+     nonzero also tells it to bypass its played-once memory. */
+  const [tourNonce, setTourNonce] = useState(0);
   const [visited, setVisited] = useState<Set<WindowId>>(readVisitedWindows);
 
   /* Every window that gets opened (icon, menu, deep link, checklist) lands in
@@ -392,6 +395,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
         onOpenWindow={openWindow}
         onCloseActive={closeActive}
         onShutDown={onShutDown}
+        onReplayTour={() => setTourNonce((n) => n + 1)}
         hasActiveWindow={openWins.length > 0}
       />
 
@@ -484,8 +488,10 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
 
       {compactIcons ? (
         <ShadowOrb
+          key={tourNonce}
           viewport={viewport}
           iconPositions={iconPositions}
+          replay={tourNonce > 0}
           // Deep-linked boot: the orb narrates without pressing anything, so
           // the tour never navigates the visitor away from shared content.
           passive={initialWindow !== undefined && initialWindow !== 'readme'}
@@ -495,8 +501,10 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
         />
       ) : (
         <ShadowUser
+          key={tourNonce}
           viewport={viewport}
           iconPositions={iconPositions}
+          replay={tourNonce > 0}
           onMarquee={setGhostMarquee}
           onSelectIcons={(ids) => setSelectedIcons(new Set(ids))}
           onMoveIcon={(id, pos) =>
