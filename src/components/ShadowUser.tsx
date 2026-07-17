@@ -47,6 +47,9 @@ const PHANTOM_H = 240;
 const RESIZE_DELTA = { x: 70, y: 55 };
 const CURSOR_ALPHA = 0.75;
 const PHANTOM_ALPHA = 0.65;
+/** Caption bubble width estimate — VT323 runs ~10px/char at this size */
+const captionWidth = (text: string) => Math.round(text.length * 10.2) + 32;
+const FAREWELL_CAPTION = 'BTW- the Read Me has a checklist of things to try!';
 
 type ShadowUserProps = {
   viewport: Viewport;
@@ -150,18 +153,24 @@ export default function ShadowUser({
     const chessCenter = { x: a.x + ICON_W / 2, y: a.y + ICON_H / 2 };
     const toClient = (p: Point): Point => ({ x: p.x, y: p.y + ICON_LAYER_TOP });
 
-    /* Phantom window: below the Read Me if there's room, else bottom-left.
-       Everything about it is deterministic, so later grab points (size box,
-       close box) can be precomputed from spawn + drag delta. */
+    /* Phantom window: in the strip left of the Read Me, with the whole act
+       (spawn, drag up, resize down) centred on the viewport's vertical
+       middle — parked near the bottom edge, the caption bubble kept having
+       to dodge the screen edge and jumped around. Everything about it is
+       deterministic, so later grab points (size box, close box) can be
+       precomputed from spawn + drag delta. */
     const readmeSize = getDefaultWindowSize(WINDOW_META.readme, vp);
     const readmePos = centerWindowPosition(readmeSize, vp);
-    const readmeBottom = readmePos.y + readmeSize.h;
-    const winSpawn: Point =
-      vp.h - readmeBottom >= PHANTOM_H + 40
-        ? { x: Math.max(16, readmePos.x - 40), y: readmeBottom + 12 }
-        : { x: 20, y: Math.max(ICON_LAYER_TOP + 8, vp.h - PHANTOM_H - 28) };
-    const winGrabPoint = { x: winSpawn.x + PHANTOM_W * 0.5, y: winSpawn.y + 13 };
     const winDrag = { x: 118, y: -34 };
+    const winSpawn: Point = {
+      // Clear of the Read Me even after the rightward drag + resize
+      x: Math.max(20, readmePos.x - PHANTOM_W - winDrag.x - RESIZE_DELTA.x - 12),
+      y: Math.max(
+        ICON_LAYER_TOP + 8 - winDrag.y,
+        Math.round(vp.h / 2 - (PHANTOM_H + RESIZE_DELTA.y) / 2 - winDrag.y),
+      ),
+    };
+    const winGrabPoint = { x: winSpawn.x + PHANTOM_W * 0.5, y: winSpawn.y + 13 };
     const winMoved = { x: winSpawn.x + winDrag.x, y: winSpawn.y + winDrag.y };
     const sizeBoxPoint = {
       x: winMoved.x + PHANTOM_W - 9,
@@ -195,6 +204,10 @@ export default function ShadowUser({
       captionText = text;
     };
     let elevated = false;
+    /** When set, the caption bubble anchors here instead of the cursor —
+        the farewell parks beside the Read Me checklist while the cursor
+        exits. */
+    let capAnchor: Point | null = null;
     /** Real window the ghost opened (so skipping mid-act can close it) */
     let openedWindow: WindowId | null = null;
 
@@ -211,6 +224,23 @@ export default function ShadowUser({
         }
       }
       return { x: cur.x, y: cur.y }; // window vanished — stay put
+    };
+
+    /* Where the farewell caption parks: centred over the top of the Read
+       Me's "Things to check out" checklist, instead of chasing the exiting
+       cursor into the corner. Measured from the DOM when the act starts
+       (the visitor may have moved the window); falls back to the
+       boot-centred Read Me geometry. The renderer draws the bubble at
+       anchor + (20, 48), so those offsets are backed out here. */
+    const farewellAnchor = (): Point => {
+      const pane = document
+        .querySelector('.readme-tour-pane')
+        ?.getBoundingClientRect();
+      const cx = pane
+        ? pane.left + pane.width / 2
+        : readmePos.x + readmeSize.w * 0.72;
+      const top = pane ? pane.top : readmePos.y + readmeSize.h * 0.3;
+      return { x: cx - captionWidth(FAREWELL_CAPTION) / 2 - 20, y: top };
     };
 
     const setSelection = (ids: DesktopIconId[]) => {
@@ -444,10 +474,15 @@ export default function ShadowUser({
     wait(220);
 
     // Ghost drifts off-screen and fades — tutorial over. The farewell
-    // caption hangs on for a beat after the cursor is gone.
-    wait(0, () => caption('BTW- the Read Me has a checklist of things to try!'));
-    moveTo({ x: Math.max(-40, winSpawn.x - 70), y: vp.h + 40 }, 700, 0.15, (t) => {
-      cur.opacity = CURSOR_ALPHA * (1 - t);
+    // caption parks itself over the Read Me checklist it's pointing the
+    // visitor at, and hangs on for a beat after the cursor is gone.
+    wait(0, () => {
+      caption(FAREWELL_CAPTION);
+      capAnchor = farewellAnchor();
+    });
+    moveTo({ x: -40, y: vp.h + 40 }, 700, 0.15, (t) => {
+      // Fully faded well before the edge — dissolves mid-exit
+      cur.opacity = CURSOR_ALPHA * Math.max(0, 1 - t * 1.6);
     });
     // Long farewell hold — the checklist tip deserves an unhurried read.
     wait(1600, () => caption(''));
@@ -476,7 +511,7 @@ export default function ShadowUser({
             }
           : null,
         caption: captionText,
-        anchor: { x: cur.x, y: cur.y },
+        anchor: capAnchor ?? { x: cur.x, y: cur.y },
         elevated,
       });
 
@@ -540,8 +575,8 @@ export default function ShadowUser({
     view.cursor !== null || view.win !== null || view.caption !== '';
 
   /* Caption bubble rides just below the cursor's name tag, clamped to the
-     viewport (VT323 runs ~10px/char at this size — close enough to clamp by). */
-  const capW = Math.round(view.caption.length * 10.2) + 32;
+     viewport. */
+  const capW = captionWidth(view.caption);
   const capLeft = Math.max(8, Math.min(view.anchor.x + 20, viewport.w - capW - 8));
   let capTop = view.anchor.y + 48;
   /* Flip above the cursor near the bottom, and keep the lowest ~100px clear
