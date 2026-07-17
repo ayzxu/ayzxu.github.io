@@ -377,11 +377,11 @@ export default function ShadowOrb({
           s.frame?.((s.ease ?? linear)(Math.max(0, t)));
         }
       }
-      /* The orb's taps are audible — one soft tick per press, fingertip
+      /* The orb's taps are audible — one soft click per press, fingertip
          style (silent until the browser unlocks audio). */
       if (cur.pressed !== lastPressed) {
         lastPressed = cur.pressed;
-        if (cur.pressed) playTourClick(true);
+        if (cur.pressed) playTourClick();
       }
       publish(now);
       if (segIdx >= segs.length) {

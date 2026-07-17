@@ -583,11 +583,11 @@ export default function ShadowUser({
           s.frame?.((s.ease ?? linear)(Math.max(0, t)));
         }
       }
-      /* The ghost's presses are audible — a soft tick per edge, like a real
-         mouse button (silent until the browser unlocks audio). */
+      /* Each ghost press-down is audible — one soft mouse click; releases
+         stay silent (as does everything until the browser unlocks audio). */
       if (cur.pressed !== lastPressed) {
         lastPressed = cur.pressed;
-        playTourClick(cur.pressed);
+        if (cur.pressed) playTourClick();
       }
       publish(now);
       if (segIdx >= segs.length) {

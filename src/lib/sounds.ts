@@ -5,6 +5,7 @@
    ========================================================================== */
 
 import bassoUrl from '../assets/audio/basso.wav';
+import clickUrl from '../assets/audio/click.mp3';
 import startupDesktopUrl from '../assets/audio/startup-desktop.mp3';
 import startupIphoneUrl from '../assets/audio/startup-iphone.wav';
 
@@ -104,6 +105,8 @@ function preload(url: string): void {
 // Warm both startup chimes as soon as the app loads, long before power-on.
 preload(startupDesktopUrl);
 preload(startupIphoneUrl);
+// The AndyAI tour clicks right after boot — warm its mouse click too.
+preload(clickUrl);
 
 function play(url: string, volume = 1): void {
   if (muted || masterVolume <= 0) return;
@@ -129,48 +132,11 @@ export function playStartupChime(compact: boolean): void {
 }
 
 /* --- AndyAI tour clicks ------------------------------------------------------
-   Tiny synthesized ticks for the tutorial ghost's mouse presses. A real
-   mouse click is a broadband thump, not a pitched tone, so this is a ~25ms
-   burst of noise through a low bandpass — press lands a little deeper and
-   fuller than release, like a real button. WebAudio (no asset) so the
-   envelope stays crisp; if the browser hasn't unlocked audio yet (no user
-   gesture), the click is skipped and the tour carries on silently. */
+   One soft mouse click per ghost press-down (releases are silent). Warmed at
+   load: the tour plays right after boot and its clicks land on exact beats. */
 
-let tourCtx: AudioContext | null = null;
-let tourNoise: AudioBuffer | null = null;
-
-export function playTourClick(down: boolean): void {
-  if (muted || masterVolume <= 0) return;
-  try {
-    tourCtx = tourCtx ?? new AudioContext();
-    const ctx = tourCtx;
-    if (ctx.state !== 'running') {
-      void ctx.resume().catch(() => {}); // unlocks after the first gesture
-      return;
-    }
-    if (!tourNoise) {
-      const len = Math.ceil(ctx.sampleRate * 0.03);
-      tourNoise = ctx.createBuffer(1, len, ctx.sampleRate);
-      const data = tourNoise.getChannelData(0);
-      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-    }
-    const t = ctx.currentTime;
-    const src = ctx.createBufferSource();
-    src.buffer = tourNoise;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = down ? 900 : 1200;
-    filter.Q.value = 1.2;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime((down ? 0.4 : 0.3) * masterVolume, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
-    src.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    src.start(t);
-  } catch {
-    /* no audio support — stay silent */
-  }
+export function playTourClick(): void {
+  play(clickUrl, 0.6);
 }
 
 /* --- Chess (Andy Chess Bot) ---------------------------------------------- */
