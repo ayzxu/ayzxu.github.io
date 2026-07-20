@@ -55,7 +55,7 @@ import { useIconDrag } from './useIconDrag';
 import { useMarqueeSelect } from './useMarqueeSelect';
 import ShadowUser from './ShadowUser';
 import ShadowOrb from './ShadowOrb';
-import { playBasso } from '../lib/sounds';
+import { playBasso, playWindowClick } from '../lib/sounds';
 
 import ReadMeWindow from '../windows/ReadMeWindow';
 import ProjectsWindow from '../windows/ProjectsWindow';
@@ -300,6 +300,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
       busyTimer.current = null;
       setBusy(false);
       mountWindow(id);
+      playWindowClick(true);
       const next = openQueue.current.shift();
       if (next) openWindow(next);
     }, delay);
@@ -355,8 +356,10 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     navigate(route ?? '/desktop', { replace: true });
   }, [openWins, navigate]);
 
-  const closeWindow = (id: WindowId) =>
+  const closeWindow = (id: WindowId) => {
+    if (openWins.some((w) => w.id === id)) playWindowClick(false);
     setOpenWins((wins) => wins.filter((w) => w.id !== id));
+  };
 
   const focusWindow = (id: WindowId) =>
     setOpenWins((wins) => {

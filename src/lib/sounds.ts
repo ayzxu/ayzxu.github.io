@@ -139,6 +139,105 @@ export function playTourClick(): void {
   play(clickUrl, 0.6);
 }
 
+/* --- Synthesized UI sounds (WebAudio, no assets) --------------------------
+   A few interface sounds are generated on the fly rather than shipped as
+   files — small, tunable, and no download. They share one lazily-created
+   AudioContext and, like the sampled clips, stay silent while muted or
+   before the browser has unlocked audio (first user gesture). */
+
+let uiCtx: AudioContext | null = null;
+let noiseBuf: AudioBuffer | null = null;
+
+/** Run `fn` with a live, unlocked AudioContext; a no-op when muted, when the
+    volume is zero, or before the browser lets audio play. */
+function withAudio(
+  fn: (ctx: AudioContext, t: number, level: number) => void,
+): void {
+  if (muted || masterVolume <= 0) return;
+  try {
+    uiCtx = uiCtx ?? new AudioContext();
+    const ctx = uiCtx;
+    if (ctx.state !== 'running') {
+      void ctx.resume().catch(() => {}); // unlocks after the first gesture
+      return;
+    }
+    fn(ctx, ctx.currentTime, masterVolume);
+  } catch {
+    /* no audio support — stay silent */
+  }
+}
+
+/** A short buffer of white noise to slice clicks and slides out of. */
+function noise(ctx: AudioContext): AudioBuffer {
+  if (!noiseBuf || noiseBuf.sampleRate !== ctx.sampleRate) {
+    const len = Math.ceil(ctx.sampleRate * 0.2);
+    noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuf;
+}
+
+/** Quiet tick as a window opens or closes — a touch brighter on open, lower
+    on close. Deliberately soft: it fires on every window. */
+export function playWindowClick(open: boolean): void {
+  withAudio((ctx, t, level) => {
+    const src = ctx.createBufferSource();
+    src.buffer = noise(ctx);
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = open ? 1500 : 950;
+    bp.Q.value = 0.8;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.16 * level, t);
+    gain.gain.exponentialRampToValueAtTime(0.0004, t + 0.03);
+    src.connect(bp).connect(gain).connect(ctx.destination);
+    src.start(t);
+    src.stop(t + 0.035);
+  });
+}
+
+/** A soft slide as a Puzzle tile skids into the gap — noise through a
+    bandpass whose pitch sweeps down, like something sliding to a stop. */
+export function playTileSlide(): void {
+  withAudio((ctx, t, level) => {
+    const src = ctx.createBufferSource();
+    src.buffer = noise(ctx);
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(1300, t);
+    bp.frequency.exponentialRampToValueAtTime(520, t + 0.09);
+    bp.Q.value = 1.1;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.14 * level, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0004, t + 0.1);
+    src.connect(bp).connect(gain).connect(ctx.destination);
+    src.start(t);
+    src.stop(t + 0.11);
+  });
+}
+
+/** Bright rising three-note chime when an achievement unlocks — the reward
+    flourish over the toast (G5 → D6 → G6, bell-like sine with a soft tail). */
+export function playAchievementDing(): void {
+  withAudio((ctx, t, level) => {
+    [784, 1175, 1568].forEach((freq, i) => {
+      const at = t + i * 0.08;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.22 * level, at + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0004, at + 0.45);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(at);
+      osc.stop(at + 0.5);
+    });
+  });
+}
+
 /* --- Chess (Andy Chess Bot) ---------------------------------------------- */
 
 const CHESS_SOUNDS = {

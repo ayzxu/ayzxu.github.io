@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { unlockAchievement } from '../lib/achievements';
+import { playTileSlide } from '../lib/sounds';
 
 const N = 4;
 const CELLS = N * N;
@@ -88,6 +89,7 @@ export default function PuzzleWindow() {
     if (won) return;
     const next = slide(board, cell);
     if (!next) return;
+    playTileSlide();
     setBoard(next);
     setMoves((m) => m + 1);
     if (isSolved(next)) {

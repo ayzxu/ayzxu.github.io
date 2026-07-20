@@ -9,6 +9,7 @@ import {
   onAchievementToast,
   type AchievementDef,
 } from '../lib/achievements';
+import { playAchievementDing } from '../lib/sounds';
 
 const SHOW_MS = 2500;
 const EXIT_MS = 300;
@@ -25,6 +26,9 @@ export default function AchievementToast() {
       if (!next) return;
       setCurrent(next);
       setLeaving(false);
+      // Reward flourish, timed to each toast sliding in (so a burst of
+      // unlocks dings one at a time, not all at once).
+      playAchievementDing();
       timers.current.push(
         window.setTimeout(() => {
           setLeaving(true);
