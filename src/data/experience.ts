@@ -18,6 +18,10 @@ import ibm14 from '../assets/experiencepics/ibm1/ibm14.webp';
 import ibm21 from '../assets/experiencepics/ibm2/ibm21.webp';
 import ibm22 from '../assets/experiencepics/ibm2/ibm22.webp';
 import ibm23 from '../assets/experiencepics/ibm2/ibm23.webp';
+import mercorLogo from '../assets/experiencepics/mercor/mercor.png';
+import endeavorLogo from '../assets/experiencepics/endeavor/endeavor.png';
+import ibmLogo from '../assets/experiencepics/ibm/ibm.svg';
+import azukiLogo from '../assets/experiencepics/azuki/azuki-logo.png';
 
 import type { ImageItem, LinkItem } from './types';
 
@@ -28,6 +32,8 @@ export type ExperienceItem = {
   dates: string;
   url: string;
   bullets: string[];
+  /** Company logo shown inline beside the org name */
+  logo?: string;
   images?: ImageItem[];
 };
 
@@ -36,9 +42,10 @@ export type ExperienceItem = {
 export const intro = {
   heading: "Hi, I'm Andy.",
   body:
-    "I'm currently a Forward Deployed Engineer at Endeavor AI. " +
-    "I recently graduated from Carnegie Mellon University with " +
-    "a degree in Business Administration and a minor in Computer Science.",
+    "I'm a Member of Technical Staff on the Applied AI, Forward Deployed " +
+    "Engineering team at Mercor. I recently graduated from Carnegie " +
+    "Mellon University with a degree in Business Administration and " +
+    "a minor in Computer Science.",
   portrait: pfp,
 };
 
@@ -72,11 +79,26 @@ export const about = {
 
 export const experience: ExperienceItem[] = [
   {
+    role: 'Member of Technical Staff',
+    org: 'Mercor',
+    location: 'San Francisco, CA',
+    dates: 'Aug 2026 - Present',
+    url: 'https://mercor.com',
+    logo: mercorLogo,
+    bullets: [
+      'Building and deploying custom AI solutions directly alongside ' +
+        "customers on Mercor's Applied AI, Forward Deployed Engineering team",
+      'Embedding with partner teams to translate ambiguous, real-world ' +
+        'requirements into reliable production systems',
+    ],
+  },
+  {
     role: 'Forward Deployed Engineer',
     org: 'Endeavor AI',
     location: 'San Francisco, CA',
-    dates: 'Mar 2026 - Present',
+    dates: 'Mar 2026 - Jul 2026',
     url: 'https://www.endeavor.ai',
+    logo: endeavorLogo,
     bullets: [
       'Engineered consumer integrations and internal platform tooling for ' +
         'AI-assisted order entry and ERP automation workflows',
@@ -94,6 +116,7 @@ export const experience: ExperienceItem[] = [
     location: 'San Francisco, CA',
     dates: 'May 2025 - Aug 2025',
     url: 'https://www.ibm.com',
+    logo: ibmLogo,
     bullets: [
       'Developed an intelligent document processing pipeline leveraging OCR, ' +
         'Tensorflow, and Granite-8B to decrease costs by 80% and speed up by ' +
@@ -118,6 +141,7 @@ export const experience: ExperienceItem[] = [
     location: 'San Francisco, CA',
     dates: 'May 2024 - Aug 2024',
     url: 'https://www.ibm.com',
+    logo: ibmLogo,
     bullets: [
       'Ensured client readiness for Data and AI infrastructure with technical ' +
         'solutions, reducing deployment time by 20%',
@@ -140,6 +164,7 @@ export const experience: ExperienceItem[] = [
     location: 'Los Angeles, CA',
     dates: 'Jun 2023 - Aug 2023',
     url: 'https://www.azuki.com',
+    logo: azukiLogo,
     bullets: [
       'Built a client-facing website using React.js and a Python backend, ' +
         'improved UX with responsive animated UI',

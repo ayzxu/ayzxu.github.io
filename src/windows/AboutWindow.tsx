@@ -33,6 +33,14 @@ export default function AboutWindow({ onOpenImage }: AboutWindowProps) {
             {exp.role}
           </div>
           <div className="win-meta">
+            {exp.logo && (
+              <img
+                src={exp.logo}
+                alt={`${exp.org} logo`}
+                className="exp-logo pixelated"
+                decoding="async"
+              />
+            )}
             <a href={exp.url} target="_blank" rel="noreferrer">
               {exp.org}
             </a>{' '}
