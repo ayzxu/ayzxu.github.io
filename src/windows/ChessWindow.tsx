@@ -12,7 +12,16 @@ import { playChessSound, type ChessSound } from '../lib/sounds';
 import { Chessboard } from 'react-chessboard';
 import type { ChessboardOptions } from 'react-chessboard';
 import { useAndyBot } from '../chess/useAndyBot';
-import type { GameReview, MoveReview } from '../chess/engine/types';
+import type { EngineResult, GameReview, MoveReview } from '../chess/engine/types';
+import {
+  FROZEN_LINE,
+  reactToAndyMove,
+  reactToUserMove,
+  say,
+  type AndyMood,
+  type Reaction,
+} from '../chess/andyMood';
+import AndySprite from '../components/AndySprite';
 import { unlockAchievement } from '../lib/achievements';
 import {
   buildResultCard,
@@ -37,9 +46,20 @@ function isDarkSquare(sq: Square): boolean {
 }
 
 type UserColor = 'white' | 'black';
+type Outcome = 'andy' | 'user' | 'draw';
 type Status =
   | { kind: 'playing' }
-  | { kind: 'over'; text: string };
+  | { kind: 'over'; text: string; outcome: Outcome };
+
+/** Who won a finished game. */
+function outcomeOf(game: Chess, userColor: UserColor): Outcome {
+  if (!game.isCheckmate()) return 'draw';
+  const loser = game.turn() === 'w' ? 'white' : 'black';
+  return loser === userColor ? 'andy' : 'user';
+}
+
+const END_MOOD: Record<Outcome, AndyMood> = { andy: 'win', user: 'loss', draw: 'draw' };
+const END_LINE = { andy: 'win', user: 'loss', draw: 'draw' } as const;
 
 function resultText(game: Chess, userColor: UserColor): string {
   if (game.isCheckmate()) {
@@ -117,6 +137,15 @@ export default function ChessWindow() {
   const reviewedGameId = useRef(-1);
   /* Share-card generation in flight (disables the buttons + shows feedback). */
   const [cardBusy, setCardBusy] = useState(false);
+  /* How the Andy sprite is reacting to the last move, and what his speech
+     bubble says. Only ever set from move handlers, never derived on a timer. */
+  const [reaction, setReaction] = useState<Reaction | null>(null);
+  /* What the engine said about Andy's earlier moves this game, so his next
+     reaction can tell an eval swing or the moment he leaves his opening book. */
+  const prevEvalRef = useRef<number | null>(null);
+  const bookRef = useRef<'none' | 'in' | 'left'>('none');
+  /* True if he already said something about the player's last move. */
+  const spokeRef = useRef(false);
 
   const isUserTurn = useCallback(() => {
     const turn = gameRef.current.turn() === 'w' ? 'white' : 'black';
@@ -128,14 +157,38 @@ export default function ChessWindow() {
     setFen(g.fen());
     setHistory(g.history());
     if (g.isGameOver()) {
-      setStatus({ kind: 'over', text: resultText(g, userColor) });
-      // checkmate where the side to move (the loser) is Andy → the user won
-      const loser = g.turn() === 'w' ? 'white' : 'black';
-      if (g.isCheckmate() && loser !== userColor) {
-        unlockAchievement('chess-win');
-      }
+      const outcome = outcomeOf(g, userColor);
+      setStatus({ kind: 'over', text: resultText(g, userColor), outcome });
+      setReaction({ mood: 'idle', line: say(END_LINE[outcome]) });
+      if (outcome === 'user') unlockAchievement('chess-win');
     }
   }, [userColor]);
+
+  /* Work out Andy's reaction to the move he just played. A move he has nothing
+     to say about leaves his last line up, so something said during a short
+     think stays readable until the player moves again. */
+  const noteAndyMove = useCallback((mv: Move, res: EngineResult) => {
+    const g = gameRef.current;
+    if (g.isGameOver()) return; // the result pose takes over
+    const searched = res.source !== 'book';
+    const next = reactToAndyMove(mv, g, {
+      source: res.source,
+      evalCp: res.evalCp,
+      prevEvalCp: prevEvalRef.current,
+      wasInBook: bookRef.current === 'in',
+      alreadyReacted: spokeRef.current,
+      firstMove: g.history().length === 1,
+    });
+    if (searched) {
+      prevEvalRef.current = res.evalCp;
+      bookRef.current = 'left';
+    } else if (bookRef.current === 'none') {
+      bookRef.current = 'in';
+    }
+    setReaction((prev) =>
+      next.line === null ? { mood: next.mood, line: prev?.line ?? null } : next,
+    );
+  }, []);
 
   /* Ask the engine for Andy's reply, then apply it (guarding against a New Game
      started while the worker was thinking). */
@@ -161,12 +214,13 @@ export default function ChessWindow() {
       playChessSound(soundForMove(mv, g, false));
       setSelected(null);
       setEngineError(false);
+      noteAndyMove(mv, res);
       syncFromGame();
     } catch {
       // Worker error — show a Retry control rather than hanging on "Andy's move"
       if (myGameId === gameIdRef.current) setEngineError(true);
     }
-  }, [requestMove, syncFromGame]);
+  }, [requestMove, syncFromGame, noteAndyMove]);
 
   const newGame = useCallback(
     (color: UserColor) => {
@@ -178,6 +232,11 @@ export default function ChessWindow() {
       setStatus({ kind: 'playing' });
       setFen(gameRef.current.fen());
       setHistory([]);
+      prevEvalRef.current = null;
+      bookRef.current = 'none';
+      spokeRef.current = false;
+      // As Black the greeting comes with Andy's opening move instead.
+      setReaction(color === 'white' ? { mood: 'idle', line: say('greeting') } : null);
       playChessSound('game-start');
       // If the user takes Black, Andy (White) opens.
       if (color === 'black') {
@@ -195,6 +254,7 @@ export default function ChessWindow() {
               promotion: res.promotion,
             });
             playChessSound(soundForMove(mv, gameRef.current, false));
+            noteAndyMove(mv, res);
             setFen(gameRef.current.fen());
             setHistory(gameRef.current.history());
           })
@@ -203,7 +263,7 @@ export default function ChessWindow() {
           });
       }
     },
-    [requestMove],
+    [requestMove, noteAndyMove],
   );
 
   /* Attempt a user move from -> to (auto-queen on promotion). Returns success. */
@@ -225,6 +285,11 @@ export default function ChessWindow() {
       }
       playChessSound(soundForMove(mv, g, true));
       setSelected(null);
+      if (!g.isGameOver()) {
+        const next = reactToUserMove(mv, g);
+        spokeRef.current = next.line !== null;
+        setReaction(next);
+      }
       syncFromGame();
       if (!g.isGameOver()) void askAndy();
       return true;
@@ -403,6 +468,22 @@ export default function ChessWindow() {
             ? 'Your move'
             : "Andy's move";
 
+  /* The sprite's pose comes straight from game state: the result once the game
+     is over, the thinking pose for exactly as long as the worker is busy, and
+     otherwise his reaction to the last move. */
+  const andyMood: AndyMood =
+    status.kind === 'over'
+      ? END_MOOD[status.outcome]
+      : engineError
+        ? 'frozen'
+        : thinking
+          ? reaction?.mood === 'sweating'
+            ? 'sweating'
+            : 'thinking'
+          : (reaction?.mood ?? 'idle');
+  const andyLine =
+    status.kind === 'playing' && engineError ? FROZEN_LINE : (reaction?.line ?? null);
+
   return (
     <div className="chess-app">
       <div className="chess-app-head">
@@ -412,6 +493,17 @@ export default function ChessWindow() {
 
       <div className="chess-app-body">
         <div className="chess-board-area">
+          {/* Fixed-size bar: the bubble hides rather than unmounts, so the
+              board below never moves when he starts or stops talking. */}
+          <div className="chess-andy">
+            <AndySprite mood={andyMood} className="chess-andy-sprite" />
+            <div
+              className={`chess-andy-bubble${andyLine ? '' : ' empty'}`}
+              aria-live="polite"
+            >
+              <span>{andyLine}</span>
+            </div>
+          </div>
           <div className="chess-game-board">
             <Chessboard options={options} />
           </div>

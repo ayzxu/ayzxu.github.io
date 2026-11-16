@@ -1001,6 +1001,96 @@
   min-width: 0;
 }
 
+/* Andy's side of the table: his sprite and speech bubble, as wide as the
+   board. Every size here is fixed so a change of pose or line can't nudge the
+   board or the move list. */
+.chess-andy {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: clamp(240px, 58cqw, 460px);
+  max-width: 100%;
+  margin-bottom: 8px;
+}
+
+/* 24-pixel art at exactly 3x, so every art pixel is a whole 3x3 block */
+.chess-andy-sprite {
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+
+.chess-andy-bubble {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 2px solid #000000;
+  background: #ffffff;
+  box-shadow: 2px 2px 0 #000000;
+  font-family: "VT323", monospace;
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.chess-andy-bubble.empty {
+  visibility: hidden;
+}
+
+/* Clamp on the text, not the bubble, so the tail outside the box survives */
+.chess-andy-bubble span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Stair-stepped tail pointing at the sprite, built from 2px blocks so it stays
+   as hard-edged as the rest of the desktop */
+.chess-andy-bubble::before,
+.chess-andy-bubble::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  background: #000000;
+}
+
+.chess-andy-bubble::before {
+  left: -4px;
+  width: 2px;
+  height: 10px;
+  margin-top: -5px;
+}
+
+.chess-andy-bubble::after {
+  left: -8px;
+  width: 2px;
+  height: 2px;
+  margin-top: -1px;
+  box-shadow:
+    2px -2px 0 #000000,
+    2px 0 0 #000000,
+    2px 2px 0 #000000;
+}
+
+/* Roomier windows get the sprite at 4x */
+@container (min-width: 560px) {
+  .chess-andy-sprite {
+    width: 96px;
+    height: 96px;
+  }
+
+  .chess-andy-bubble {
+    height: 76px;
+    font-size: 22px;
+    line-height: 22px;
+  }
+}
+
 /* The interactive board; dithered dark squares, hard 1-bit border */
 .chess-game-board {
   width: clamp(240px, 58cqw, 460px);
