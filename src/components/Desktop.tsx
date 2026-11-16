@@ -78,6 +78,11 @@ import MinesweeperWindow from '../windows/MinesweeperWindow';
 import SnakeWindow from '../windows/SnakeWindow';
 import AsteroidsWindow from '../windows/AsteroidsWindow';
 import TrashWindow from '../windows/TrashWindow';
+import desktopBg1 from '../assets/backgrounds/bg1.webp';
+import desktopBg2 from '../assets/backgrounds/bg2.webp';
+import desktopBg3 from '../assets/backgrounds/bg3.webp';
+import desktopBg4 from '../assets/backgrounds/bg4.webp';
+import desktopBg5 from '../assets/backgrounds/bg5.webp';
 import bgPond from '../assets/backgrounds/pond.webp';
 import bgBeachNight from '../assets/backgrounds/beach-night.webp';
 import bgBayBridgeNight from '../assets/backgrounds/bay-bridge-night.webp';
@@ -86,14 +91,20 @@ import bgFriendsNight from '../assets/backgrounds/friends-night.webp';
 
 /* Desktop wallpapers cycle with a slow crossfade. The starting wallpaper is
    randomized per visit (chosen once at module load so it survives remounts).
-   Most are portrait photos, which a landscape desktop crops to about their
-   middle half; `focus` is the background-position that keeps the subject
-   (faces, the bridge) inside that band. */
+   Portrait photos are cropped by a landscape desktop to about their middle
+   half; `focus` is the background-position that keeps the subject (faces,
+   the bridge) inside that band. The landscape originals sit centred.
+   The two sets alternate so consecutive wallpapers feel different. */
 const DESKTOP_BACKGROUNDS = [
+  { src: desktopBg1, focus: '50% 50%' },
   { src: bgPond, focus: '50% 40%' },
+  { src: desktopBg2, focus: '50% 50%' },
   { src: bgBeachNight, focus: '50% 40%' },
+  { src: desktopBg3, focus: '50% 50%' },
   { src: bgBayBridgeNight, focus: '50% 60%' },
+  { src: desktopBg4, focus: '50% 50%' },
   { src: bgBayBridgePier, focus: '50% 55%' },
+  { src: desktopBg5, focus: '50% 50%' },
   { src: bgFriendsNight, focus: '50% 50%' },
 ];
 const INITIAL_BG_INDEX = Math.floor(Math.random() * DESKTOP_BACKGROUNDS.length);
