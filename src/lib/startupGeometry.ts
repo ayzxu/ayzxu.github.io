@@ -60,8 +60,10 @@ export function computeStartupLayout(
 
 /* --- Opening flight ---------------------------------------------------------
    One unbroken camera move from first frame to the glass filling the viewport:
-   the scene fades in small and off to the upper left, banks through a shallow
-   arc that dips under its mark, and keeps closing straight on into the screen.
+   the scene fades in small and a little up and to the left, banks gently
+   through a shallow arc that dips under its mark, and keeps closing straight
+   on into the screen. The arc and the bank are kept small on purpose: the
+   move should read as a glide in, not a stunt.
 
    It is paced in two halves that share a speed where they meet, so it never
    stops: a quick approach up to life size, then a slower push into the glass
@@ -79,7 +81,11 @@ const HANDOVER_SPEED = 0.6;
 const FAR_SCALE = 0.25;
 /** The screen comes on once the machine is this close */
 const LIT_SCALE = 0.55;
-const MAX_ROLL_DEG = 16;
+/** Bank at the start of the arc, levelling out as it is flown */
+const MAX_ROLL_DEG = 8;
+/** Peak of the small counter-roll as the machine levels out — the wobble on
+    arrival. Much past a couple of degrees it reads as the machine rocking. */
+const SETTLE_ROLL_DEG = 2;
 
 /** Cubic Hermite from 0 to 1 over x ∈ [0,1] with the given end slopes. */
 function hermite(x: number, slope0: number, slope1: number): number {
@@ -114,10 +120,11 @@ export function flightPose(
   const a = 1 - (1 - Math.min(1, u / (lifeSize * 1.3))) ** 2;
   const b = 1 - a;
   // Bézier from the entry point, through the dip, to rest at the origin.
-  const x = w * (-0.31 * b ** 3 - 0.75 * b * b * a + 0.15 * b * a * a);
-  const y = h * (-0.36 * b ** 3 + 0.66 * b * b * a + 0.57 * b * a * a);
+  // The last x term is the sideways overshoot past centre before it settles.
+  const x = w * (-0.155 * b ** 3 - 0.375 * b * b * a + 0.06 * b * a * a);
+  const y = h * (-0.18 * b ** 3 + 0.33 * b * b * a + 0.285 * b * a * a);
   const lift = layout.zoomTranslateY * u;
-  const roll = -MAX_ROLL_DEG * b + 5 * Math.sin(Math.PI * a * a);
+  const roll = -MAX_ROLL_DEG * b + SETTLE_ROLL_DEG * Math.sin(Math.PI * a * a);
   return {
     transform: `translate(${x.toFixed(1)}px, calc(${y.toFixed(1)}px + ${lift.toFixed(3)}vh)) rotate(${roll.toFixed(2)}deg) scale(${scale.toFixed(4)})`,
     opacity: Math.min(1, t / 0.1),
