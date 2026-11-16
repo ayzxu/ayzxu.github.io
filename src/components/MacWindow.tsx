@@ -59,6 +59,8 @@ export default function MacWindow({
     return (
       <div
         className="mac-window mac-window--full"
+        role="dialog"
+        aria-label={title}
         style={{
           left: 0,
           top: MENU_TOP - 1,
@@ -98,6 +100,9 @@ export default function MacWindow({
   return (
     <div
       className="mac-window"
+      // Non-modal dialogs: screen readers announce each window by its title.
+      role="dialog"
+      aria-label={title}
       style={{ left: pos.x, top: pos.y, width: size.w, height: size.h, zIndex: stackZ }}
       onPointerDown={onFocus}
     >
@@ -141,11 +146,12 @@ export default function MacWindow({
       <div className="resize-corner resize-ne" onPointerDown={onResizeStart('ne')} />
       <div className="resize-corner resize-nw" onPointerDown={onResizeStart('nw')} />
       <div className="resize-corner resize-sw" onPointerDown={onResizeStart('sw')} />
+      {/* Pointer-only, so it is hidden from assistive tech rather than
+          announced as a button that the keyboard can't operate. */}
       <div
         className="resize-handle"
         onPointerDown={onResizeStart('se')}
-        role="button"
-        aria-label="Resize window"
+        aria-hidden
       />
     </div>
   );

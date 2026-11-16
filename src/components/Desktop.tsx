@@ -450,6 +450,8 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
             onPointerDown={onIconPointerDown}
             onPointerMove={onIconPointerMove}
             onPointerUp={onIconPointerUp}
+            onKeyboardSelect={(id) => setSelectedIcons(new Set([id]))}
+            onOpen={(id) => openWindow(iconIdToWindow(id))}
           />
         ))}
       </div>

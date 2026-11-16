@@ -584,6 +584,17 @@
   color: #ffffff;
 }
 
+/* Keyboard focus reads as selection plus a dotted ring on the label, so the
+   focused icon is clear even when several icons are selected. */
+.desktop-icon:focus-visible {
+  outline: none;
+}
+
+.desktop-icon:focus-visible .icon-label {
+  outline: 2px dotted #000000;
+  outline-offset: 2px;
+}
+
 /* --- Trash window -------------------------------------------------------- */
 /* Fills the window body so the canvas has a definite height to clamp against */
 .trash-root {
@@ -687,9 +698,37 @@
   box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #000000;
 }
 
-.mac-button:active {
+.mac-button:active:not(:disabled) {
   background: #000000;
   color: #ffffff;
+}
+
+/* System 1 had no hover state, but a modern pointer expects to see what it
+   is over before committing. The border thickens inward, so nothing shifts. */
+@media (hover: hover) and (pointer: fine) {
+  .mac-button:not(.shadow-skip):hover:not(:disabled) {
+    box-shadow: inset 0 0 0 1px #000000;
+  }
+
+  .mac-button.default:hover:not(:disabled) {
+    box-shadow:
+      inset 0 0 0 1px #000000,
+      0 0 0 2px #ffffff,
+      0 0 0 4px #000000;
+  }
+}
+
+/* Greyed out, the way System 1 dimmed unavailable commands */
+.mac-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Fingers need a bigger target than a cursor: 44px is Apple's minimum. */
+@media (pointer: coarse) {
+  .mac-button {
+    min-height: 44px;
+  }
 }
 
 /* --- Window content ------------------------------------------------------ */
@@ -769,6 +808,15 @@
   background: #000000;
   color: #ffffff;
   text-decoration: none;
+}
+
+/* One focus ring for every keyboard-reachable control: a dotted 1-bit
+   outline instead of the browser's blue glow. :where() keeps it at zero
+   specificity, so a component that deliberately hides its ring (a game
+   surface that captures keys) still wins. */
+:where(button, a[href], input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
+  outline: 2px dotted #000000;
+  outline-offset: 2px;
 }
 
 /* --- Desktop icon layer -------------------------------------------------- */
@@ -2753,7 +2801,7 @@
 
 .folder-doc-meta {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 8px;
   color: #555555;
   margin-top: 2px;
 }
@@ -2770,7 +2818,7 @@
   border: 1px solid #000000;
   padding: 3px 6px;
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 8px;
   background: #ffffff;
   white-space: nowrap;
 }
@@ -2792,7 +2840,7 @@
 
 .write-readonly-badge {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 8px;
   border: 1px dashed #000000;
   padding: 4px 6px;
   margin-left: auto;
