@@ -1,5 +1,4 @@
-/* ==========================================================================
-   ShadowUser — "AndyAI", a translucent ghost cursor that demos the desktop
+/* ShadowUser — "AndyAI", a translucent ghost cursor that demos the desktop
    on a visitor's first load (and again via "Replay Tour" in the Apple
    menu): rubber-band selects the left icon column, nudges an icon (and puts
    it back), then drags, resizes and finally closes a phantom demo window
@@ -11,8 +10,7 @@
    Tutorial" button floating at the bottom of the screen while the ghost is
    visible. The ghost layer sits below every real window (windows start at
    z-index 10), so open windows cover the ghost — it lives on the desktop,
-   not over the UI.
-   ========================================================================== */
+   not over the UI. */
 
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -25,6 +23,7 @@ import {
   type MarqueeRect,
 } from '../lib/iconLayout';
 import { playTourClick } from '../lib/sounds';
+import { isClearTop, nearestClearTop } from '../lib/tourCaption';
 import { hasSeenTour, markTourSeen } from '../lib/tourMemory';
 import {
   centerWindowPosition,
@@ -41,8 +40,10 @@ const ICON_LAYER_TOP = 28;
     longer. Applies to every beat except the double-click, which must stay
     at real click speed to read as one. (Base 2.0, run 1.15× quicker.) */
 const TEMPO = 2.0 / 1.15;
-/** Above the icon layer (z 1), below every real window (z 10+) */
-const GHOST_Z = 5;
+/** Above the icon layer, below every real window */
+const GHOST_Z = 'var(--z-tour-ghost)';
+/** Above the window stack, below the captions and menu bar */
+const POINTER_Z = 'var(--z-tour-pointer)';
 const START_DELAY_MS = 1600;
 const PHANTOM_W = 360;
 const PHANTOM_H = 240;
@@ -54,6 +55,10 @@ const PHANTOM_ALPHA = 0.65;
 const CAPTION_CHAR_MS = 28;
 /** Caption bubble width estimate — VT323 runs ~10px/char at this size */
 const captionWidth = (text: string) => Math.round(text.length * 10.2) + 32;
+/** Caption bubble height — one 24px line plus padding and border */
+const CAPTION_H = 40;
+/** How far the bubble may sit from its usual spot before it re-parks */
+const CAPTION_HOLD = 110;
 const FAREWELL_CAPTION = 'BTW- the Read Me has a checklist of things to try!';
 
 type ShadowUserProps = {
@@ -87,6 +92,8 @@ type GhostView = {
   captionKey: string;
   /** Where the caption bubble anchors — the cursor, even while it's hidden */
   anchor: Point;
+  /** The caption is pinned to a fixed spot instead of following the cursor */
+  parked: boolean;
   /** While clicking a real (topmost) window, the cursor renders above it */
   elevated: boolean;
 };
@@ -154,6 +161,8 @@ export default function ShadowUser({
   /* Rendered caption position — trails its target so cursor wiggles and
      clamp flips glide instead of jumping (renders happen once per rAF) */
   const capPosRef = useRef<Point | null>(null);
+  /* The row gap the caption last parked in while steering clear of icons */
+  const capSlotRef = useRef<{ key: string; top: number } | null>(null);
 
   useEffect(() => {
     if (!play) return;
@@ -556,6 +565,7 @@ export default function ShadowUser({
         caption: typed + (typed.length < capFull.length ? '_' : ''),
         captionKey: capFull,
         anchor: capAnchor ?? { x: cur.x, y: cur.y },
+        parked: capAnchor !== null,
         elevated,
       });
     };
@@ -653,6 +663,39 @@ export default function ShadowUser({
   }
   capTop = Math.max(36, capTop);
 
+  /* While the icons are the subject (no demo window up, not working a real
+     window), keep the bubble off them — and off the cursor's own name tag —
+     by parking it in the nearest clear gap between icon rows. It holds that
+     gap until the cursor has moved well away, so it hops between gaps rather
+     than jittering. With nowhere clear, it stays where it would have been. */
+  if (!view.parked && !view.win && !view.elevated && view.captionKey !== '') {
+    const blockers = [
+      { x: view.anchor.x - 2, y: view.anchor.y - 2, w: 84, h: 42 },
+      ...Object.values(iconPositions).map((p) => ({
+        x: p.x - 3,
+        y: p.y + ICON_LAYER_TOP - 3,
+        w: ICON_W + 6,
+        h: ICON_H + 6,
+      })),
+    ];
+    const bubble = { left: capLeft, w: capW, h: CAPTION_H };
+    const maxTop = viewport.h - 104;
+    const held = capSlotRef.current;
+    if (
+      held &&
+      held.key === view.captionKey &&
+      Math.abs(held.top - capTop) <= CAPTION_HOLD &&
+      isClearTop(held.top, bubble, blockers, 36, maxTop)
+    ) {
+      capTop = held.top;
+    } else {
+      capTop = nearestClearTop(capTop, bubble, blockers, 36, maxTop);
+      capSlotRef.current = { key: view.captionKey, top: capTop };
+    }
+  } else {
+    capSlotRef.current = null;
+  }
+
   /* Ease the rendered position toward the target: the bubble trails the
      cursor smoothly rather than mirroring every wiggle, and clamp flips
      become short glides instead of ~100px jumps. */
@@ -676,9 +719,8 @@ export default function ShadowUser({
           position: 'absolute',
           inset: 0,
           // While clicking the real (topmost) window the cursor rides above
-          // the window stack, like a real pointer would; 500 stays below the
-          // menu bar (1000) and the tour HUD (999).
-          zIndex: view.elevated ? 500 : GHOST_Z,
+          // the window stack, like a real pointer would.
+          zIndex: view.elevated ? POINTER_Z : GHOST_Z,
           pointerEvents: 'none',
         }}
         aria-hidden

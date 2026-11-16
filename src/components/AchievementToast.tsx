@@ -1,8 +1,6 @@
-/* ==========================================================================
-   AchievementToast — a non-interactive System 1 style notification that
+/* AchievementToast — a non-interactive System 1 style notification that
    slides in under the menu bar when an achievement unlocks. Toasts queue
-   one at a time and dismiss themselves; pointer events pass right through.
-   ========================================================================== */
+   one at a time and dismiss themselves; pointer events pass right through. */
 
 import { useEffect, useRef, useState } from 'react';
 import {

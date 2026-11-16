@@ -1,10 +1,8 @@
-/* ==========================================================================
-   topTracks — loads Andy's current top 10 from public/data/top-tracks.json,
+/* topTracks — loads Andy's current top 10 from public/data/top-tracks.json,
    which is refreshed on a schedule by GitHub Actions (see
    tools/spotify-data/). Kept tiny and defensive: any missing/malformed field
    yields null so the Music window can fall back to its built-in list and never
-   render a broken row.
-   ========================================================================== */
+   render a broken row. */
 
 export type TopTrack = {
   title: string;

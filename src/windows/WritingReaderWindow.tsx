@@ -1,9 +1,7 @@
-/* ==========================================================================
-   WritingReaderWindow — an essay rendered as a read-only AndyWrite document.
+/* WritingReaderWindow — an essay rendered as a read-only AndyWrite document.
    The word processor becomes the reader: same page chrome and status bar,
    but the toolbar collapses to the document name and a working Save As… menu
-   (the rendered page is real DOM, so writeExport works unchanged).
-   ========================================================================== */
+   (the rendered page is real DOM, so writeExport works unchanged). */
 
 import { useEffect, useRef, useState } from 'react';
 import type { Writing } from '../data/writings';

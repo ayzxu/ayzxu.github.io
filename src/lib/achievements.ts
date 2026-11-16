@@ -1,8 +1,6 @@
-/* ==========================================================================
-   achievements — a tiny client-side achievement system. Unlocks persist in
+/* achievements — a tiny client-side achievement system. Unlocks persist in
    localStorage; subscribers are notified so the desktop can pop a System 1
-   style toast and the Achievements window can re-render live.
-   ========================================================================== */
+   style toast and the Achievements window can re-render live. */
 
 export type AchievementId =
   | 'chess-win'
@@ -121,10 +119,6 @@ const changeListeners = new Set<ChangeListener>();
 
 export function getUnlocks(): UnlockMap {
   return readUnlocks();
-}
-
-export function isUnlocked(id: AchievementId): boolean {
-  return readUnlocks()[id] !== undefined;
 }
 
 /** Unlock an achievement. No-op if already earned. Fires toast + change

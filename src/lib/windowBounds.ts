@@ -1,6 +1,4 @@
-/* ==========================================================================
-   windowBounds — viewport-aware sizing and positioning for System 1 windows.
-   ========================================================================== */
+/* windowBounds — viewport-aware sizing and positioning for System 1 windows. */
 
 import type { WindowMeta } from '../components/windowConfig';
 
@@ -54,10 +52,6 @@ export function isPinchZoomed(): boolean {
   return Math.abs(scale - 1) > 0.01;
 }
 
-export function getWindowMargins() {
-  return { x: MARGIN_X, y: MARGIN_Y };
-}
-
 /** Maximum size a window may occupy on this viewport */
 export function getMaxWindowSize(viewport: Viewport): Size {
   return {
@@ -67,7 +61,7 @@ export function getMaxWindowSize(viewport: Viewport): Size {
 }
 
 /** Cap an arbitrary size to the viewport minus chrome margins */
-export function clampWindowSize(size: Size, viewport: Viewport): Size {
+function clampWindowSize(size: Size, viewport: Viewport): Size {
   const max = getMaxWindowSize(viewport);
   return {
     w: Math.min(max.w, Math.max(240, size.w)),

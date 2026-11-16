@@ -1,7 +1,5 @@
-/* ==========================================================================
-   ReadMeWindow — the intro window, opened by default when the desktop boots.
-   Mirrors the old Home hero: greeting, blurb, portrait and social links.
-   ========================================================================== */
+/* ReadMeWindow — the intro window, opened by default when the desktop boots.
+   Mirrors the old Home hero: greeting, blurb, portrait and social links. */
 
 import { intro, socials } from '../data/experience';
 import MacImg from '../components/MacImg';

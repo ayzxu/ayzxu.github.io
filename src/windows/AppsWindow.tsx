@@ -1,7 +1,5 @@
-/* ==========================================================================
-   AppsWindow — the Apps folder. Holds the everyday utilities (Calculator,
-   Paint, AndyWrite, News) so they don't clutter the desktop / home screen.
-   ========================================================================== */
+/* AppsWindow — the Apps folder. Holds the everyday utilities (Calculator,
+   Paint, AndyWrite, News) so they don't clutter the desktop / home screen. */
 
 import {
   AndyWriteIcon,

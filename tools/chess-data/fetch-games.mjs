@@ -1,5 +1,4 @@
-/* ==========================================================================
-   fetch-games.mjs — download Andy's games from the public Chess.com API and
+/* fetch-games.mjs — download Andy's games from the public Chess.com API and
    cache them locally so build-artifacts.mjs can run offline and repeatably.
 
    Chess.com exposes monthly PGN archives with no auth required:
@@ -17,8 +16,7 @@
 
    Usage:
      node tools/chess-data/fetch-games.mjs                 # default user, all months
-     node tools/chess-data/fetch-games.mjs --user mozandyque --max-months 24
-   ========================================================================== */
+     node tools/chess-data/fetch-games.mjs --user mozandyque --max-months 24 */
 
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

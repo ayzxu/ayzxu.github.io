@@ -1,5 +1,4 @@
-/* ==========================================================================
-   ShadowOrb — "AndyAI" on the phone: the mobile twin of ShadowUser, playing
+/* ShadowOrb — "AndyAI" on the phone: the mobile twin of ShadowUser, playing
    on a visitor's first load (and again via "Replay Tour" in the Apple
    menu). Touch has no cursor to ghost, so the guide is a small glowing orb
    that floats around the screen narrating a short tour of iPhone mode: HOME
@@ -13,8 +12,7 @@
    "Skip Tutorial" button is the only way to end it early. On deep-linked
    visits (the phone booted straight into shared content) the orb goes
    passive: it points and narrates but presses nothing, so the tour never
-   navigates the visitor away from the page they came for.
-   ========================================================================== */
+   navigates the visitor away from the page they came for. */
 
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -35,9 +33,9 @@ import { WINDOW_META, type WindowId } from './windowConfig';
 /** Same unhurried pace as the desktop tour (see ShadowUser TEMPO), run
     1.15× quicker (base 1.8). */
 const TEMPO = 1.8 / 1.15;
-/** Above fullscreen apps (z 10+), below the menu bar (1000) and HUD (999) —
-    a fingertip is always on top of the screen it touches. */
-const ORB_Z = 500;
+/** Above the fullscreen apps, below the captions and menu bar — a fingertip
+    is always on top of the screen it touches. */
+const ORB_Z = 'var(--z-tour-pointer)';
 const START_DELAY_MS = 1600;
 const ORB_ALPHA = 0.92;
 /** Caption typing pace — kept at real typing speed, not TEMPO-scaled */

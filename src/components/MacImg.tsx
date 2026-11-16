@@ -1,10 +1,8 @@
-/* ==========================================================================
-   MacImg — an <img> that shows a classic 50%-dither "loading" fill until the
+/* MacImg — an <img> that shows a classic 50%-dither "loading" fill until the
    bitmap arrives. Lazy-loaded photos otherwise render as empty bordered boxes
    for a beat, which reads as broken; a dithered gray pane reads as a 1984 Mac
    politely thinking. The fill is removed on load (not just painted over) so
-   images with transparency stay clean.
-   ========================================================================== */
+   images with transparency stay clean. */
 
 import { useEffect, useRef, useState } from 'react';
 

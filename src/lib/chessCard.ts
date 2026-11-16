@@ -1,11 +1,9 @@
-/* ==========================================================================
-   chessCard.ts — render a 1200×630 shareable result card for a finished game
+/* chessCard.ts — render a 1200×630 shareable result card for a finished game
    against the Andy Chess Bot. Pure <canvas>, drawn in the same 1-bit System 1
    look as the live board: white squares, a 25%-stipple for dark squares, hard
    black borders, and newspaper-diagram chess glyphs (outline = white pieces,
    solid = black pieces). The output is a PNG Blob for navigator.share or a
-   download.
-   ========================================================================== */
+   download. */
 
 import { Chess, type Color, type PieceSymbol } from 'chess.js';
 

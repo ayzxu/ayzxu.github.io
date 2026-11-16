@@ -1,10 +1,31 @@
 @import "tailwindcss";
 
-/* ==========================================================================
-   Macintosh 128K — global 1-bit / CRT styling
+/* Desktop stacking order — the one place layers are ranked. Everything here
+   is a direct child of .mac-desktop-surface (an isolated stacking context);
+   z-indexes inside a window or the menu bar are local to it. */
+:root {
+  --z-icons: 1;
+  /* AndyAI's cursor and demo window live on the desktop, under real windows */
+  --z-tour-ghost: 5;
+  /* Plus the window's place in the stack (0 = rearmost) */
+  --z-windows: 10;
+  /* The icon layer while an icon is dragged: over every window */
+  --z-icon-drag: 200;
+  --z-toast: 300;
+  /* AndyAI working a real window, and the phone's orb */
+  --z-tour-pointer: 500;
+  /* Tour captions and the Skip Tutorial button */
+  --z-tour-hud: 900;
+  /* Click-away catcher behind an open menu */
+  --z-menu-catcher: 999;
+  --z-menu: 1000;
+  --z-lightbox: 5000;
+  --z-screensaver: 99999;
+}
+
+/* Macintosh 128K — global 1-bit / CRT styling
    The interactive screen is rendered in pure black & white; the exterior
-   chassis uses a small beige palette so the original Macintosh reads clearly.
-   ========================================================================== */
+   chassis uses a small beige palette so the original Macintosh reads clearly. */
 
 /* Base */
 html, body {
@@ -123,7 +144,6 @@ body.mac-busy * {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.65'/%3E%3C/svg%3E");
   background-size: 3px 3px, 160px 160px;
   mix-blend-mode: multiply;
-  opacity: 64.0;
 }
 
 /* :where() keeps specificity identical to the original `> *` rule so later
@@ -221,13 +241,4 @@ body.mac-busy * {
 
 .animate-blink {
   animation: blink 1.1s steps(1) infinite;
-}
-
-@keyframes flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.96; }
-}
-
-.animate-flicker {
-  animation: flicker 0.18s steps(2) infinite;
 }

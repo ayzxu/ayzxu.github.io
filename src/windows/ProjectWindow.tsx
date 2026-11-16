@@ -1,8 +1,6 @@
-/* ==========================================================================
-   ProjectWindow — a full case-study window for a single project, opened by
+/* ProjectWindow — a full case-study window for a single project, opened by
    double-clicking its document icon in the Projects folder. Renders the
-   richer project metadata (tech stack, year, impact metrics) consistently.
-   ========================================================================== */
+   richer project metadata (tech stack, year, impact metrics) consistently. */
 
 import type { Project } from '../data/projects';
 import Thumb from '../components/Thumb';

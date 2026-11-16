@@ -1,5 +1,4 @@
-/* ==========================================================================
-   Window registry — IDs, default sizes and titles for every System 1 window
+/* Window registry — IDs, default sizes and titles for every System 1 window
    that the desktop can open. Centralised so MenuBar, Desktop and the route
    sync logic all agree on the same set of windows.
 
@@ -7,8 +6,7 @@
    - static windows (fixed apps/folders), listed in WINDOW_META; and
    - dynamic document windows (`project-<slug>`, `writing-<slug>`) whose
      titles come from the content data. Use getWindowMeta / routeForWindow /
-     windowForRoute, which understand both kinds.
-   ========================================================================== */
+     windowForRoute, which understand both kinds. */
 
 import { getProject, projects } from '../data/projects';
 import { getWriting, writings } from '../data/writings';

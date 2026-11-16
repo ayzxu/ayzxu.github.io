@@ -1,7 +1,5 @@
-/* ==========================================================================
-   Experience & profile — the Read Me intro, socials, the About Me blurb and
-   the full work-experience history.
-   ========================================================================== */
+/* Experience & profile — the Read Me intro, socials, the About Me blurb and
+   the full work-experience history. */
 
 import pfp from '../assets/portraits/pfp.webp';
 import portrait3 from '../assets/portraits/portrait3.webp';

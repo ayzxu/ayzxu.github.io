@@ -25,8 +25,8 @@ React 19 + TypeScript + Vite, Tailwind for utility styles with a lot of hand-rol
 ```bash
 npm install
 npm run dev      # local dev server
-npm run build    # production build
-npm run deploy   # build + push to GitHub Pages
+npm run build    # typecheck + production build
+npm run lint     # eslint
 ```
 
 To refresh the chess bot's data, see `tools/chess-data/README.md` (runs locally, not at build time).

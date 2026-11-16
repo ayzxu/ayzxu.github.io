@@ -1,6 +1,4 @@
-/* ==========================================================================
-   Fun — the hobbies and interests rendered by the Fun folder window.
-   ========================================================================== */
+/* Fun — the hobbies and interests rendered by the Fun folder window. */
 
 import gusfring from '../assets/art/gusfring.webp';
 import stevejobs from '../assets/art/stevejobs.png';

@@ -1,5 +1,4 @@
-/* ==========================================================================
-   humanize.ts — turns a ranked candidate list into a human-like choice.
+/* humanize.ts — turns a ranked candidate list into a human-like choice.
 
    This is where ~1500 comes from. Three branches, rolled per move:
      • blunder    — pick a natural-looking but clearly inferior move (a tempting
@@ -9,8 +8,7 @@
      • normal     — softmax-sample the very top with a tight temperature, so even
                     good play has lifelike variety instead of robotic repetition.
    Error rates scale UP in sharp positions (blitz time-pressure) and DOWN in the
-   endgame (cleaner, more "engine-driven" play, as requested).
-   ========================================================================== */
+   endgame (cleaner, more "engine-driven" play, as requested). */
 
 import type { AndyProfile, MoveSource, Rng, ScoredMove } from './types';
 

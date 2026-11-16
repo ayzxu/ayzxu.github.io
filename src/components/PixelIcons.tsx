@@ -1,8 +1,6 @@
-/* ==========================================================================
-   PixelIcons — hand-drawn 1-bit SVG artwork for the System 1 desktop.
+/* PixelIcons — hand-drawn 1-bit SVG artwork for the System 1 desktop.
    Every icon is pure black & white with crisp (un-antialiased) edges so it
-   reads as authentic Macintosh pixel art at any scale.
-   ========================================================================== */
+   reads as authentic Macintosh pixel art at any scale. */
 
 type IconProps = { className?: string };
 
@@ -134,46 +132,6 @@ export function ChessIcon({ className }: IconProps) {
         stroke="#000000"
         strokeWidth="2"
       />
-    </svg>
-  );
-}
-
-/* The classic "Happy Mac" shown on the boot screen */
-export function HappyMac({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 48 56" className={className} shapeRendering="crispEdges">
-      {/* chassis */}
-      <rect
-        x="4"
-        y="2"
-        width="40"
-        height="52"
-        fill="#ffffff"
-        stroke="#000000"
-        strokeWidth="2"
-      />
-      {/* screen recess */}
-      <rect
-        x="9"
-        y="7"
-        width="30"
-        height="24"
-        fill="#ffffff"
-        stroke="#000000"
-        strokeWidth="2"
-      />
-      {/* smiling face */}
-      <rect x="15" y="14" width="3" height="5" fill="#000000" />
-      <rect x="30" y="14" width="3" height="5" fill="#000000" />
-      <path
-        d="M15 23 Q24 29 33 23"
-        fill="none"
-        stroke="#000000"
-        strokeWidth="2"
-      />
-      {/* drive slot + base detail */}
-      <rect x="13" y="38" width="22" height="3" fill="#000000" />
-      <rect x="13" y="45" width="10" height="3" fill="#000000" />
     </svg>
   );
 }

@@ -1,8 +1,6 @@
-/* ==========================================================================
-   AndyWriteWindow — a MacWrite-style word processor. A contentEditable page
+/* AndyWriteWindow — a MacWrite-style word processor. A contentEditable page
    with a ruler-era toolbar: classic Mac font menu, point sizes, bold /
-   italic / underline, alignment, and Save As… to TXT, HTML, DOCX or PDF.
-   ========================================================================== */
+   italic / underline, alignment, and Save As… to TXT, HTML, DOCX or PDF. */
 
 import { useEffect, useRef, useState } from 'react';
 import {

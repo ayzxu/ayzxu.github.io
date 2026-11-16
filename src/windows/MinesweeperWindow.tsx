@@ -1,8 +1,6 @@
-/* ==========================================================================
-   MinesweeperWindow — classic 9×9 / 10-mine Minesweeper in 1-bit dress.
+/* MinesweeperWindow — classic 9×9 / 10-mine Minesweeper in 1-bit dress.
    Left-click (tap) reveals; right-click flags; a Flag toggle covers touch
-   devices. First click is always safe — mines are placed after it.
-   ========================================================================== */
+   devices. First click is always safe — mines are placed after it. */
 
 import { useEffect, useRef, useState } from 'react';
 import { playMinesweeperSound } from '../lib/sounds';

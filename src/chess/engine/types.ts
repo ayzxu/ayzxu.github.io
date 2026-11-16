@@ -1,10 +1,8 @@
-/* ==========================================================================
-   types.ts — shared contracts for the Andy Chess Bot engine.
+/* types.ts — shared contracts for the Andy Chess Bot engine.
 
    The engine is fully client-side: an opening book learned from Andy's games,
    a handcrafted evaluation + shallow search, a style-weighting layer, and a
-   humanizer that injects ~1500-level mistakes. See docs/andy-chess-bot.md.
-   ========================================================================== */
+   humanizer that injects ~1500-level mistakes. See docs/andy-chess-bot.md. */
 
 import type { Move } from 'chess.js';
 

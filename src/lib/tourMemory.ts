@@ -1,8 +1,6 @@
-/* ==========================================================================
-   tourMemory — remembers that the AndyAI tutorial has already played, so it
+/* tourMemory — remembers that the AndyAI tutorial has already played, so it
    greets each visitor once instead of on every reload. "Replay Tour" in the
-   Apple menu bypasses the flag on demand.
-   ========================================================================== */
+   Apple menu bypasses the flag on demand. */
 
 const STORAGE_KEY = 'mac-tour-seen-v1';
 

@@ -1,5 +1,4 @@
-/* ==========================================================================
-   ditherGL — a tiny WebGL2 renderer that draws the asteroid map in grayscale
+/* ditherGL — a tiny WebGL2 renderer that draws the asteroid map in grayscale
    off-screen, then snaps it to 1-bit black & white with a 4×4 Bayer
    ordered-dither shader. Mid-grays become the classic Macintosh stipple, so
    trail fades, the day/night terminator on the globe, and faint reference
@@ -12,8 +11,7 @@
    plus one ray-traced sphere for Earth, drawn as a billboard whose fragment
    shader solves the ray–sphere intersection, lights it by the real Sun
    direction, and writes true per-fragment depth so asteroids correctly pass
-   in front of and behind the globe.
-   ========================================================================== */
+   in front of and behind the globe. */
 
 export type Camera = {
   yaw: number;
@@ -154,27 +152,6 @@ out vec2 vUv;
 void main() {
   vUv = aPos * 0.5 + 0.5;
   gl_Position = vec4(aPos, 0.0, 1.0);
-}`;
-
-/* Sun-lit backdrop: a flat luminance gradient that is bright on the side of the
-   sky the Sun is on and falls to a dark floor on the far side. Drawn into the
-   FBO before the scene, so the same Bayer dither stipples it into space. */
-const BG_FS = `#version 300 es
-precision highp float;
-in vec2 vUv;
-uniform vec2 uSunScreen;   // unit direction toward the Sun (screen space, y up)
-uniform float uStrength;   // how much the Sun lies in-plane (0 = on the view axis)
-uniform float uFloor;      // darkest luminance, far from the Sun
-uniform float uAspect;     // width / height
-out vec4 outColor;
-void main() {
-  vec2 p = (vUv - 0.5) * 2.0;          // [-1,1], y up
-  p.x *= uAspect;
-  float t = dot(p, uSunScreen);        // + toward the Sun, - away
-  float k = clamp(t * 0.5 + 0.5, 0.0, 1.0);
-  k = mix(0.55, k, uStrength);         // Sun near the view axis → flatter field
-  float lum = mix(uFloor, 1.0, k);
-  outColor = vec4(vec3(lum), 1.0);
 }`;
 
 const DITHER_FS = `#version 300 es

@@ -1,7 +1,5 @@
-/* ==========================================================================
-   hackerNews — shared client for the public Algolia HN Search API (no key
-   required). Used by both the News window and the menu-bar headline ticker.
-   ========================================================================== */
+/* hackerNews — shared client for the public Algolia HN Search API (no key
+   required). Used by both the News window and the menu-bar headline ticker. */
 
 export type HNStory = {
   objectID: string;

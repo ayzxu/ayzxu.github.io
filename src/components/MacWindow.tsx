@@ -1,5 +1,4 @@
-/* ==========================================================================
-   MacWindow — a draggable, resizable, closable System 1 window shell.
+/* MacWindow — a draggable, resizable, closable System 1 window shell.
    Wraps any content in the classic chrome: striped title bar, close box,
    bottom-right size box and an internally scrolling body. Position and size
    are owned together by useWindowGeometry so the window can be resized from
@@ -7,8 +6,7 @@
 
    On compact (phone) viewports the desktop runs in "iPhone mode": windows
    render as fullscreen standalone apps — no dragging, no resizing, no close
-   box — with a home button at the top right that returns to the icon grid.
-   ========================================================================== */
+   box — with a home button at the top right that returns to the icon grid. */
 
 import { useWindowGeometry, type Point } from './useWindowGeometry';
 import { MENU_TOP, type Size, type Viewport } from '../lib/windowBounds';
@@ -20,6 +18,7 @@ type MacWindowProps = {
   height: number;
   maxSize: Size;
   viewport: Viewport;
+  /** Place in the window stack — 0 is rearmost */
   z: number;
   active: boolean;
   onClose: () => void;
@@ -53,6 +52,8 @@ export default function MacWindow({
     viewport,
   );
 
+  const stackZ = `calc(var(--z-windows) + ${z})`;
+
   /* --- fullscreen "standalone app" (iPhone mode) ------------------------- */
   if (fullscreen) {
     return (
@@ -63,7 +64,7 @@ export default function MacWindow({
           top: MENU_TOP - 1,
           width: viewport.w,
           height: viewport.h - MENU_TOP + 1,
-          zIndex: z,
+          zIndex: stackZ,
         }}
         onPointerDown={onFocus}
       >
@@ -97,7 +98,7 @@ export default function MacWindow({
   return (
     <div
       className="mac-window"
-      style={{ left: pos.x, top: pos.y, width: size.w, height: size.h, zIndex: z }}
+      style={{ left: pos.x, top: pos.y, width: size.w, height: size.h, zIndex: stackZ }}
       onPointerDown={onFocus}
     >
       <div

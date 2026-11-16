@@ -1,8 +1,6 @@
-/* ==========================================================================
-   Lightbox — full-screen 1-bit image viewer. Photographs are shown through the
+/* Lightbox — full-screen 1-bit image viewer. Photographs are shown through the
    bw-img filter so they read like they would on a real Macintosh display.
-   Clicking anywhere (or the close box) dismisses it.
-   ========================================================================== */
+   Clicking anywhere (or the close box) dismisses it. */
 
 import { useEffect } from 'react';
 
@@ -28,7 +26,7 @@ export default function Lightbox({ src, alt, onClose }: LightboxProps) {
       style={{
         position: 'absolute',
         inset: 0,
-        zIndex: 5000,
+        zIndex: 'var(--z-lightbox)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

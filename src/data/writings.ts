@@ -1,10 +1,8 @@
-/* ==========================================================================
-   Writings — essays shipped as "AndyWrite documents". Each post is a
+/* Writings — essays shipped as "AndyWrite documents". Each post is a
    document icon in the Writings folder that opens in a read-only AndyWrite
    window (the word processor doubles as the reader).
 
-   Body blocks: 'h' renders as a section heading, 'p' as a paragraph.
-   ========================================================================== */
+   Body blocks: 'h' renders as a section heading, 'p' as a paragraph. */
 
 export type WritingBlock = { type: 'h' | 'p'; text: string };
 

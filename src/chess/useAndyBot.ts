@@ -1,9 +1,7 @@
-/* ==========================================================================
-   useAndyBot - React interface to the engine Web Worker. Exposes a promise-based
+/* useAndyBot - React interface to the engine Web Worker. Exposes a promise-based
    requestMove(fen) with a `thinking` flag, and requestAnalysis(history) with an
    `analyzing` flag for the post-game review. The worker is created once per mount
-   and terminated on unmount.
-   ========================================================================== */
+   and terminated on unmount. */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EngineResult, GameReview, LastMoveInfo } from './engine/types';

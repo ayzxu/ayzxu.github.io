@@ -1,10 +1,8 @@
-/* ==========================================================================
-   itunesPreview — resolves real 30-second song previews via Apple's public
+/* itunesPreview — resolves real 30-second song previews via Apple's public
    iTunes Search API (no key, no auth). The API serves CORS headers
    (Access-Control-Allow-Origin: *), so we fetch it directly; if that ever
    fails (CORS hiccup, blocked network), we fall back to the API's officially
-   supported JSONP callback. Results are cached per track for the session.
-   ========================================================================== */
+   supported JSONP callback. Results are cached per track for the session. */
 
 export type PreviewInfo = {
   previewUrl: string;

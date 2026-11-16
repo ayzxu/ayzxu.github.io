@@ -1,7 +1,5 @@
-/* ==========================================================================
-   MenuBar — the System 1 menu bar: Apple / File menus plus a live clock. The
-   menus that do real work are Apple and File.
-   ========================================================================== */
+/* MenuBar — the System 1 menu bar: Apple / File menus plus a live clock. The
+   menus that do real work are Apple and File. */
 
 import { useEffect, useState } from 'react';
 import { AppleIcon, SpeakerOffIcon, SpeakerOnIcon } from './PixelIcons';
@@ -219,7 +217,7 @@ export default function MenuBar({
       {openMenu && (
         <div
           onClick={close}
-          style={{ position: 'fixed', inset: 0, zIndex: 999 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-menu-catcher)' }}
         />
       )}
 

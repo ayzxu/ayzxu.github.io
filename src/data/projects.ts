@@ -1,8 +1,6 @@
-/* ==========================================================================
-   Projects — each entry is a "document" in the Projects folder that opens
+/* Projects — each entry is a "document" in the Projects folder that opens
    into its own case-study window. Richer metadata (tech stack, year, impact
-   metrics) is rendered consistently by ProjectWindow.
-   ========================================================================== */
+   metrics) is rendered consistently by ProjectWindow. */
 
 import squatformAnalyze from '../assets/projectpics/squatform/analyze.webp';
 import squatformFeedback from '../assets/projectpics/squatform/feedback.png';

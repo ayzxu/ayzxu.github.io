@@ -1,5 +1,4 @@
-/* ==========================================================================
-   build-artifacts.mjs — turn cached Chess.com games into the two JSON artifacts
+/* build-artifacts.mjs — turn cached Chess.com games into the two JSON artifacts
    the bot ships with:
 
      src/chess/data/opening-book.json   (Andy's learned repertoire)
@@ -38,8 +37,7 @@
                    (median + sigma of ln). Buckets with too few samples fall
                    back to the curated defaults.
 
-   Usage:  node tools/chess-data/build-artifacts.mjs
-   ========================================================================== */
+   Usage:  node tools/chess-data/build-artifacts.mjs */
 
 import { Chess } from 'chess.js';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';

@@ -1,10 +1,8 @@
-/* ==========================================================================
-   style.ts — converts Andy's style vector into a small per-move bonus (cp).
+/* style.ts — converts Andy's style vector into a small per-move bonus (cp).
 
    The bonus is intentionally bounded (≈ ±45 cp): big enough to break ties toward
    the sharp, Andy-flavoured move, far too small to justify hanging a piece. Real
-   mistakes are the humanizer's job, not the style layer's.
-   ========================================================================== */
+   mistakes are the humanizer's job, not the style layer's. */
 
 import type { Chess, Move } from 'chess.js';
 import type { AndyProfile } from './types';

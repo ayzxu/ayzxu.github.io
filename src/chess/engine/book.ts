@@ -1,11 +1,9 @@
-/* ==========================================================================
-   book.ts — opening-book lookup and weighted sampling.
+/* book.ts — opening-book lookup and weighted sampling.
 
    The book is keyed by the first four FEN fields (placement, side, castling,
    en-passant) and stores only moves Andy actually played, so sampling from it
    reproduces his repertoire (Italian as White, King's Indian vs 1.d4, open
-   1...e5 games vs 1.e4).
-   ========================================================================== */
+   1...e5 games vs 1.e4). */
 
 import type { Chess, Move } from 'chess.js';
 import type { OpeningBook, Rng } from './types';

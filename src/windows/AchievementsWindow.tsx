@@ -1,8 +1,6 @@
-/* ==========================================================================
-   AchievementsWindow — the trophy case. Lists every achievement, earned or
+/* AchievementsWindow — the trophy case. Lists every achievement, earned or
    not; earned ones show the unlock date, locked ones render dimmed with a
-   padlocked badge. Live-updates when something unlocks while it's open.
-   ========================================================================== */
+   padlocked badge. Live-updates when something unlocks while it's open. */
 
 import { useEffect, useState } from 'react';
 import {

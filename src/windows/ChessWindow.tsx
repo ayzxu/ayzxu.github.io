@@ -1,12 +1,10 @@
-/* ==========================================================================
-   ChessWindow — "Andy Chess Bot". Play a full game against a client-side engine
+/* ChessWindow — "Andy Chess Bot". Play a full game against a client-side engine
    tuned to mimic Andy's ~1500 Chess.com style (Italian as White, King's Indian
    vs 1.d4, sharp open games, and lifelike mistakes). Styled to match the 1-bit
    System 1 desktop: dithered dark squares, pixel/VT323 type, mac-button chrome.
 
    The engine runs in a Web Worker (see useAndyBot); this component owns the game
-   state, the board interaction (drag + click-to-move), the move list and result.
-   ========================================================================== */
+   state, the board interaction (drag + click-to-move), the move list and result. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chess, type Move, type Square } from 'chess.js';

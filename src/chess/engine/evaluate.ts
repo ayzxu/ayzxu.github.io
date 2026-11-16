@@ -1,5 +1,4 @@
-/* ==========================================================================
-   evaluate.ts — a compact handcrafted evaluation (centipawns, White's POV).
+/* evaluate.ts — a compact handcrafted evaluation (centipawns, White's POV).
 
    Material + midgame piece-square tables + bishop pair + a light king-safety
    blend (midgame king table → endgame king table by material phase). Tuned to
@@ -9,8 +8,7 @@
    Tables use the classic "Simplified Evaluation Function" layout (Michniewski),
    written rank-8-first to match chess.js `board()` row order:
      White piece at board()[r][f]  -> table[r*8 + f]
-     Black piece at board()[r][f]  -> table[(7-r)*8 + f]   (vertical mirror)
-   ========================================================================== */
+     Black piece at board()[r][f]  -> table[(7-r)*8 + f]   (vertical mirror) */
 
 import type { Chess, PieceSymbol } from 'chess.js';
 
@@ -121,7 +119,7 @@ const BISHOP_PAIR = 30;
 const ENDGAME_MATERIAL = 1300; // ~ rook + minor + a bit
 
 /** Total non-pawn material on the board (both sides), used as a phase signal. */
-export function nonPawnMaterial(chess: Chess): number {
+function nonPawnMaterial(chess: Chess): number {
   let total = 0;
   for (const row of chess.board()) {
     for (const sq of row) {

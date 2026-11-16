@@ -1,6 +1,4 @@
-/* ==========================================================================
-   DesktopIcon — a selectable, draggable, double-clickable desktop icon.
-   ========================================================================== */
+/* DesktopIcon — a selectable, draggable, double-clickable desktop icon. */
 
 import type { DesktopIconId } from '../lib/iconLayout';
 

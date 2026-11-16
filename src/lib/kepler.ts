@@ -1,5 +1,4 @@
-/* ==========================================================================
-   kepler — just enough orbital mechanics for the Asteroids window.
+/* kepler — just enough orbital mechanics for the Asteroids window.
 
    Propagates heliocentric Keplerian elements (from NASA/JPL) to a geocentric
    position at an arbitrary moment by solving Kepler's equation, using a
@@ -11,8 +10,7 @@
    epoch is good to a small fraction of a percent over the few days we plot.
    It deliberately ignores Earth's gravity during the encounter, so the very
    closest approaches bend a little less than reality — fine for a map,
-   not for planetary defence.
-   ========================================================================== */
+   not for planetary defence. */
 
 export type Vec3 = { x: number; y: number; z: number };
 
@@ -36,17 +34,10 @@ export type KeplerElements = {
   epochJd: number;
 };
 
-export const AU_KM = 149_597_870.7;
+const AU_KM = 149_597_870.7;
 export const LUNAR_DISTANCE_KM = 384_400;
 const J2000 = 2451545.0;
 const DEG = Math.PI / 180;
-
-/** Gaussian gravitational constant → mean motion n = K / a^1.5 (rad/day). */
-const GAUSS_K = 0.01720209895;
-
-export function meanMotionRadPerDay(aAu: number): number {
-  return GAUSS_K / Math.pow(aAu, 1.5);
-}
 
 /** Julian Date from a JS epoch-milliseconds timestamp. */
 export function jdFromMs(ms: number): number {
@@ -56,7 +47,7 @@ export function jdFromMs(ms: number): number {
 /* --- Kepler's equation ------------------------------------------------------ */
 
 /** Solve E − e·sinE = M by Newton's method (radians). Robust for e < 0.99. */
-export function solveKepler(M: number, e: number): number {
+function solveKepler(M: number, e: number): number {
   // Normalise M to (−π, π] for a well-behaved starting guess.
   let m = M % (2 * Math.PI);
   if (m > Math.PI) m -= 2 * Math.PI;
@@ -183,20 +174,9 @@ export function earthHeliocentric(jd: number): Vec3 {
   };
 }
 
-/** Geocentric position of a small body (km, J2000 ecliptic) at jd. */
-export function geocentricPosition(el: KeplerElements, jd: number): Vec3 {
-  const ast = heliocentricPosition(el, jd);
-  const earth = earthHeliocentric(jd);
-  return { x: ast.x - earth.x, y: ast.y - earth.y, z: ast.z - earth.z };
-}
-
 /** Unit vector from Earth toward the Sun (for lighting the globe). */
 export function sunDirection(jd: number): Vec3 {
   const e = earthHeliocentric(jd);
   const len = Math.hypot(e.x, e.y, e.z) || 1;
   return { x: -e.x / len, y: -e.y / len, z: -e.z / len };
-}
-
-export function vecLength(v: Vec3): number {
-  return Math.hypot(v.x, v.y, v.z);
 }

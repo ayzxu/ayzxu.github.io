@@ -1,5 +1,4 @@
-/* ==========================================================================
-   AsteroidsWindow — a System 1 orrery of the asteroids making a close
+/* AsteroidsWindow — a System 1 orrery of the asteroids making a close
    approach to Earth today, pulled live from NASA's NeoWs feed.
 
    Unlike the usual decorative starfield, the orbits here are real: each
@@ -14,8 +13,7 @@
    Rendering is WebGL2: the scene is drawn in grayscale off-screen and
    snapped to 1-bit black & white by a Bayer ordered-dither shader (see
    lib/ditherGL.ts), which is what shades the globe's day/night terminator
-   and stipples the trails. Labels and pick-rings live on a 2D overlay.
-   ========================================================================== */
+   and stipples the trails. Labels and pick-rings live on a 2D overlay. */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {

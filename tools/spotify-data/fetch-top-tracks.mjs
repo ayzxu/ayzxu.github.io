@@ -1,5 +1,4 @@
-/* ==========================================================================
-   fetch-top-tracks.mjs — refresh Andy's top 10 songs from the Spotify Web API
+/* fetch-top-tracks.mjs — refresh Andy's top 10 songs from the Spotify Web API
    and write them to public/data/top-tracks.json, which the MusicWindow loads
    at runtime.
 
@@ -30,8 +29,7 @@
 
    Usage:
      node tools/spotify-data/fetch-top-tracks.mjs
-     node tools/spotify-data/fetch-top-tracks.mjs --range medium_term
-   ========================================================================== */
+     node tools/spotify-data/fetch-top-tracks.mjs --range medium_term */
 
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

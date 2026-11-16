@@ -1,16 +1,14 @@
-/* ==========================================================================
-   search.ts — negamax with alpha-beta pruning and a capture-only quiescence
+/* search.ts — negamax with alpha-beta pruning and a capture-only quiescence
    search. Operates on a single chess.js instance via move/undo for speed.
 
    searchRoot() returns a *true* score for every legal root move (full window,
    no cross-root pruning) so the style layer and humanizer can rank and sample
-   among them. A node budget bounds worst-case latency.
-   ========================================================================== */
+   among them. A node budget bounds worst-case latency. */
 
 import type { Chess, Move } from 'chess.js';
 import { evaluate, PIECE_VALUE } from './evaluate';
 
-export const MATE = 100_000;
+const MATE = 100_000;
 const INF = 1_000_000;
 const DEFAULT_NODE_BUDGET = 200_000;
 /** Only the most promising root moves get a full deep search; the rest keep

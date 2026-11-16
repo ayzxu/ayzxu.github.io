@@ -1,7 +1,5 @@
-/* ==========================================================================
-   CalculatorWindow — the classic Apple-menu desk accessory: a four-function
-   calculator with %, ± and full keyboard support. Styled 1-bit to match.
-   ========================================================================== */
+/* CalculatorWindow — the classic Apple-menu desk accessory: a four-function
+   calculator with %, ± and full keyboard support. Styled 1-bit to match. */
 
 import { useEffect, useRef, useState } from 'react';
 

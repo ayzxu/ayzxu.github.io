@@ -1,8 +1,6 @@
-/* ==========================================================================
-   NewsWindow — a System 1 newspaper that pulls the Hacker News front page
+/* NewsWindow — a System 1 newspaper that pulls the Hacker News front page
    from the public Algolia HN Search API (no key required). Stories link out
-   to the original article; the comment count links to the HN discussion.
-   ========================================================================== */
+   to the original article; the comment count links to the HN discussion. */
 
 import { useCallback, useEffect, useState } from 'react';
 import { fetchFrontPage, type HNStory } from '../lib/hackerNews';

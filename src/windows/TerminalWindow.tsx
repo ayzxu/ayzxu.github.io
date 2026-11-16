@@ -1,8 +1,6 @@
-/* ==========================================================================
-   TerminalWindow — a fake "MacTerminal". Type `help` to see the safe
+/* TerminalWindow — a fake "MacTerminal". Type `help` to see the safe
    commands (`ls projects`, `open resume`, `whoami`, …). A couple of hidden
-   commands exist for the curious; one of them unlocks an achievement.
-   ========================================================================== */
+   commands exist for the curious; one of them unlocks an achievement. */
 
 import { useEffect, useRef, useState } from 'react';
 import { projects } from '../data/projects';

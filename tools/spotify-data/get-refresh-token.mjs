@@ -1,5 +1,4 @@
-/* ==========================================================================
-   get-refresh-token.mjs — one-time helper to authorize the Spotify app and
+/* get-refresh-token.mjs — one-time helper to authorize the Spotify app and
    print a long-lived REFRESH token, which you then store as the
    SPOTIFY_REFRESH_TOKEN GitHub Actions secret.
 
@@ -20,8 +19,7 @@
 
    Usage:
      SPOTIFY_CLIENT_ID=xxx SPOTIFY_CLIENT_SECRET=yyy \
-       node tools/spotify-data/get-refresh-token.mjs
-   ========================================================================== */
+       node tools/spotify-data/get-refresh-token.mjs */
 
 import { createServer } from 'node:http';
 import { exec } from 'node:child_process';

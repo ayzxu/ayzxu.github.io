@@ -1,10 +1,8 @@
-/* ==========================================================================
-   NewsTicker — a thin scrolling wire of today's top headlines that lives in
+/* NewsTicker — a thin scrolling wire of today's top headlines that lives in
    the menu bar between the menus and the SFX/clock controls. Headlines come
    from the Hacker News front page; clicking the ticker opens the News window.
    Renders nothing while loading or if the wire is unreachable, so the menu
-   bar never breaks.
-   ========================================================================== */
+   bar never breaks. */
 
 import { useEffect, useState } from 'react';
 import { fetchFrontPage } from '../lib/hackerNews';

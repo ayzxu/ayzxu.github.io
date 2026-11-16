@@ -1,12 +1,10 @@
-/* ==========================================================================
-   PaintWindow — a MacPaint-style 1-bit paint program. Every pixel on the
+/* PaintWindow — a MacPaint-style 1-bit paint program. Every pixel on the
    canvas is pure black or pure white; "grayscale" and "opacity" are achieved
    the way 1984 did it — ordered (Bayer 8×8) dithering. Ink darkness × opacity
    decides how dense the dither pattern is.
 
    Tools: pencil, brush, spray, eraser, line, rectangle, oval, bucket fill.
-   Plus undo (⌘/Ctrl+Z), clear, and save-as-PNG.
-   ========================================================================== */
+   Plus undo (⌘/Ctrl+Z), clear, and save-as-PNG. */
 
 import { useEffect, useRef, useState } from 'react';
 import { unlockAchievement } from '../lib/achievements';

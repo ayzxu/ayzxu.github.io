@@ -1,8 +1,6 @@
-/* ==========================================================================
-   ProjectsWindow — the Projects folder, Finder-style. Each project is a
+/* ProjectsWindow — the Projects folder, Finder-style. Each project is a
    document icon; opening one launches a full case-study window
-   (`project-<slug>`) with room to breathe, instead of one flat list.
-   ========================================================================== */
+   (`project-<slug>`) with room to breathe, instead of one flat list. */
 
 import { projects } from '../data/projects';
 import { DocumentIcon } from '../components/PixelIcons';

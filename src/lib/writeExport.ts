@@ -1,9 +1,7 @@
-/* ==========================================================================
-   writeExport — turns AndyWrite's contentEditable DOM into a small document
+/* writeExport — turns AndyWrite's contentEditable DOM into a small document
    model (paragraphs of styled runs), then renders that model out as plain
    text, standalone HTML, a real .docx (via the docx package) or a laid-out
-   PDF (via jsPDF, with a tiny word-wrap engine that honours per-run fonts).
-   ========================================================================== */
+   PDF (via jsPDF, with a tiny word-wrap engine that honours per-run fonts). */
 
 /* docx and jspdf are imported dynamically inside their export functions so
    the desktop's main bundle doesn't pay for them — they load on first save. */

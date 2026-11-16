@@ -1,7 +1,5 @@
-/* ==========================================================================
-   useIconDrag — pointer drag for desktop icons with click / double-click.
-   Supports moving every icon in the current selection together.
-   ========================================================================== */
+/* useIconDrag — pointer drag for desktop icons with click / double-click.
+   Supports moving every icon in the current selection together. */
 
 import { useCallback, useRef, useState } from 'react';
 import { MENU_TOP, type Viewport } from '../lib/windowBounds';

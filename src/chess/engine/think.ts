@@ -1,5 +1,4 @@
-/* ==========================================================================
-   think.ts — models how long Andy actually spends on a move.
+/* think.ts — models how long Andy actually spends on a move.
 
    Real blitz players don't think uniformly: recaptures are instant, book moves
    are blitzed, sharp middlegames get the long tank, and everything speeds up as
@@ -9,13 +8,12 @@
    "Andy is thinking…" pause hesitates where Andy hesitates.
 
    Falls back to curated defaults (tuned to ~5|0 blitz at 1500) when the profile
-   has no measured timing block.
-   ========================================================================== */
+   has no measured timing block. */
 
 import type { Rng, TimingBucket, TimingProfile } from './types';
 
 /** Curated defaults — overwritten when build-artifacts.mjs measures real games. */
-export const DEFAULT_TIMING: TimingProfile = {
+const DEFAULT_TIMING: TimingProfile = {
   source: 'curated-default',
   clampMs: [400, 8000],
   buckets: {

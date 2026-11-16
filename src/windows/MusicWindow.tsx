@@ -1,9 +1,7 @@
-/* ==========================================================================
-   MusicWindow — "AndyMusic", a System 1 take on iTunes. Andy's top 10 from
+/* MusicWindow — "AndyMusic", a System 1 take on iTunes. Andy's top 10 from
    Spotify in a classic song list with an LCD now-playing display, transport
    controls and a volume slider. Playback is the real songs: 30-second
-   previews resolved at runtime from Apple's public iTunes Search API.
-   ========================================================================== */
+   previews resolved at runtime from Apple's public iTunes Search API. */
 
 import { useEffect, useRef, useState } from 'react';
 import { findPreview } from '../lib/itunesPreview';

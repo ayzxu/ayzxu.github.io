@@ -1,5 +1,4 @@
-/* ==========================================================================
-   build-defaults.mjs — generates the *curated* default artifacts that ship in
+/* build-defaults.mjs — generates the *curated* default artifacts that ship in
    the repo so the Andy Chess Bot is fully playable before the data pipeline is
    ever run against real games.
 
@@ -10,8 +9,7 @@
 
    Usage:  node tools/chess-data/build-defaults.mjs
    Output: src/chess/data/opening-book.json
-           src/chess/data/style-profile.json
-   ========================================================================== */
+           src/chess/data/style-profile.json */
 
 import { Chess } from 'chess.js';
 import { writeFileSync, mkdirSync } from 'node:fs';

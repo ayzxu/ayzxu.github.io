@@ -1,6 +1,4 @@
-/* ==========================================================================
-   useMarqueeSelect — rubber-band selection on the desktop (classic Mac).
-   ========================================================================== */
+/* useMarqueeSelect — rubber-band selection on the desktop (classic Mac). */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {

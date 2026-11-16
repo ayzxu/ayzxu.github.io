@@ -25,3 +25,6 @@ tools/chess-data/cache
 *.njsproj
 *.sln
 *.sw?
+
+# TypeScript incremental build info
+*.tsbuildinfo

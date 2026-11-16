@@ -1,9 +1,7 @@
-/* ==========================================================================
-   useChessGame — pulls live data from the public Chess.com API for the Fun
+/* useChessGame — pulls live data from the public Chess.com API for the Fun
    window's chess panel: current ratings and the final position of the most
    recent game (PGN → FEN via chess.js). Logic preserved from the original
-   Fun route; only repackaged as a reusable hook.
-   ========================================================================== */
+   Fun route; only repackaged as a reusable hook. */
 
 import { useEffect, useState } from 'react';
 import { Chess } from 'chess.js';

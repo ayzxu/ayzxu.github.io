@@ -1,12 +1,10 @@
-/* ==========================================================================
-   andyBot.worker.ts — runs the engine off the main thread so the 1-bit desktop
+/* andyBot.worker.ts — runs the engine off the main thread so the 1-bit desktop
    never janks while Andy "thinks". The opening book and style profile are
    bundled (imported JSON), so there is no runtime fetch and no base-path issues.
 
    The reply is delayed to the engine's human-modelled think time (see
    think.ts), so the pause before each move follows Andy's real clock habits —
-   instant recaptures, blitzed book moves, long tanks in sharp middlegames.
-   ========================================================================== */
+   instant recaptures, blitzed book moves, long tanks in sharp middlegames. */
 
 import { chooseMove } from './engine/andyBot';
 import { analyzeGame } from './engine/analyze';

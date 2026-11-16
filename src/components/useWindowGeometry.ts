@@ -1,10 +1,8 @@
-/* ==========================================================================
-   useWindowGeometry — unified pointer-driven move + resize for a System 1
+/* useWindowGeometry — unified pointer-driven move + resize for a System 1
    window. Owns BOTH position and size in one place so an edge or corner
    resize can pin the opposite edge: dragging the top or left edge grows the
    window while sliding its origin, exactly like the real Finder. Movement and
-   resizing are clamped to the viewport and kept below the menu bar.
-   ========================================================================== */
+   resizing are clamped to the viewport and kept below the menu bar. */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {

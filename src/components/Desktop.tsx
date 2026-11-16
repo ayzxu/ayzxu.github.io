@@ -1,8 +1,6 @@
-/* ==========================================================================
-   Desktop — the interactive System 1 desktop. Owns window lifecycle (open /
+/* Desktop — the interactive System 1 desktop. Owns window lifecycle (open /
    close / focus + z-order), desktop-icon selection, the shared image Lightbox
-   and URL sync (deep links /projects, /fun, /about; otherwise /desktop).
-   ========================================================================== */
+   and URL sync (deep links /projects, /fun, /about; otherwise /desktop). */
 
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -468,7 +466,7 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
             height={size.h}
             maxSize={maxWindowSize}
             viewport={viewport}
-            z={10 + i}
+            z={i}
             active={i === openWins.length - 1}
             onClose={() => closeWindow(win.id)}
             onFocus={() => focusWindow(win.id)}

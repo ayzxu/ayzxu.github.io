@@ -1,8 +1,6 @@
-/* ==========================================================================
-   TrashWindow — the contents of the Trash. A scatter of "discarded" files,
+/* TrashWindow — the contents of the Trash. A scatter of "discarded" files,
    each a draggable 1-bit icon. Dragging is hard-clamped to the canvas, so an
-   item can never escape the can (the folder body has overflow:hidden too).
-   ========================================================================== */
+   item can never escape the can (the folder body has overflow:hidden too). */
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { DocumentIcon, FolderIcon } from '../components/PixelIcons';

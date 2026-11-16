@@ -1,8 +1,6 @@
-/* ==========================================================================
-   WritingsWindow — the Writings folder. Each essay ships as an "AndyWrite
+/* WritingsWindow — the Writings folder. Each essay ships as an "AndyWrite
    document" icon; opening one launches a read-only AndyWrite reader window
-   (`writing-<slug>`).
-   ========================================================================== */
+   (`writing-<slug>`). */
 
 import { writings } from '../data/writings';
 import { AndyWriteIcon } from '../components/PixelIcons';

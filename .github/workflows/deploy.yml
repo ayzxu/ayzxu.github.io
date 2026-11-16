@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]  # or 'master' if that's your default
+    branches: [ main ]
   workflow_dispatch:
   schedule:
     # Refresh the Spotify top-10 (and redeploy) every 6 hours. This is what
@@ -18,7 +18,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # LFS is no longer needed — videos ship as small committed WebM/MP4
       - name: Checkout
         uses: actions/checkout@v5
 

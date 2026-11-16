@@ -1,8 +1,6 @@
-/* ==========================================================================
-   FunWindow — the Fun folder contents. Renders each interest as a content
+/* FunWindow — the Fun folder contents. Renders each interest as a content
    block; the Chess block is special-cased to show a live board reflecting the
-   most recent Chess.com game (see useChessGame).
-   ========================================================================== */
+   most recent Chess.com game (see useChessGame). */
 
 import { useMemo } from 'react';
 import { Chessboard } from 'react-chessboard';

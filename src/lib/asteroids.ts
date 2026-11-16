@@ -1,9 +1,7 @@
-/* ==========================================================================
-   asteroids — shared client for NASA's public NeoWs (Near Earth Object Web
+/* asteroids — shared client for NASA's public NeoWs (Near Earth Object Web
    Service) feed. Returns the asteroids making a close approach to Earth today,
    closest first. Defaults to NASA's DEMO_KEY (rate-limited, no signup); set
-   VITE_NASA_API_KEY to use a personal key with higher limits.
-   ========================================================================== */
+   VITE_NASA_API_KEY to use a personal key with higher limits. */
 
 export type NearEarthObject = {
   id: string;
@@ -129,14 +127,12 @@ export async function fetchNeoFeed(): Promise<NearEarthObject[]> {
   return objects.slice(0, MAX_OBJECTS);
 }
 
-/* ==========================================================================
-   Orbital elements — the feed endpoint above doesn't include them, but the
+/* Orbital elements — the feed endpoint above doesn't include them, but the
    per-object lookup (`/neo/{id}`) returns full-precision osculating Keplerian
    elements straight from JPL's small-body solution. We fetch those lazily
    (the map falls back to a decorative orbit until they arrive) and cache them
    in localStorage: elements only change when JPL refits an orbit, so a cached
-   copy spares the rate limit on every revisit.
-   ========================================================================== */
+   copy spares the rate limit on every revisit. */
 
 export type OrbitClass = { type: string; description: string };
 
@@ -231,7 +227,7 @@ function parseOrbitalData(od: RawOrbitalData): NeoOrbit | null {
 }
 
 /** Fetch one object's elements (cache-first). Throws NeoError on failure. */
-export async function fetchOrbit(id: string): Promise<NeoOrbit> {
+async function fetchOrbit(id: string): Promise<NeoOrbit> {
   const cached = readOrbitCache(id);
   if (cached) return cached;
 

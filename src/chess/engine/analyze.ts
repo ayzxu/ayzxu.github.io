@@ -1,5 +1,4 @@
-/* ==========================================================================
-   analyze.ts — post-game review, scored by the engine's own judgement.
+/* analyze.ts — post-game review, scored by the engine's own judgement.
 
    This is deliberately NOT Stockfish. The same shallow negamax + quiescence
    search the bot plays with (search.ts) re-scores every position, so the review
@@ -10,8 +9,7 @@
    bucket it (best → blunder), and convert the win-probability swing into a
    per-move accuracy using Lichess's published model. For the human's moves we
    also look up the position in Andy's opening book, so the panel can show what
-   Andy actually plays most in that spot.
-   ========================================================================== */
+   Andy actually plays most in that spot. */
 
 import { Chess, type Move } from 'chess.js';
 import { searchRoot } from './search';

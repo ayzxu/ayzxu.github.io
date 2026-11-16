@@ -1,7 +1,5 @@
-/* ==========================================================================
-   GamesWindow — the Games folder. Holds Minesweeper and Snake; Andy Chess
-   lives on the desktop proper, not in here.
-   ========================================================================== */
+/* GamesWindow — the Games folder. Holds Minesweeper and Snake; Andy Chess
+   lives on the desktop proper, not in here. */
 
 import { MineIcon, SnakeIcon, PuzzleIcon } from '../components/PixelIcons';
 import type { WindowId } from '../components/windowConfig';

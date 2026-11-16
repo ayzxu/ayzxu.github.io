@@ -1,8 +1,6 @@
-/* ==========================================================================
-   sounds — tiny fire-and-forget audio helpers for System 1 sound effects.
+/* sounds — tiny fire-and-forget audio helpers for System 1 sound effects.
    All playback is best-effort: if the browser blocks or fails to play a clip
-   (autoplay policy, unsupported codec), the UI carries on silently.
-   ========================================================================== */
+   (autoplay policy, unsupported codec), the UI carries on silently. */
 
 import bassoUrl from '../assets/audio/basso.wav';
 import clickUrl from '../assets/audio/click.mp3';

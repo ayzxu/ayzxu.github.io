@@ -1,7 +1,5 @@
-/* ==========================================================================
-   Screensaver — after 4 minutes without input, the screen goes black and a
-   1-bit happy Mac drifts and bounces DVD-logo style. Any input wakes it.
-   ========================================================================== */
+/* Screensaver — after 4 minutes without input, the screen goes black and a
+   1-bit happy Mac drifts and bounces DVD-logo style. Any input wakes it. */
 
 import { useEffect, useRef, useState } from 'react';
 

@@ -1,5 +1,4 @@
-/* ==========================================================================
-   andyBot.ts — the engine entry point. Given a position, returns the move Andy
+/* andyBot.ts — the engine entry point. Given a position, returns the move Andy
    would plausibly play, in this order:
 
      1. If the position is in his opening book (and we don't roll a deviation),
@@ -8,8 +7,7 @@
         humanizer choose — usually a good move, sometimes an inaccuracy or a
         believable ~1500 blunder.
 
-   Pure and synchronous; the Web Worker wraps it for off-main-thread execution.
-   ========================================================================== */
+   Pure and synchronous; the Web Worker wraps it for off-main-thread execution. */
 
 import { Chess, type Move } from 'chess.js';
 import type {

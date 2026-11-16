@@ -1,6 +1,4 @@
-/* ==========================================================================
-   iconLayout — default desktop icon positions and drop-target hit tests.
-   ========================================================================== */
+/* iconLayout — default desktop icon positions and drop-target hit tests. */
 
 import { MENU_TOP, type Point, type Viewport } from './windowBounds';
 
@@ -11,7 +9,7 @@ import { MENU_TOP, type Point, type Viewport } from './windowBounds';
 
 /** Folders & documents — right-justified. First 4 fill the rightmost
     column, so 'trash' lands at the classic bottom-right. */
-export const RIGHT_ICON_IDS = [
+const RIGHT_ICON_IDS = [
   'readme',
   'projects',
   'writings',
@@ -24,7 +22,7 @@ export const RIGHT_ICON_IDS = [
 /** Applications — left-justified. First 5 fill the leftmost column.
     Calculator, Paint, AndyWrite and News live inside the 'apps' folder
     rather than on the desktop, to keep the icon spread uncluttered. */
-export const LEFT_ICON_IDS = [
+const LEFT_ICON_IDS = [
   'chess',
   'music',
   'apps',
@@ -43,7 +41,7 @@ export const DESKTOP_ICON_IDS = [
 export type DesktopIconId = (typeof DESKTOP_ICON_IDS)[number];
 
 /** Drop onto these icons shows the "not implemented" dialog */
-export const ICON_DROP_TARGETS: DesktopIconId[] = [
+const ICON_DROP_TARGETS: DesktopIconId[] = [
   'trash',
   'projects',
   'writings',
@@ -200,7 +198,7 @@ export function marqueeFromPoints(
 }
 
 /** Classic Mac: icon is selected if its bounding box intersects the marquee */
-export function iconIntersectsMarquee(
+function iconIntersectsMarquee(
   iconPos: Point,
   marquee: MarqueeRect,
 ): boolean {
@@ -229,7 +227,7 @@ export function iconsInMarquee(
 }
 
 /** Icon centre in viewport (client) coordinates */
-export function iconCenterInViewport(
+function iconCenterInViewport(
   pos: Point,
 ): { cx: number; cy: number } {
   return {

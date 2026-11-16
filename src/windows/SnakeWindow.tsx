@@ -1,8 +1,6 @@
-/* ==========================================================================
-   SnakeWindow — grid Snake on a 1-bit canvas. Arrow keys / WASD steer; the
+/* SnakeWindow — grid Snake on a 1-bit canvas. Arrow keys / WASD steer; the
    on-screen D-pad covers touch. Speeds up as you eat; high score persists
-   in localStorage.
-   ========================================================================== */
+   in localStorage. */
 
 import { useEffect, useRef, useState } from 'react';
 import { playSnakeSound } from '../lib/sounds';

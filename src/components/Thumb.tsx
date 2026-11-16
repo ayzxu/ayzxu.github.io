@@ -1,7 +1,5 @@
-/* ==========================================================================
-   Thumb — a click-to-enlarge 1-bit thumbnail. A real <button> wrapper makes
-   the lightbox reachable by keyboard (Tab + Enter/Space), not just mouse.
-   ========================================================================== */
+/* Thumb — a click-to-enlarge 1-bit thumbnail. A real <button> wrapper makes
+   the lightbox reachable by keyboard (Tab + Enter/Space), not just mouse. */
 
 import MacImg from './MacImg';
 

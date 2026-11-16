@@ -1,7 +1,5 @@
-/* ==========================================================================
-   AboutWindow — the About Me folder contents: portraits, background blurb,
-   the full work-experience history and a closing note.
-   ========================================================================== */
+/* AboutWindow — the About Me folder contents: portraits, background blurb,
+   the full work-experience history and a closing note. */
 
 import { about, experience } from '../data/experience';
 import Thumb from '../components/Thumb';

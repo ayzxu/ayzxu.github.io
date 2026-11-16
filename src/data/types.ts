@@ -1,7 +1,5 @@
-/* ==========================================================================
-   Shared content types used across the data modules (projects, experience,
-   fun, writings). Kept separate so the modules stay import-light.
-   ========================================================================== */
+/* Shared content types used across the data modules (projects, experience,
+   fun, writings). Kept separate so the modules stay import-light. */
 
 export type MediaItem = {
   src: string;

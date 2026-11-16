@@ -1,9 +1,7 @@
-/* ==========================================================================
-   ResumeWindow — shows Andy's résumé inside a System 1 window. The PDF is
+/* ResumeWindow — shows Andy's résumé inside a System 1 window. The PDF is
    embedded with <object> so browsers that can render PDFs inline do so, while
    those that can't (notably most mobile browsers) fall back to a clear
-   open / download prompt instead of a blank or broken frame.
-   ========================================================================== */
+   open / download prompt instead of a blank or broken frame. */
 
 import resumeUrl from '../assets/Andy_Xu_Resume.pdf';
 

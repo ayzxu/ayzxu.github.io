@@ -1,23 +1,17 @@
-/* ==========================================================================
-   App — orchestrates the journey from the pixel-art Macintosh to the
-   interactive System 1 desktop.
+/* App — the journey from the startup hardware to the interactive desktop.
 
-     exterior → the Mac 128K sits in a dark room, waiting to be powered on
-     booting  → Happy Mac welcome, then the camera zooms into the screen
-     settling → zoom complete; the Happy Mac crossfades into the live desktop
+     flight   → the camera swoops in on the machine and straight on into its
+                screen, which wakes to the Happy Mac on the way
+     booting  → powered back on by hand: Happy Mac, then a dive into the screen
+     settling → the Happy Mac fills the view and crossfades into the desktop
      desktop  → the live, interactive desktop (windows, menus, icons)
-     shutdown → the screen blacks out and the camera pulls back to exterior
+     shutdown → the screen blacks out and the camera pulls back
+     exterior → the machine sits powered off until it's clicked back on
 
-   The startup hardware matches the device: desktops get the Mac 128K, while
-   phone-sized viewports get an iPhone (whose desktop renders as an iOS home
-   screen anyway). Either way getSvgVh caps the height so the chassis never
-   spills past a narrow viewport's width.
+   A first visit plays flight → settling on its own; any click or key on the
+   way skips straight to the desktop. Deep links start on the desktop. */
 
-   The zoom scale is computed dynamically so that the Mac's screen-glass lands
-   exactly fitted to the viewport — never so big the Happy Mac logo is cropped.
-   ========================================================================== */
-
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 import Macintosh from './components/Macintosh';
@@ -26,147 +20,69 @@ import Desktop from './components/Desktop';
 import { windowForRoute, type WindowId } from './components/windowConfig';
 import { getViewport, isCompactIcons, isPinchZoomed } from './lib/windowBounds';
 import { playStartupChime } from './lib/sounds';
+import {
+  IPHONE_GEOMETRY,
+  MAC_GEOMETRY,
+  FLIGHT_MS,
+  computeStartupLayout,
+  flightPose,
+} from './lib/startupGeometry';
 
-type Phase = 'exterior' | 'booting' | 'settling' | 'desktop' | 'shutdown';
+type Phase = 'flight' | 'booting' | 'settling' | 'desktop' | 'shutdown' | 'exterior';
 
 const DESKTOP_PATHS = ['/projects', '/fun', '/about', '/resume', '/chess', '/writings', '/desktop'];
 
+const BOOT_HOLD_MS = 250;
+const BOOT_DIVE_MS = 1200;
+const CROSSFADE_MS = 800;
+const PULL_BACK_MS = 1150;
+
 /* GitHub Pages serves the pre-rendered deep links as directories, so the
-   browser lands on e.g. /projects/ — normalize away the trailing slash
-   before matching routes. */
+   browser lands on e.g. /projects/ — drop the trailing slash before matching. */
 function normalizedPath(): string {
   return window.location.pathname.replace(/\/+$/, '') || '/';
 }
 
-/* A "device profile" describes the startup hardware. The SVG is rendered at
-   height: svgVh, and exposes a "screen glass" rectangle that the boot animation
-   zooms into. The glass is always centred horizontally (glass cx = viewW / 2)
-   so the zoom only needs a vertical translate. These geometry numbers let us
-   compute the precise zoom transform that snaps the glass to the viewport. */
-type DeviceProfile = {
-  Component: typeof Macintosh;
-  viewW: number;
-  viewH: number;
-  glassW: number;
-  glassH: number;
-  glassCy: number;
-};
-
-/* Macintosh.tsx: viewBox 620×650; the Mac (clipart PNG) sits on a desk and its
-   screen glass is centred at (≈310,175) → 239×158. Keep these in sync with the
-   GLASS_* constants in Macintosh.tsx so the boot-zoom snaps the screen exactly
-   into the viewport. */
-const MAC_PROFILE: DeviceProfile = {
-  Component: Macintosh,
-  viewW: 620,
-  viewH: 650,
-  glassW: 306,
-  glassH: 208,
-  glassCy: 198,
-};
-
-/* Iphone.tsx: viewBox 400×650; the phone stands on the desk with its screen
-   glass centred at (200,276) → 222×394. Keep in sync with the GLASS_*
-   constants in Iphone.tsx. */
-const IPHONE_PROFILE: DeviceProfile = {
-  Component: Iphone,
-  viewW: 400,
-  viewH: 650,
-  glassW: 222,
-  glassH: 394,
-  glassCy: 276,
-};
-
-function getSvgVh(device: DeviceProfile): number {
-  if (typeof window === 'undefined') return 0.9;
-  const { w, h } = getViewport();
-  const base = w < 480 ? 0.85 : 0.9;
-  // On narrow / portrait screens the chassis is sized by height (width: auto),
-  // so a tall viewport would push it wider than the screen. Cap the height so
-  // the rendered width stays within ~94% of the viewport width.
-  const aspect = device.viewW / device.viewH;
-  const maxVhForWidth = (0.94 * w) / (h * aspect);
-  return Math.min(base, maxVhForWidth);
-}
-
-/* Glass-centre Y as a percentage of the wrapper (sized to the SVG) — used as
-   the transform-origin so scaling pivots on the glass centre. */
-function glassOriginYPct(device: DeviceProfile): number {
-  return (device.glassCy / device.viewH) * 100;
-}
-
-function getZoomTranslateYVh(svgVh: number, originYPct: number): number {
-  const wrapperTop = (100 - svgVh * 100) / 2;
-  const glassCenter = wrapperTop + svgVh * originYPct;
-  return 50 - glassCenter;
-}
-
-function computeFitScale(svgVh: number, device: DeviceProfile): number {
-  const { w, h } = getViewport();
-  const svgHpx = svgVh * h;
-  const svgWpx = svgHpx * (device.viewW / device.viewH);
-  const glassWpx = svgWpx * (device.glassW / device.viewW);
-  const glassHpx = svgHpx * (device.glassH / device.viewH);
-  // Fit the screen-glass *just inside* the viewport — pick the smaller axis
-  // so neither dimension overshoots (which would crop the Happy Mac logo).
-  return Math.min(w / glassWpx, h / glassHpx);
+function initialPhase(): Phase {
+  return DESKTOP_PATHS.includes(normalizedPath()) ? 'desktop' : 'flight';
 }
 
 export default function App() {
   const navigate = useNavigate();
 
-  // Startup hardware matches the device class (chosen once at mount): phones
-  // get the iPhone, everything else the Macintosh.
-  const [device] = useState<DeviceProfile>(() =>
-    typeof window !== 'undefined' && isCompactIcons(getViewport())
-      ? IPHONE_PROFILE
-      : MAC_PROFILE,
-  );
+  // Phones get the iPhone, everything else the Macintosh — chosen once.
+  const [compact] = useState(() => isCompactIcons(getViewport()));
+  const Device = compact ? Iphone : Macintosh;
+  const geometry = compact ? IPHONE_GEOMETRY : MAC_GEOMETRY;
 
-  // Route is read once at mount — deep links jump straight to the desktop
-  const [initialWindow] = useState<WindowId | undefined>(
-    () => windowForRoute(normalizedPath()),
+  // The route is read once at mount — deep links open their window.
+  const [initialWindow] = useState<WindowId | undefined>(() =>
+    windowForRoute(normalizedPath()),
   );
-  const [phase, setPhase] = useState<Phase>(() =>
-    DESKTOP_PATHS.includes(normalizedPath()) ? 'desktop' : 'exterior',
+  const [phase, setPhase] = useState<Phase>(initialPhase);
+  const [zoom, setZoom] = useState(false);
+  // Whether the screen has come on during the opening flight
+  const [lit, setLit] = useState(false);
+  const [crossfaded, setCrossfaded] = useState(false);
+  const [layout, setLayout] = useState(() =>
+    computeStartupLayout(geometry, getViewport()),
   );
+  const stageRef = useRef<HTMLDivElement>(null);
 
-  /* 404 handling: GitHub Pages serves 404.html for unknown paths, so the SPA
-     boots with the bogus URL still in the address bar. If the path maps to
-     nothing we know, normalize it back to '/' so refreshes and shares work. */
+  /* GitHub Pages serves 404.html for unknown paths, so the SPA boots with the
+     bogus URL still in the address bar — send it back to '/'. */
   useEffect(() => {
     const path = normalizedPath();
-    if (
-      path !== '/' &&
-      !DESKTOP_PATHS.includes(path) &&
-      !windowForRoute(path)
-    ) {
+    if (path !== '/' && !DESKTOP_PATHS.includes(path) && !windowForRoute(path)) {
       navigate('/', { replace: true });
     }
   }, [navigate]);
-  const [zoom, setZoom] = useState(false);
 
-  // Dynamic zoom scale and exterior device height — recomputed on resize
-  const [exteriorLayout, setExteriorLayout] = useState(() => {
-    const svgVh = typeof window === 'undefined' ? 0.9 : getSvgVh(device);
-    const originY = glassOriginYPct(device);
-    return {
-      svgVh,
-      fitScale: typeof window === 'undefined' ? 6 : computeFitScale(svgVh, device),
-      zoomTranslateY: getZoomTranslateYVh(svgVh, originY),
-    };
-  });
   useEffect(() => {
     const onResize = () => {
-      // Ignore visualViewport resizes caused by pinch-zooming on iOS — the
-      // layout viewport hasn't changed, only the user's zoom level.
+      // Pinch-zooming on iOS resizes the visual viewport, not the layout.
       if (isPinchZoomed()) return;
-      const svgVh = getSvgVh(device);
-      setExteriorLayout({
-        svgVh,
-        fitScale: computeFitScale(svgVh, device),
-        zoomTranslateY: getZoomTranslateYVh(svgVh, glassOriginYPct(device)),
-      });
+      setLayout(computeStartupLayout(geometry, getViewport()));
     };
     window.addEventListener('resize', onResize);
     window.visualViewport?.addEventListener('resize', onResize);
@@ -174,87 +90,119 @@ export default function App() {
       window.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('resize', onResize);
     };
-  }, [device]);
+  }, [geometry]);
 
-  // Crossfade flag — flips true a tick after entering 'settling'
-  const [crossfaded, setCrossfaded] = useState(false);
+  // Flight: posed frame by frame, starting before first paint so the machine
+  // is never seen at rest. The chime is best-effort — browsers mute it until
+  // the first user gesture.
+  useLayoutEffect(() => {
+    if (phase !== 'flight') return;
+    const stage = stageRef.current;
+    if (!stage) return;
+    const viewport = getViewport();
+    const startupLayout = computeStartupLayout(geometry, viewport);
+    const pose = (t: number) => {
+      const { transform, opacity, lit } = flightPose(t, viewport, startupLayout);
+      stage.style.transform = transform;
+      stage.style.opacity = String(opacity);
+      return lit;
+    };
+    const land = () => {
+      setZoom(true);
+      setPhase('settling');
+    };
 
-  const powerOn = () => {
-    if (phase !== 'exterior') return;
-    // Startup chime — the click is a user gesture, so playback is allowed.
-    // Desktop gets the Mac chime; phone-sized screens get the iPhone chime
-    // to match their iOS home-screen icon layout.
-    playStartupChime(isCompactIcons(getViewport()));
-    setPhase('booting');
-  };
-  const shutDown = () => setPhase('shutdown');
+    let frame = 0;
+    let startedAt = 0;
+    let litUp = false;
+    const tick = (now: number) => {
+      startedAt ||= now;
+      const t = Math.min(1, (now - startedAt) / FLIGHT_MS);
+      if (pose(t) && !litUp) {
+        litUp = true;
+        setLit(true);
+        playStartupChime(compact);
+      }
+      if (t < 1) frame = requestAnimationFrame(tick);
+      else land();
+    };
+    pose(0);
+    frame = requestAnimationFrame(tick);
+    // Frames stop in a background tab — don't strand the visitor on a black
+    // screen; land regardless.
+    const fallback = window.setTimeout(land, FLIGHT_MS + 1500);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(fallback);
+      // The transform is left alone: by now React has set the landed one.
+      stage.style.opacity = '';
+    };
+  }, [phase, geometry, compact]);
 
-  // Boot sequence: hold on Happy Mac, zoom into the screen, then crossfade.
-  // The settling handoff waits for the full 1350ms zoom (700 + 1350 + a beat).
+  // Booting: chime, hold on the Happy Mac, dive into the screen, hand off.
   useEffect(() => {
     if (phase !== 'booting') return;
-    const toZoom = window.setTimeout(() => setZoom(true), 700);
-    const toSettling = window.setTimeout(() => setPhase('settling'), 2100);
+    playStartupChime(compact);
+    const toDive = window.setTimeout(() => setZoom(true), BOOT_HOLD_MS);
+    const toSettling = window.setTimeout(
+      () => setPhase('settling'),
+      BOOT_HOLD_MS + BOOT_DIVE_MS + 50,
+    );
     return () => {
-      window.clearTimeout(toZoom);
+      window.clearTimeout(toDive);
       window.clearTimeout(toSettling);
     };
-  }, [phase]);
+  }, [phase, compact]);
 
-  // Settling: kick off the opacity crossfade on the next tick, then hand off
+  // Settling: start the crossfade on the next tick, then hand off.
   useEffect(() => {
     if (phase !== 'settling') {
       setCrossfaded(false);
       return;
     }
     const toFade = window.setTimeout(() => setCrossfaded(true), 30);
-    const toDesktop = window.setTimeout(() => setPhase('desktop'), 850);
+    const toDesktop = window.setTimeout(() => setPhase('desktop'), CROSSFADE_MS + 50);
     return () => {
       window.clearTimeout(toFade);
       window.clearTimeout(toDesktop);
     };
   }, [phase]);
 
-  // Shut-down sequence: blank screen is already filling the viewport (zoomed
-  // in from the desktop) — pull the camera back out, then return to exterior
+  // Shutdown: the blank screen already fills the viewport — pull back out.
   useEffect(() => {
     if (phase !== 'shutdown') return;
-    const toZoomOut = window.setTimeout(() => setZoom(false), 60);
+    const toPullBack = window.setTimeout(() => setZoom(false), 60);
     const toExterior = window.setTimeout(() => {
       setPhase('exterior');
       navigate('/', { replace: true });
-    }, 1300);
+    }, PULL_BACK_MS + 150);
     return () => {
-      window.clearTimeout(toZoomOut);
+      window.clearTimeout(toPullBack);
       window.clearTimeout(toExterior);
     };
   }, [phase, navigate]);
 
-  // The Mac SVG layer is mounted for every phase except plain 'desktop'
-  const macMounted = phase !== 'desktop';
-  // The Desktop layer is mounted during the crossfade and afterwards
-  const desktopMounted = phase === 'desktop' || phase === 'settling';
-  // During settling we need to fade Mac out / Desktop in
-  const settling = phase === 'settling';
+  // Any click or key during the intro skips ahead to the desktop.
+  const introPlaying = phase === 'flight' || phase === 'booting';
+  useEffect(() => {
+    if (!introPlaying) return;
+    const skip = () => {
+      // The gesture unlocks audio, so the chime can still land.
+      if (phase === 'flight' && !lit) playStartupChime(compact);
+      setZoom(true);
+      setPhase('settling');
+    };
+    window.addEventListener('pointerdown', skip);
+    window.addEventListener('keydown', skip);
+    return () => {
+      window.removeEventListener('pointerdown', skip);
+      window.removeEventListener('keydown', skip);
+    };
+  }, [introPlaying, phase, lit, compact]);
 
-  const macWrapperStyle = useMemo<React.CSSProperties>(
-    () => ({
-      position: settling ? 'absolute' : 'relative',
-      inset: settling ? 0 : undefined,
-      height: settling ? '100%' : '100%',
-      width: settling ? '100%' : '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      // While settling the Mac fades out so the Desktop shows through
-      opacity: settling && crossfaded ? 0 : 1,
-      transition: settling ? 'opacity 800ms ease-out' : 'none',
-      // Don't intercept clicks while fading — Desktop is interactive underneath
-      pointerEvents: settling ? 'none' : 'auto',
-      zIndex: 2,
-    }),
-    [settling, crossfaded],
-  );
+  const settling = phase === 'settling';
+  const screenOff =
+    (phase === 'flight' && !lit) || phase === 'shutdown' || phase === 'exterior';
 
   return (
     <div
@@ -266,52 +214,62 @@ export default function App() {
         overflow: 'hidden',
       }}
     >
-      {/* Desktop layer — present during the crossfade and after */}
-      {desktopMounted && (
+      {(phase === 'desktop' || settling) && (
         <div
           className="crt-screen"
           style={{
             position: 'absolute',
             inset: 0,
-            // Fade in on settle; once we hit 'desktop' it's already fully shown
-            opacity: phase === 'desktop' ? 1 : crossfaded ? 1 : 0,
-            transition: settling ? 'opacity 800ms ease-in' : 'none',
+            opacity: phase === 'desktop' || crossfaded ? 1 : 0,
+            transition: settling ? `opacity ${CROSSFADE_MS}ms ease-in` : 'none',
             zIndex: 1,
           }}
         >
-          <Desktop initialWindow={initialWindow} onShutDown={shutDown} />
+          <Desktop initialWindow={initialWindow} onShutDown={() => setPhase('shutdown')} />
         </div>
       )}
 
-      {/* Mac layer — exterior / booting / settling */}
-      {macMounted && (
-        <div style={macWrapperStyle}>
-          {/* Wrapper carries the zoom. The transform pivots on the glass centre
-              AND translates that centre to viewport-centre, so the glass snaps
-              perfectly into the screen rather than landing high and cropped.
-
-              The boot zoom-in uses a steep ease-in-out velocity curve: it
-              creeps off the line, ramps up hard through the middle of the
-              move, then brakes smoothly just before the glass fills the
-              screen. Shutdown keeps the calmer stock ease-in-out pull-back. */}
+      {phase !== 'desktop' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: settling && crossfaded ? 0 : 1,
+            transition: settling ? `opacity ${CROSSFADE_MS}ms ease-out` : 'none',
+            // The desktop underneath is already interactive while this fades.
+            pointerEvents: settling ? 'none' : 'auto',
+            zIndex: 2,
+          }}
+        >
+          {/* The stage carries every camera move. It pivots on the glass
+              centre and, zoomed, shifts that centre to the viewport's, so the
+              glass lands exactly filling the screen. The opening flight is
+              a keyframe animation on top of this; only the hand-started boot
+              dive and the shutdown pull-back are transitions. */}
           <div
+            ref={stageRef}
             style={{
               transform: zoom
-                ? `translate(0, ${exteriorLayout.zoomTranslateY}vh) scale(${exteriorLayout.fitScale})`
-                : 'translate(0, 0) scale(1)',
-              transformOrigin: `50% ${glassOriginYPct(device)}%`,
+                ? `translate(0, ${layout.zoomTranslateY}vh) scale(${layout.fitScale})`
+                : 'none',
+              transformOrigin: `50% ${layout.originYPct}%`,
               transition:
                 phase === 'booting'
-                  ? 'transform 1350ms cubic-bezier(0.83, 0, 0.17, 1)'
-                  : 'transform 1150ms ease-in-out',
+                  ? `transform ${BOOT_DIVE_MS}ms cubic-bezier(0.65, 0, 0.35, 1)`
+                  : phase === 'shutdown'
+                    ? `transform ${PULL_BACK_MS}ms ease-in-out`
+                    : 'none',
               willChange: 'transform',
             }}
           >
-            <device.Component
-              screen={phase === 'exterior' ? 'off' : 'boot'}
+            <Device
+              screen={screenOff ? 'off' : 'boot'}
               showPrompt={phase === 'exterior'}
-              onPowerClick={phase === 'exterior' ? powerOn : undefined}
-              svgVh={exteriorLayout.svgVh}
+              onPowerClick={phase === 'exterior' ? () => setPhase('booting') : undefined}
+              svgVh={layout.svgVh}
             />
           </div>
         </div>

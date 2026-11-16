@@ -1,11 +1,9 @@
-/* ==========================================================================
-   nowPlaying — a tiny shared store for the "now playing" track shown in the
+/* nowPlaying — a tiny shared store for the "now playing" track shown in the
    menu bar. On load it seeds itself with a song from Andy's top 10 (so the
    bar always shows something "currently playing"); once the visitor actually
    plays a track in AndyMusic, it switches to whatever they're listening to.
    Same fire-and-forget, dependency-free style as sounds.ts — a module-level
-   value plus a set of subscribers.
-   ========================================================================== */
+   value plus a set of subscribers. */
 
 import { loadTopTracks } from './topTracks';
 

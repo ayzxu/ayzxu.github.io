@@ -1,6 +1,4 @@
-/* ==========================================================================
-   useViewport — subscribes to window and visualViewport resize events.
-   ========================================================================== */
+/* useViewport — subscribes to window and visualViewport resize events. */
 
 import { useEffect, useState } from 'react';
 import { getViewport, isPinchZoomed, type Viewport } from '../lib/windowBounds';
