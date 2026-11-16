@@ -124,7 +124,8 @@ body.mac-busy * {
     ),
     var(--desktop-bg);
   background-size: cover;
-  background-position: center;
+  /* The wash stays centred; the photo is anchored on its subject */
+  background-position: center, var(--desktop-bg-focus, center);
   background-repeat: no-repeat;
   filter: grayscale(0.9) contrast(1.06) brightness(0.88) saturate(0.7);
   transform: scale(1.04);

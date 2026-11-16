@@ -78,15 +78,24 @@ import MinesweeperWindow from '../windows/MinesweeperWindow';
 import SnakeWindow from '../windows/SnakeWindow';
 import AsteroidsWindow from '../windows/AsteroidsWindow';
 import TrashWindow from '../windows/TrashWindow';
-import desktopBg1 from '../assets/backgrounds/bg1.webp';
-import desktopBg2 from '../assets/backgrounds/bg2.webp';
-import desktopBg3 from '../assets/backgrounds/bg3.webp';
-import desktopBg4 from '../assets/backgrounds/bg4.webp';
-import desktopBg5 from '../assets/backgrounds/bg5.webp';
+import bgPond from '../assets/backgrounds/pond.webp';
+import bgBeachNight from '../assets/backgrounds/beach-night.webp';
+import bgBayBridgeNight from '../assets/backgrounds/bay-bridge-night.webp';
+import bgBayBridgePier from '../assets/backgrounds/bay-bridge-pier.webp';
+import bgFriendsNight from '../assets/backgrounds/friends-night.webp';
 
 /* Desktop wallpapers cycle with a slow crossfade. The starting wallpaper is
-   randomized per visit (chosen once at module load so it survives remounts). */
-const DESKTOP_BACKGROUNDS = [desktopBg1, desktopBg2, desktopBg3, desktopBg4, desktopBg5];
+   randomized per visit (chosen once at module load so it survives remounts).
+   Most are portrait photos, which a landscape desktop crops to about their
+   middle half; `focus` is the background-position that keeps the subject
+   (faces, the bridge) inside that band. */
+const DESKTOP_BACKGROUNDS = [
+  { src: bgPond, focus: '50% 40%' },
+  { src: bgBeachNight, focus: '50% 40%' },
+  { src: bgBayBridgeNight, focus: '50% 60%' },
+  { src: bgBayBridgePier, focus: '50% 55%' },
+  { src: bgFriendsNight, focus: '50% 50%' },
+];
 const INITIAL_BG_INDEX = Math.floor(Math.random() * DESKTOP_BACKGROUNDS.length);
 const BG_ROTATE_INTERVAL_MS = 30_000;
 
@@ -381,12 +390,13 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
     <div className="desktop-root mac-desktop-surface">
       {DESKTOP_BACKGROUNDS.map((bg, i) => (
         <div
-          key={bg}
+          key={bg.src}
           aria-hidden
           className="mac-desktop-bg"
           style={
             {
-              '--desktop-bg': `url(${bg})`,
+              '--desktop-bg': `url(${bg.src})`,
+              '--desktop-bg-focus': bg.focus,
               opacity: i === bgIndex ? 1 : 0,
             } as React.CSSProperties
           }
