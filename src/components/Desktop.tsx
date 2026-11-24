@@ -120,6 +120,9 @@ const OPEN_DELAY_MAX_MS = 350;
 type DesktopProps = {
   /** Window to open on top at boot, derived from a deep-link route */
   initialWindow?: WindowId;
+  /** False while the desktop is still only a picture on the startup screen:
+      the camera is diving in (or pulling out) and nothing should start yet */
+  live: boolean;
   onShutDown: () => void;
 };
 
@@ -184,7 +187,7 @@ function readVisitedWindows(): Set<WindowId> {
   }
 }
 
-export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
+export default function Desktop({ initialWindow, live, onShutDown }: DesktopProps) {
   const navigate = useNavigate();
   const viewport = useViewport();
   const compactIcons = isCompactIcons(viewport);
@@ -367,12 +370,15 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
      windows, preserving the on-screen stacking order. */
   const iconLayerActive = draggingIds.size > 0;
 
-  /* Keep the URL in step with the topmost window so links stay shareable */
+  /* Keep the URL in step with the topmost window so links stay shareable.
+     Not while the desktop is still on the startup screen, so a reload
+     mid-intro replays the intro rather than deep-linking past it. */
   useEffect(() => {
+    if (!live) return;
     const top = openWins[openWins.length - 1];
     const route = top ? routeForWindow(top.id) : undefined;
     navigate(route ?? '/desktop', { replace: true });
-  }, [openWins, navigate]);
+  }, [openWins, navigate, live]);
 
   const closeWindow = (id: WindowId) => {
     if (openWins.some((w) => w.id === id)) playWindowClick(false);
@@ -510,7 +516,8 @@ export default function Desktop({ initialWindow, onShutDown }: DesktopProps) {
         />
       )}
 
-      {compactIcons ? (
+      {/* The tour starts its clock on mount, so it waits for the landing */}
+      {!live ? null : compactIcons ? (
         <ShadowOrb
           key={tourNonce}
           viewport={viewport}

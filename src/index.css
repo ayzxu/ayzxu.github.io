@@ -107,6 +107,8 @@ body.mac-busy * {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* The grain, like the scanlines, waits until the intro's camera is close */
+  opacity: var(--fine-detail, 1);
 }
 
 /* Layer 1: photograph, flattened to CRT gray with a beige phosphor tint */
@@ -184,6 +186,9 @@ body.mac-busy * {
   inset: 0;
   pointer-events: none;
   z-index: 9999;
+  /* Faded by the intro while the screen is small, where the 1px lines would
+     shimmer as the camera moves */
+  opacity: var(--fine-detail, 1);
   background:
     repeating-linear-gradient(
       to bottom,

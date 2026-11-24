@@ -1,21 +1,24 @@
 /* StartupScene — the shared stage for the startup hardware: a dark room, a lit
    wooden desk that dissolves into black at its edges, the device chassis, and
-   a screen we draw ourselves over the chassis's glass so the boot dive has
-   something live to zoom into.
+   its dark screen glass. The lit picture is not drawn here: it's the live
+   desktop (and the boot screen over it), laid over the glass by App so the
+   camera can dive straight into it. What the scene does draw is the light that
+   picture throws, a bloom across the bezel and a wash on the desk, which
+   follows --screen-light (0–1) set on an ancestor.
 
-     screen 'off'  → dark glass, optionally with a blinking power prompt
-     screen 'boot' → lit glass with the Happy Mac welcome */
+     screen 'off' → dark glass, optionally with a blinking power prompt
+     screen 'on'  → dark glass under the raster App lays on top */
 
 import type { ReactNode } from 'react';
 import type { DeviceGeometry } from '../lib/startupGeometry';
 
 export type StartupDeviceProps = {
-  screen: 'off' | 'boot';
+  screen: 'off' | 'on';
   onPowerClick?: () => void;
   /** Show the blinking power prompt on the off screen */
   showPrompt?: boolean;
-  /** Scene height as a fraction of the viewport */
-  svgVh: number;
+  /** Scene height in px — the camera maths is done in px, so no vh here */
+  height: number;
 };
 
 type Rect = { x: number; y: number; w: number; h: number };
@@ -42,7 +45,7 @@ export default function StartupScene({
   screen,
   onPowerClick,
   showPrompt = false,
-  svgVh,
+  height,
   geometry,
   chassis,
   prompt,
@@ -70,7 +73,7 @@ export default function StartupScene({
     <svg
       viewBox={`0 0 ${viewW} ${viewH}`}
       onClick={off ? onPowerClick : undefined}
-      style={{ height: `${svgVh * 100}vh`, width: 'auto', display: 'block' }}
+      style={{ height: `${height}px`, width: 'auto', display: 'block' }}
     >
       <defs>
         <radialGradient id="deskPool" cx="50%" cy="40%" r="60%">
@@ -99,10 +102,14 @@ export default function StartupScene({
           <stop offset="70%" stopColor="#0c100d" />
           <stop offset="100%" stopColor="#050706" />
         </radialGradient>
-        <radialGradient id="phosphorOn" cx="50%" cy="44%" r="70%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="80%" stopColor="#eef3ec" />
-          <stop offset="100%" stopColor="#cdd6cc" />
+        <radialGradient id="screenBloom" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#dfe9ff" stopOpacity="0.55" />
+          <stop offset="45%" stopColor="#c9d6ee" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#9fb0c8" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="deskSpill" cx="50%" cy="35%" r="60%">
+          <stop offset="0%" stopColor="#cfdcf2" stopOpacity="0.32" />
+          <stop offset="100%" stopColor="#cfdcf2" stopOpacity="0" />
         </radialGradient>
         <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
           <rect width="4" height="1.4" fill="#000000" fillOpacity="0.22" />
@@ -156,51 +163,48 @@ export default function StartupScene({
         />
       )}
 
+      {/* ...and a cool wash on the desk, which the machine stands in */}
+      <ellipse
+        cx={cx}
+        cy={pool.cy}
+        rx={pool.rx * 0.8}
+        ry="80"
+        fill="url(#deskSpill)"
+        style={{ opacity: 'var(--screen-light, 0)', mixBlendMode: 'screen' }}
+      />
+
       {chassis}
 
-      <rect {...glassRect} fill={off ? 'url(#phosphor)' : 'url(#phosphorOn)'} />
-      {off ? (
-        showPrompt && (
-          <text
-            x={cx}
-            y={cy + 8}
-            textAnchor="middle"
-            className="animate-blink"
-            fill="#7dffb0"
-            filter="url(#glow)"
-            fontFamily='"VT323", monospace'
-            fontSize="24"
-            letterSpacing="1"
-          >
-            {prompt}
-          </text>
-        )
-      ) : (
-        <>
-          <g transform={`translate(${cx - 31},${cy - 62}) scale(1.3)`}>
-            <rect x="4" y="2" width="40" height="52" fill="#ffffff" stroke="#000000" strokeWidth="2" />
-            <rect x="9" y="7" width="30" height="24" fill="#ffffff" stroke="#000000" strokeWidth="2" />
-            <rect x="15" y="14" width="3" height="5" fill="#000000" />
-            <rect x="30" y="14" width="3" height="5" fill="#000000" />
-            <path d="M15 23 Q24 29 33 23" fill="none" stroke="#000000" strokeWidth="2" />
-            <rect x="13" y="38" width="22" height="3" fill="#000000" />
-            <rect x="13" y="45" width="10" height="3" fill="#000000" />
-          </g>
-          <text
-            x={cx}
-            y={cy + 38}
-            textAnchor="middle"
-            fill="#000000"
-            fontFamily='"VT323", monospace'
-            fontSize="19"
-          >
-            Welcome to AndyOS
-          </text>
-        </>
+      <rect {...glassRect} fill="url(#phosphor)" />
+      {off && showPrompt && (
+        <text
+          x={cx}
+          y={cy + 8}
+          textAnchor="middle"
+          className="animate-blink"
+          fill="#7dffb0"
+          filter="url(#glow)"
+          fontFamily='"VT323", monospace'
+          fontSize="24"
+          letterSpacing="1"
+        >
+          {prompt}
+        </text>
       )}
-      <rect {...glassRect} fill="url(#scan)" opacity={off ? 0.5 : 0.35} />
+      <rect {...glassRect} fill="url(#scan)" opacity="0.5" />
 
       {children}
+
+      {/* Light thrown by the lit picture: a bloom over the glass and bezel,
+          screen-blended so it only brightens */}
+      <ellipse
+        cx={cx}
+        cy={cy}
+        rx={glass.w * 0.82}
+        ry={glass.h * 0.9}
+        fill="url(#screenBloom)"
+        style={{ opacity: 'var(--screen-light, 0)', mixBlendMode: 'screen' }}
+      />
     </svg>
   );
 }
