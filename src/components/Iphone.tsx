@@ -19,9 +19,14 @@ export default function Iphone(props: StartupDeviceProps) {
       geometry={IPHONE_GEOMETRY}
       prompt="tap to start"
       glassRx={4}
-      pool={{ cy: 500, rx: 220 }}
-      sideFade={120}
-      footShadow={{ x: 84, y: 529, w: 232, h: 13 }}
+      cable={{ edge: '#8d8f93', body: '#f1f1ef', width: 2.6 }}
+      plug={
+        // A charging cable's plug, in the port on the bottom edge
+        <g>
+          <rect x="195" y="533" width="8" height="4" fill="#c9cbce" />
+          <rect x="192" y="536" width="14" height="10" rx="2.5" fill="#f4f4f2" stroke="#9a9ca0" strokeWidth="0.6" />
+        </g>
+      }
       chassis={
         <image
           href={iphoneClipart}

@@ -5,6 +5,8 @@ import { BrowserRouter } from 'react-router-dom'
 // Pixel fonts — "Press Start 2P" for chrome/headings, "VT323" for body text
 import '@fontsource/press-start-2p'
 import '@fontsource/vt323'
+// The intro's title card
+import '@fontsource-variable/geist'
 
 import './index.css'
 import App from './App'
