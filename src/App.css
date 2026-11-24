@@ -3203,11 +3203,55 @@
   opacity: 0;
 }
 
-/* Composited for the dive, so the machine is scaled rather than repainted.
-   Only while the film runs forward: Chrome never lowers a will-change
-   layer's raster scale, so a stage created at the shutdown's 4× zoom would
-   re-raster at 4× on every lighting change as it pulls back. */
-.startup-stage--film {
+/* The scene's layers, stacked in one box the camera moves */
+.scene {
+  position: relative;
+}
+
+.scene-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+.scene-machine {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-shadow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(0, 0, 0, 0.92) 0%,
+    rgba(0, 0, 0, 0.62) 38%,
+    rgba(0, 0, 0, 0.22) 72%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.scene-cable {
+  pointer-events: none;
+}
+
+.scene-cable path {
+  fill: none;
+  stroke-linejoin: round;
+}
+
+/* Composited while the film runs forward and while the machine floats
+   switched off, so the bob is moved rather than repainted. Not during the
+   shutdown: Chrome never lowers a will-change layer's raster scale, so
+   layers created at the shutdown's 4× zoom would re-raster at 4× on every
+   lighting change as it pulls back. */
+.startup-stage--composited,
+.startup-stage--composited .scene-machine,
+.startup-stage--composited .scene-shadow,
+.startup-stage--composited .scene-cable {
   will-change: transform;
 }
 

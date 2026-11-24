@@ -15,10 +15,13 @@ const ART_Y = 11.6;
 
 /* Inlined rather than drawn as an <image>, so it's there on the first frame
    (no async decode when the scene remounts for shutdown) and stays sharp
-   through the dive. */
-const ART_MARKUP = macSvg.slice(
-  macSvg.indexOf('>', macSvg.indexOf('<svg')) + 1,
-  macSvg.lastIndexOf('</svg>'),
+   through the dive. The artwork's own floor shadows (a blurred trapezoid and
+   a dark band under the foot) are dropped: the Mac floats now, and the scene
+   casts its shadow on the floor below. */
+const BAKED_SHADOWS = ['path8297-9', 'rect2818-9-0-2-2-9'];
+const ART_MARKUP = BAKED_SHADOWS.reduce(
+  (markup, id) => markup.replace(new RegExp(`<[a-z]+ id="${id}"[^>]*/>`), ''),
+  macSvg.slice(macSvg.indexOf('>', macSvg.indexOf('<svg')) + 1, macSvg.lastIndexOf('</svg>')),
 );
 
 const INK = '#5d5843';
@@ -30,8 +33,15 @@ export default function Macintosh(props: StartupDeviceProps) {
       geometry={MAC_GEOMETRY}
       prompt="click to start"
       glassRx={6}
-      pool={{ cy: 540, rx: 300 }}
-      sideFade={200}
+      cable={{ edge: '#36332a', body: '#a8a28b', width: 1.9 }}
+      plug={
+        // The keyboard cord's RJ-11 plug, seated in the port on the base
+        <g>
+          <rect x="458.5" y="529" width="16" height="19" rx="1.6" fill="#d4cfbb" stroke="#5c5746" strokeWidth="0.8" />
+          <rect x="461" y="531.5" width="11" height="3.5" rx="0.6" fill="#8d8873" opacity="0.7" />
+          <rect x="462" y="546.5" width="9" height="9" rx="2.2" fill="#9f9a84" stroke="#45412f" strokeWidth="0.6" />
+        </g>
+      }
       chassis={
         <g
           transform={`translate(${ART_X} ${ART_Y}) scale(${ART_SCALE})`}

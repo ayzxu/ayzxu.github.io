@@ -10,41 +10,65 @@
               tube switches on, the welcome types itself, and the camera dives
               into the screen until the desktop is the whole viewport
    warm     → powered on by hand from the exterior: the same film from the
-              moment the tube switches on
-   shutdown → the camera pulls back out of the desktop to the machine on the
-              desk, then the tube collapses to a line and a dot */
+              moment power starts up the cable
+   shutdown → the camera pulls back out of the desktop to the machine, then
+              the tube collapses to a line and a dot and power drains away
+   exterior → switched off, just floating
+
+   The machine floats the whole time: a slow bob and roll on a second,
+   ambient clock (so it never stops, even while the film is paused or
+   skipping), damped to nothing as the camera lands so the desktop arrives
+   perfectly still. Power arrives as a pulse of light up the cable, and the
+   tube switches on the moment it reaches the machine. */
 
 import {
   landedLogScale,
   rasterZoom,
   type CameraPose,
+  type Hover,
   type StartupLayout,
 } from './startupGeometry';
 
-export type IntroMode = 'cold' | 'warm' | 'shutdown';
+export type IntroMode = 'cold' | 'warm' | 'shutdown' | 'exterior';
 
 export const WELCOME_TEXT = 'Welcome to AndyOS';
 
 /* --- Beats (ms on the film clock) ---------------------------------------- */
 const TITLE_IN = [100, 700] as const;
 const TITLE_OUT = [1350, 1950] as const;
-const EMERGE = [1500, 2500] as const;
+const EMERGE = [1400, 2250] as const;
 /** The tube switches on (and the chime plays) */
-export const POWER_AT = 2350;
-const TYPE = [2780, 3380] as const;
-const DIVE = [3250, 5050] as const;
+export const POWER_AT = 2450;
+const TYPE = [2880, 3480] as const;
+const DIVE = [3350, 5150] as const;
 /** The boot screen gives way to the desktop, halfway through the dive */
-const DESK = [4150, 4370] as const;
+const DESK = [4250, 4470] as const;
 /** The desktop starts painting (still covered) a beat before it's revealed */
 const DESK_PAINT = DESK[0] - 400;
-/** Where a hand-started boot picks the film up */
-export const WARM_START = POWER_AT - 160;
+/** Power climbs the cable for this long before the tube switches on */
+const PULSE_MS = 700;
+/** Where a hand-started boot picks the film up: a beat, then the pulse */
+export const WARM_START = POWER_AT - PULSE_MS - 160;
 
 const PULL_BACK = [0, 1150] as const;
 const COLLAPSE_Y = [1150, 1320] as const;
 const COLLAPSE_X = [1320, 1470] as const;
 const DOT_FADE = [1470, 1640] as const;
 const SHUTDOWN_END = 1700;
+
+/** The float: bob height (scene units) and period, roll (degrees) and
+    period — incommensurate, so the motion never visibly repeats — and how
+    far behind the machine the cable's slack swings */
+const BOB = 6;
+const BOB_MS = 4800;
+const ROLL = 0.42;
+const ROLL_MS = 7300;
+const SWAY_LAG_MS = 520;
+/** Where on the cable (0 = plug, 1 = far end) the pulse comes into view:
+    the far end is off the bottom of the frame */
+const PULSE_FROM = 0.68;
+/** On a cold start the machine drifts up into its float as it appears */
+const RISE_IN = 18;
 
 /** Camera at the start of the film, and as the dive begins (natural logs) */
 const PUSH_FROM = Math.log(0.86);
@@ -97,6 +121,23 @@ function shutdownCamera(t: number, layout: StartupLayout): CameraPose {
   return { logScale: REST_POSE.logScale + (land - REST_POSE.logScale) * f, lift: f };
 }
 
+/* --- Float ------------------------------------------------------------------ */
+
+function floatAt(a: number, envelope: number): Hover {
+  return {
+    rise: envelope * BOB * Math.sin((2 * Math.PI * a) / BOB_MS),
+    roll: envelope * ROLL * Math.sin((2 * Math.PI * a) / ROLL_MS + 1.1),
+  };
+}
+
+/** The shadow under a floating machine: higher means wider, softer, fainter */
+function shadowFor(rise: number): IntroFrame['shadow'] {
+  const k = Math.max(-3, Math.min(3, rise / BOB));
+  return { scaleX: 1 + 0.05 * k, scaleY: 1 + 0.08 * k, opacity: Math.min(1, 0.9 - 0.11 * k) };
+}
+
+const NO_PULSE = { at: 1, strength: 0, glow: 0 };
+
 /* --- Frames ---------------------------------------------------------------- */
 
 export type IntroFrame = {
@@ -121,25 +162,70 @@ export type IntroFrame = {
   /** The desktop's own scanlines and grain, faded while it's tiny so the fine
       patterns don't shimmer */
   fineDetail: number;
+  /** The machine's float, and the cable's slack trailing it */
+  hover: Hover;
+  sway: { x: number; y: number };
+  shadow: { scaleX: number; scaleY: number; opacity: number };
+  /** Power on the cable: where the pulse is (0 = at the machine, 1 = off
+      the frame), how bright, and the afterglow of the whole cable */
+  pulse: { at: number; strength: number; glow: number };
   done: boolean;
 };
 
+/** One frame: `t` is the film clock, `a` the ambient clock the float runs on */
 export function introFrame(
   mode: IntroMode,
   t: number,
+  a: number,
   layout: StartupLayout,
   crt: boolean,
 ): IntroFrame {
-  const camera = mode === 'shutdown' ? shutdownCamera(t, layout) : filmCamera(t, layout);
+  const camera =
+    mode === 'shutdown'
+      ? shutdownCamera(t, layout)
+      : mode === 'exterior'
+        ? REST_POSE
+        : filmCamera(t, layout);
   const z = rasterZoom(camera, layout);
   const glass = 1 - ramp(z, 0.5, 0.985);
   const fineDetail = ramp(z, 0.8, 0.985);
+
+  // The float fades out exactly as the camera lands (and back in as it pulls
+  // away); `camera.lift` is that landing progress.
+  const envelope = 1 - camera.lift;
+  const rise = mode === 'cold' ? -RISE_IN * (1 - ramp(t, EMERGE[0] - 300, EMERGE[1] + 500)) : 0;
+  const bob = floatAt(a, envelope);
+  const hover = { rise: bob.rise + rise, roll: bob.roll };
+  const lag = floatAt(a - SWAY_LAG_MS, envelope);
+  const sway = { x: 5 * (lag.roll / ROLL) * envelope, y: -0.8 * (lag.rise + rise) };
+  const float = { hover, sway, shadow: shadowFor(hover.rise) };
+
+  if (mode === 'exterior') {
+    return {
+      camera,
+      stageOpacity: 1,
+      title: { opacity: 0, scale: 1 },
+      raster: { shown: false, squashX: 1, squashY: 1, opacity: 0, flash: 0 },
+      light: 0,
+      typed: 0,
+      caret: false,
+      cover: 1,
+      desktopPainted: false,
+      glass,
+      fineDetail,
+      ...float,
+      pulse: NO_PULSE,
+      done: false,
+    };
+  }
 
   if (mode === 'shutdown') {
     const y = ramp(t, COLLAPSE_Y[0], COLLAPSE_Y[1]);
     const x = ramp(t, COLLAPSE_X[0], COLLAPSE_X[1]);
     const fade = ramp(t, DOT_FADE[0], DOT_FADE[1]);
     const off = clamp01((t - COLLAPSE_Y[0]) / 450);
+    // Power drains back down the cable as the tube goes out.
+    const drain = clamp01((t - COLLAPSE_Y[0] - 40) / 620);
     return {
       camera,
       stageOpacity: 1,
@@ -160,6 +246,11 @@ export function introFrame(
       desktopPainted: true,
       glass,
       fineDetail,
+      ...float,
+      pulse:
+        drain > 0 && drain < 1
+          ? { at: PULSE_FROM * drain ** 1.4, strength: 0.85 * (1 - drain * drain), glow: 0 }
+          : NO_PULSE,
       done: t >= SHUTDOWN_END,
     };
   }
@@ -176,6 +267,17 @@ export function introFrame(
       };
   const typing = clamp01((t - TYPE[0]) / (TYPE[1] - TYPE[0]));
   const titleOut = ramp(t, TITLE_OUT[0], TITLE_OUT[1]);
+  // Power climbs the cable, quickening as it nears the machine, and lands
+  // exactly as the tube switches on; the cable glows for a moment after.
+  const climb = clamp01((t - (POWER_AT - PULSE_MS)) / PULSE_MS);
+  const pulse =
+    climb > 0 && climb < 1
+      ? { at: PULSE_FROM * (1 - climb ** 1.6), strength: ramp(climb, 0, 0.1), glow: 0 }
+      : {
+          at: 0,
+          strength: 1 - ramp(on, 0, 140),
+          glow: ramp(on, -40, 60) * (1 - ramp(on, 160, 1300)),
+        };
 
   return {
     camera,
@@ -192,6 +294,8 @@ export function introFrame(
     desktopPainted: t >= DESK_PAINT,
     glass,
     fineDetail,
+    ...float,
+    pulse: t < POWER_AT - PULSE_MS ? NO_PULSE : pulse,
     done: t >= DIVE[1],
   };
 }
