@@ -15,11 +15,17 @@ import type {
   LastMoveInfo,
   OpeningBook,
 } from './engine/types';
+import { calibrated, type Calibration, type HumanModel } from './engine/human/model';
 import bookJson from './data/opening-book.json';
 import profileJson from './data/style-profile.json';
+import humanJson from './data/human-model.json';
 
 const BOOK = bookJson as unknown as OpeningBook;
 const PROFILE = profileJson as unknown as AndyProfile;
+const MODEL = calibrated(
+  humanJson.model as unknown as HumanModel,
+  (humanJson as { calibration?: Calibration }).calibration,
+);
 
 const FALLBACK_MIN_MS = 350;
 const FALLBACK_EXTRA_MS = 500;
@@ -29,6 +35,8 @@ type MoveRequest = {
   id: number;
   fen: string;
   lastMove?: LastMoveInfo;
+  /** the game so far, as UCI moves — lets the engine see repetitions */
+  history?: string[];
 };
 type AnalyzeRequest = {
   type: 'analyze';
@@ -69,7 +77,10 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   const start = Date.now();
   let result: EngineResult | null;
   try {
-    result = chooseMove(msg.fen, PROFILE, BOOK, Math.random, msg.lastMove);
+    result = chooseMove(msg.fen, PROFILE, BOOK, MODEL, Math.random, {
+      lastMove: msg.lastMove,
+      history: msg.history,
+    });
   } catch (err) {
     post({ type: 'error', id: msg.id, message: err instanceof Error ? err.message : String(err) });
     return;

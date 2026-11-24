@@ -1,39 +1,32 @@
-/* analyze.ts — post-game review, scored by the engine's own judgement.
+/* analyze.ts — post-game review, scored by the bot's own engine.
 
-   This is deliberately NOT Stockfish. The same shallow negamax + quiescence
-   search the bot plays with (search.ts) re-scores every position, so the review
-   reflects "what Andy's engine thinks" rather than a 3200 oracle. That keeps the
-   feature honest and, conveniently, fast enough to run client-side in the worker.
+   Not Stockfish: the core engine (core/search.ts) re-scores every position of
+   the game at a modest budget, which is fast enough to run in the worker and
+   strong enough to call real mistakes. Each position is evaluated once; a
+   move's loss is the score before it minus the score after it (from the
+   mover's side), the way Lichess computes it. Losses become quality buckets
+   (best → blunder) and a per-move accuracy from Lichess's win% model. For the
+   human's moves we also look up Andy's opening book, so the panel can show
+   what Andy actually plays in that spot. */
 
-   For each move we measure centipawns lost versus the engine's best reply,
-   bucket it (best → blunder), and convert the win-probability swing into a
-   per-move accuracy using Lichess's published model. For the human's moves we
-   also look up the position in Andy's opening book, so the panel can show what
-   Andy actually plays most in that spot. */
-
-import { Chess, type Move } from 'chess.js';
-import { searchRoot } from './search';
+import { Chess } from 'chess.js';
 import { fenKey } from './book';
-import type {
-  GameReview,
-  MoveQuality,
-  MoveReview,
-  OpeningBook,
-} from './types';
+import { Position, moveFrom, movePromo, moveTo, sqName } from './core/position';
+import { MATE_BOUND, Searcher } from './core/search';
+import type { GameReview, MoveQuality, MoveReview, OpeningBook } from './types';
 
-/* Shallow on purpose: this matches the bot's gameplay strength, and quiescence
-   already resolves hanging pieces and trades, which is what makes a depth-2
-   review trustworthy enough to flag real blunders. The tighter node budget and
-   topK keep a whole-game review to roughly a second or two. */
-const ANALYSIS_DEPTH = 2;
-const ANALYSIS_TOPK = 6;
-const ANALYSIS_NODE_BUDGET = 60_000;
+/** Engine budget per position: ~depth 7–8, a few seconds for a whole game */
+const REVIEW_NODES = 20_000;
+/** Scores are clamped here so a mate doesn't dwarf everything else */
+const CLAMP = 1500;
 
 /* cp-lost thresholds for the quality buckets. */
 const T_BEST = 20;
 const T_GOOD = 50;
 const T_INACCURACY = 100;
 const T_MISTAKE = 250;
+
+const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 /** Win probability (0..100) for the side to move, from a centipawn score in
     that side's POV — Lichess's logistic model. */
@@ -55,9 +48,6 @@ function classify(cpLoss: number): MoveQuality {
   return 'blunder';
 }
 
-const samePromotion = (a?: string, b?: string): boolean =>
-  (a ?? '') === (b ?? '');
-
 /** Replay a SAN history and produce a full game review. */
 export function analyzeGame(
   history: string[],
@@ -78,41 +68,52 @@ export function analyzeGame(
   let bookMatches = 0;
   let bookTotal = 0;
 
+  // Score every position once (side to move's view), with the engine's pick.
+  const pos = new Position();
+  pos.setFen(START_FEN);
+  const searcher = new Searcher(pos);
+  const scores: number[] = [];
+  const bestUci: (string | null)[] = [];
+  const replay = new Chess();
+  for (let ply = 0; ply <= history.length; ply++) {
+    const legal = pos.legalMoves();
+    if (legal.length === 0) {
+      scores.push(pos.inCheck() ? -CLAMP : 0);
+      bestUci.push(null);
+    } else {
+      const r = searcher.think({ depth: 64, nodes: REVIEW_NODES });
+      const score = Math.abs(r.score) > MATE_BOUND ? Math.sign(r.score) * CLAMP : r.score;
+      scores.push(Math.max(-CLAMP, Math.min(CLAMP, score)));
+      const m = r.move || legal[0];
+      bestUci.push(
+        sqName(moveFrom(m)) + sqName(moveTo(m)) + (movePromo(m) ? ' pnbrqk'[movePromo(m)] : ''),
+      );
+    }
+    if (ply === history.length) break;
+    const played = replay.move(history[ply]);
+    const mv = pos.findMove(played.from, played.to, played.promotion);
+    if (!mv || !pos.make(mv)) break;
+  }
+
   for (let ply = 0; ply < history.length; ply++) {
     const san = history[ply];
     const color = chess.turn(); // side about to move
     const byUser = (color === 'w') === (userColor === 'white');
     const fenBefore = chess.fen();
 
-    const legal = chess.moves({ verbose: true }) as Move[];
-    const playedMove = legal.find((m) => m.san === san) ?? null;
-
-    // The engine scores every legal root move (mover's POV), best first. With a
-    // single legal move there's nothing to lose — skip the search.
-    let bestCp = 0;
-    let playedCp = 0;
+    const legal = chess.moves({ verbose: true });
+    const before = scores[ply] ?? 0;
+    const after = -(scores[ply + 1] ?? 0);
     let bestSan: string | undefined;
-    if (legal.length > 1) {
-      const scores = searchRoot(
-        chess,
-        ANALYSIS_DEPTH,
-        ANALYSIS_TOPK,
-        ANALYSIS_NODE_BUDGET,
+    const b = bestUci[ply];
+    if (b) {
+      const bm = legal.find(
+        (m) => m.from === b.slice(0, 2) && m.to === b.slice(2, 4) && (m.promotion ?? '') === (b[4] ?? ''),
       );
-      if (scores.length) {
-        bestCp = scores[0].searchCp;
-        bestSan = scores[0].move.san;
-        const mine = playedMove
-          ? scores.find(
-              (s) =>
-                s.move.from === playedMove.from &&
-                s.move.to === playedMove.to &&
-                samePromotion(s.move.promotion, playedMove.promotion),
-            )
-          : scores.find((s) => s.move.san === san);
-        playedCp = mine ? mine.searchCp : bestCp;
-      }
+      bestSan = bm?.san;
     }
+    const bestCp = legal.length > 1 ? before : 0;
+    const playedCp = legal.length > 1 ? Math.min(before, after) : 0;
 
     // What does Andy actually do here? (Only meaningful for the human's moves —
     // the bot's own moves came from this very book.)

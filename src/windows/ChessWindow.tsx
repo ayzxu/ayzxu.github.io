@@ -1,6 +1,6 @@
 /* ChessWindow — "Andy Chess Bot". Play a full game against a client-side engine
-   tuned to mimic Andy's ~1500 Chess.com style (Italian as White, King's Indian
-   vs 1.d4, sharp open games, and lifelike mistakes). Styled to match the 1-bit
+   that plays like Andy at ~1900 Chess.com rapid: his real repertoire, and a
+   humanizer fitted to the moves he actually plays, mistakes included. Styled to match the 1-bit
    System 1 desktop: dithered dark squares, pixel/VT323 type, mac-button chrome.
 
    The engine runs in a Web Worker (see useAndyBot); this component owns the game
@@ -204,7 +204,9 @@ export default function ChessWindow() {
       ? { to: last.to, capture: last.flags.includes('c') || last.flags.includes('e') }
       : undefined;
     try {
-      const res = await requestMove(g.fen(), lastMove);
+      // The whole game, so Andy can see (and steer for or around) repetitions.
+      const uci = verbose.map((m) => m.from + m.to + (m.promotion ?? ''));
+      const res = await requestMove(g.fen(), lastMove, uci);
       if (myGameId !== gameIdRef.current) return; // game was reset mid-think
       if (!res) {
         setEngineError(true);
@@ -488,7 +490,7 @@ export default function ChessWindow() {
     <div className="chess-app">
       <div className="chess-app-head">
         <div className="win-sub">Andy Chess Bot</div>
-        <div className="win-meta">Plays like Andy · ~1500 chess.com</div>
+        <div className="win-meta">Plays like Andy · ~1900 chess.com rapid</div>
       </div>
 
       <div className="chess-app-body">
@@ -650,19 +652,25 @@ export default function ChessWindow() {
         <div className="win-sub">How it works</div>
         <p>
           This isn&apos;t Stockfish with the difficulty turned down. It&apos;s a
-          hand-written engine trained on my actual Chess.com games. A data pipeline
-          builds two things from my full game history: an opening book of every
-          position I&apos;ve reached, weighted by how often I played each move and
-          how it scored, and a style profile capturing my tendencies like how often
-          I grab captures, give checks, develop pieces, or attack the kingside.
+          hand-written engine plus a model of how I actually choose moves, built
+          from my real Chess.com games. In the opening it plays my repertoire: every
+          position I&apos;ve reached, weighted toward my recent rapid games and the
+          lines that worked.
         </p>
         <p>
-          In the opening, the bot plays my repertoire. Out of book, a negamax search
-          with alpha-beta pruning scores every legal move, then a style layer nudges
-          the ranking toward moves that look like me. A humanizer then decides what
-          actually gets played: usually something good, sometimes an inaccuracy,
-          occasionally a natural-looking blunder. Error rates climb in sharp positions
-          and drop in the endgame, which is what lands it at around 1500.
+          Out of book, the engine looks at every legal move three ways: what it
+          looks like at a glance, what it looks like after checking the reply, and
+          what it really is after a deep search. Like me, the bot doesn&apos;t
+          calculate everything equally. Sometimes it glances, sometimes it checks
+          the reply, sometimes it really calculates, depending on the position, and
+          it leans toward the kinds of moves I like. Its mistakes come from that gap:
+          moves that look fine at a glance but lose to a quiet reply.
+        </p>
+        <p>
+          Every one of those weights is fitted to my real games. Stockfish graded
+          every move I made, and the model learned how often I glance versus
+          calculate, and what I tend to play, until it predicted my actual moves
+          better than the engine&apos;s own top choice does.
         </p>
         <p>
           Even the pauses are modeled on me. The pipeline reads the clock tags

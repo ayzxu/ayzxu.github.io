@@ -99,12 +99,11 @@ async function toLatestGame(lastGame: ChessComGame): Promise<LatestGame> {
   };
 }
 
+/** Shown until (or if) the live Chess.com stats load: last known ratings */
+const FALLBACK_RATINGS: ChessRatings = { bullet: 1500, rapid: 1900, blitz: 1300 };
+
 export function useChessGame() {
-  const [ratings, setRatings] = useState<ChessRatings>({
-    bullet: 1450,
-    rapid: 1400,
-    blitz: 1300,
-  });
+  const [ratings, setRatings] = useState<ChessRatings>(FALLBACK_RATINGS);
   const [latestGame, setLatestGame] = useState<LatestGame | null>(null);
 
   useEffect(() => {
@@ -113,9 +112,9 @@ export function useChessGame() {
       .then((res) => res.json())
       .then((data) => {
         setRatings({
-          bullet: data.chess_bullet?.last?.rating || 1450,
-          rapid: data.chess_rapid?.last?.rating || 1400,
-          blitz: data.chess_blitz?.last?.rating || 1300,
+          bullet: data.chess_bullet?.last?.rating || FALLBACK_RATINGS.bullet,
+          rapid: data.chess_rapid?.last?.rating || FALLBACK_RATINGS.rapid,
+          blitz: data.chess_blitz?.last?.rating || FALLBACK_RATINGS.blitz,
         });
       })
       .catch((err) => console.error('Failed to fetch chess stats:', err));

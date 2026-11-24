@@ -1,0 +1,108 @@
+{
+  "calibration": {
+    "tauScale": 0.35,
+    "deepShift": 3,
+    "note": "Sharper choice + more calculation than the raw fit, which plays below Andy when sampled. Set so its Stockfish-graded move quality matches Andy's Jul-Aug 2026 rapid games (when he reached 1900).",
+    "measured": {
+      "strengthProbe": "Stockfish-approved moves (graded top-4 only) on Andy's 885 positions since 2026-07: model 66.2% vs Andy 67.1% (raw fit: 51.3%)",
+      "vsStockfish": "UCI_Elo 1900: 9.5/24; UCI_Elo 1700: 9.5/32 (about 1700 on Stockfish's scale)",
+      "errorProfile": "first 31 graded moves per game: ACPL 40, per 40 moves 6.6 inaccuracies / 4.1 mistakes / 0.5 blunders; Andy's 2026-07+ rapid: ACPL 38, 4.4 / 3.4 / 0.8"
+    }
+  },
+  "meta": {
+    "source": "fit-human.ts",
+    "generatedAt": "2026-11-24T22:31:25.768Z",
+    "positions": 11432,
+    "heldOut": {
+      "moves": 2215,
+      "matchPct": 43.70203160270881,
+      "engineMatchPct": 39.77426636568849,
+      "nll": 1.9618442995836634
+    },
+    "heldOutRapid": {
+      "moves": 296,
+      "matchPct": 42.229729729729726,
+      "engineMatchPct": 42.229729729729726,
+      "nll": 1.9638598571974346
+    }
+  },
+  "scale": "win",
+  "context": [
+    "bias",
+    "endgame",
+    "forcing",
+    "inCheck",
+    "onlyMove",
+    "decided",
+    "late",
+    "blitz",
+    "rapidSkill",
+    "blitzSkill"
+  ],
+  "habits": [
+    "capture",
+    "gain",
+    "check",
+    "castle",
+    "knight",
+    "bishop",
+    "rook",
+    "queen",
+    "king",
+    "retreat",
+    "escape",
+    "recapture",
+    "pawnDouble",
+    "develop",
+    "advance"
+  ],
+  "model": {
+    "scale": "win",
+    "tau": [
+      8.54,
+      1.13,
+      2.22
+    ],
+    "replyLogit": [
+      -0.153,
+      0.8,
+      -0.176,
+      -0.234,
+      -0.572,
+      1.01,
+      -0.52,
+      -0.09,
+      0.318,
+      0.046
+    ],
+    "deepLogit": [
+      0.753,
+      0.088,
+      -0.226,
+      -0.034,
+      -0.34,
+      -0.247,
+      -0.545,
+      -0.309,
+      0.618,
+      0.065
+    ],
+    "habit": [
+      2.45,
+      0.02,
+      1.59,
+      0.75,
+      0.64,
+      -0.13,
+      -0.53,
+      -0.03,
+      -0.55,
+      -0.47,
+      0.77,
+      1.5,
+      -0.22,
+      2.34,
+      -0.33
+    ]
+  }
+}

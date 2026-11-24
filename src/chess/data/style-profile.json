@@ -1,73 +1,51 @@
 {
   "meta": {
     "username": "mozandyque",
-    "source": "curated-default",
-    "generatedAt": "2026-06-09T19:06:33.041Z",
-    "games": 0
+    "source": "chesscom-pipeline",
+    "generatedAt": "2026-11-24T21:46:28.665Z",
+    "games": 8426,
+    "record": {
+      "wins": 4263,
+      "draws": 417,
+      "losses": 3746
+    }
   },
   "ratings": {
-    "blitz": 1500,
-    "rapid": 1450,
-    "bullet": 1450
+    "blitz": 1296,
+    "rapid": 1900,
+    "bullet": 1501
   },
-  "style": {
-    "aggression": 0.66,
-    "tactical": 0.62,
-    "materialism": 0.42,
-    "risk": 0.6,
-    "captureBias": 0.5,
-    "checkBias": 0.5,
-    "centerBias": 0.6,
-    "developmentBias": 0.6,
-    "kingsideAttackBias": 0.62
-  },
-  "errors": {
-    "blunderRate": 0.01,
-    "inaccuracyRate": 0.05,
-    "blunderCpWindow": [
-      60,
-      160
-    ],
-    "sharpnessMultiplier": 1.2,
-    "endgameErrorMultiplier": 0.25
-  },
-  "search": {
-    "baseDepth": 2,
-    "endgameDepth": 4,
-    "baseTemperature": 14,
-    "inaccuracyTemperature": 55,
-    "bookDeviation": 0.1
-  },
+  "bookDeviation": 0.04,
   "timing": {
-    "source": "curated-default",
+    "source": "chesscom-clk",
     "clampMs": [
       400,
       8000
     ],
     "buckets": {
       "forced": {
-        "medianMs": 700,
-        "sigma": 0.45
+        "medianMs": 1100,
+        "sigma": 0.9
       },
       "recapture": {
-        "medianMs": 650,
-        "sigma": 0.4
+        "medianMs": 900,
+        "sigma": 0.9
       },
       "book": {
-        "medianMs": 1100,
-        "sigma": 0.55
+        "medianMs": 1500,
+        "sigma": 0.9
       },
       "endgame": {
-        "medianMs": 2000,
-        "sigma": 0.6
+        "medianMs": 1200,
+        "sigma": 0.9
       },
       "capture": {
-        "medianMs": 2600,
-        "sigma": 0.65
+        "medianMs": 3400,
+        "sigma": 0.9
       },
       "normal": {
-        "medianMs": 3400,
-        "sigma": 0.7
+        "medianMs": 4100,
+        "sigma": 0.9
       }
     },
     "modifiers": {

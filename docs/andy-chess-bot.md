@@ -1,207 +1,189 @@
 # Andy Chess Bot — Technical Design Document
 
-A client-side chess bot that plays like Andy Xu (~1500 Chess.com, `mozandyque`), embedded as a Macintosh-style application inside the `andyxu.dev` desktop portfolio.
+A client-side chess bot that plays like Andy Xu (`mozandyque`, ~1900 Chess.com
+rapid), embedded as a Macintosh-style application inside the `andyxu.dev`
+desktop portfolio.
 
-The goal is **not** strength. The goal is recognizability: a visitor should finish a game thinking *"that felt like playing Andy."* That means replicating Andy's opening repertoire, his preference for sharp open positions, his attacking tendencies, and — critically — his ~1500-level mistakes.
-
----
-
-## 1. Recommended architecture
-
-**Decision: a fully client-side hybrid engine.** No server, no Stockfish, no WebAssembly threading.
-
-This was chosen deliberately over the "Stockfish + style layer" option in the brief, for three reasons:
-
-1. **Hosting reality.** `andyxu.dev` is a static GitHub Pages deployment (`gh-pages -d dist`, custom-domain `CNAME`). GitHub Pages cannot set the `Cross-Origin-Opener-Policy` / `Cross-Origin-Embedder-Policy` headers that multi-threaded Stockfish (`SharedArrayBuffer`) requires. The workarounds (single-threaded WASM, or a `coi-serviceworker` hack) add fragility and a multi-megabyte download for an engine whose strength we then have to throw away.
-2. **The goal fights the tool.** Stockfish's entire value is finding the best move. Our job is to find a *plausibly human, frequently sub-optimal* move. Starting from a 3200-rated oracle and corrupting it down to 1500 is harder, and looks less human, than starting from a deliberately modest engine and shaping it.
-3. **Control & maintainability.** A handwritten evaluation + shallow search gives us direct, legible knobs for aggression, materialism, and blunder rate. Every "feels like Andy" lever is a number in a JSON file, not an opaque NNUE weight.
-
-The bot is therefore three cooperating layers:
-
-```
- ┌─────────────────────────────────────────────────────────────────────┐
- │  OPENING BOOK         │  STYLE-SHAPED SEARCH       │  HUMANIZER       │
- │  (statistical, from   │  (handcrafted eval +       │  (error model,   │
- │   Andy's real games)  │   shallow αβ + style bonus)│   softmax sample)│
- └─────────────────────────────────────────────────────────────────────┘
-        prefer his                play like his                 miss things
-        repertoire                middlegame taste              like a 1500
-```
+The goal is recognizability, at the right strength: a visitor should finish a
+game thinking *"that felt like playing Andy"*: his opening repertoire, the moves
+he likes, and his mistakes, at the rate and of the kind he really makes them.
 
 ---
 
-## 2. System diagram & data flow
+## 1. Architecture
 
-### Offline (build time, runs on Andy's machine)
-
-```
-Chess.com Public API ──► fetch-games.mjs ──► raw PGN cache (tools/chess-data/.cache)
-                                                   │
-                                                   ▼
-                                        build-artifacts.mjs
-                                                   │
-                          ┌────────────────────────┴───────────────────────┐
-                          ▼                                                  ▼
-              src/chess/data/opening-book.json            src/chess/data/style-profile.json
-              (FEN → weighted move stats)                 (aggression, errors, search knobs)
-```
-
-The pipeline runs from **Andy's machine** because the sandboxed build environment cannot reach `api.chess.com`, and because pre-baking the artifacts (rather than fetching at page load) keeps the app fast and offline-capable. The artifacts are committed to the repo and bundled by Vite.
-
-A curated **default** book + profile ship in the repo so the bot is fully playable before the pipeline is ever run; running the pipeline simply replaces the defaults with data-driven numbers.
-
-### Online (runtime, in the visitor's browser)
+**A fully client-side engine in a Web Worker.** No server, no Stockfish at
+runtime. (GitHub Pages can't set the cross-origin isolation headers
+multi-threaded Stockfish needs, and its strength would only be thrown away.)
 
 ```
- ChessWindow.tsx ──user move──► useAndyBot (hook)
-        ▲                              │  postMessage({fen, history})
-        │                              ▼
-   board + move list           andyBot.worker.ts  (Web Worker, off main thread)
-        │                              │
-        │                     chooseMove(fen, profile, book)
-        │                              │
-        │         ┌────────────────────┼─────────────────────┐
-        │         ▼                    ▼                     ▼
-        │      book.ts             search.ts             humanize.ts
-        │   (sample line)      (eval + αβ + style)   (error + softmax)
-        │                              │
-        └──────reply{san,fen}◄─────────┘
+ ┌──────────────────────────────────────────────────────────────────────────┐
+ │  OPENING BOOK          │  CORE ENGINE               │  HUMANIZER          │
+ │  (Andy's real games,   │  (0x88 board, αβ + TT,     │  (choice model      │
+ │   recent rapid first)  │   PeSTO eval)              │   fitted to Andy)   │
+ └──────────────────────────────────────────────────────────────────────────┘
+        his repertoire       every move scored three         picks the move
+                             ways: glance / reply / deep     Andy would play
 ```
 
-Running the engine in a **Web Worker** guarantees the 1-bit desktop UI never janks while the bot "thinks." The pause before each reply is sampled from a measured think-time model (`engine/think.ts`): the data pipeline reads the `[%clk]` tag Chess.com stamps on every move of Andy's blitz games and fits a log-normal per context bucket (forced / recapture / book / endgame / capture / normal), so the bot snaps off recaptures and book moves, tanks in sharp middlegames, and speeds up late in the game like real clock pressure. Curated defaults tuned to ~5|0 blitz ship in the profile until the pipeline is run on real games.
+Version 1 (2026-06) searched two plies through chess.js and injected mistakes
+with hand-set rates tuned to ~1500. Version 2 replaces it with a real engine,
+and replaces the hand-set error rates with a model fitted to Andy's own moves,
+graded by Stockfish.
 
 ---
 
-## 3. Component breakdown
+## 2. Data flow
+
+### Offline (runs on Andy's machine; artifacts are committed)
+
+```
+Chess.com API ──► fetch-games.mjs ──► cache/games.json
+                                          │
+             ┌────────────────────────────┼─────────────────────────────┐
+             ▼                            ▼                             ▼
+   build-artifacts.mjs             annotate.mjs (Stockfish)       calibrate.ts
+   opening-book.json               cache/annotations.jsonl        bot vs rating-
+   style-profile.json                     │                       limited Stockfish
+   (ratings, think times)                 ▼
+                                   build-fit-data.ts (bot's engine on every position)
+                                          │
+                                          ▼
+                                   fit-human.ts ──► human-model.json
+```
+
+See `tools/chess-data/README.md` for commands.
+
+### Online (in the visitor's browser)
+
+```
+ ChessWindow ──user move──► useAndyBot ──postMessage({fen, lastMove, history})──►
+ andyBot.worker ──► chooseMove()
+                      ├─ book.ts          in book? sample Andy's move
+                      ├─ core/search.ts   analyzeRoot(): glance / reply / deep per move
+                      └─ human/model.ts   decide() + sampleDecision()
+                 ◄── reply {san, fen, source, evalCp, delayMs}
+```
+
+The reply is held back for a think time sampled from Andy's real clock usage
+(`engine/think.ts`): instant recaptures, quick book moves, long thinks in sharp
+middlegames.
+
+---
+
+## 3. Components
 
 | Component | Path | Responsibility |
 |---|---|---|
-| Data pipeline | `tools/chess-data/` | Fetch games, parse PGNs, emit JSON artifacts |
-| Default artifacts | `tools/chess-data/build-default-*.mjs` | Hand-curated repertoire + style so the bot works out of the box |
-| Engine types | `src/chess/engine/types.ts` | Shared TypeScript contracts |
-| Evaluation | `src/chess/engine/evaluate.ts` | Material + piece-square tables + mobility + king safety |
-| Search | `src/chess/engine/search.ts` | Negamax + alpha-beta + quiescence |
+| Board | `src/chess/engine/core/position.ts` | 0x88 board, move generation, make/unmake, Zobrist hashing |
+| Tables | `src/chess/engine/core/tables.ts` | PeSTO material + piece-square tables |
+| Evaluation | `src/chess/engine/core/evaluate.ts` | Tapered eval: pawn structure, passed pawns, mobility, king safety |
+| Search | `src/chess/engine/core/search.ts` | Iterative deepening PVS, TT, null move, LMR, quiescence; `analyzeRoot` |
+| Humanizer | `src/chess/engine/human/model.ts` | Habit + context features, the fitted choice model |
 | Book | `src/chess/engine/book.ts` | FEN-keyed weighted move sampling |
-| Style | `src/chess/engine/style.ts` | Per-move bonuses from Andy's style vector |
-| Humanizer | `src/chess/engine/humanize.ts` | Blunder/inaccuracy injection, softmax move sampling |
-| Orchestrator | `src/chess/engine/andyBot.ts` | The `chooseMove` entry point tying the layers together |
-| Worker | `src/chess/andyBot.worker.ts` | Runs the engine off the main thread |
-| Hook | `src/chess/useAndyBot.ts` | React interface to the worker |
-| Window | `src/windows/ChessWindow.tsx` | Board, move list, controls, result, Mac styling |
+| Think time | `src/chess/engine/think.ts` | Log-normal think-time model |
+| Orchestrator | `src/chess/engine/andyBot.ts` | `chooseMove`: book → engine → humanizer |
+| Review | `src/chess/engine/analyze.ts` | Post-game review on the core engine |
+| Worker / hook / window | `src/chess/andyBot.worker.ts`, `useAndyBot.ts`, `src/windows/ChessWindow.tsx` | Off-thread engine, React glue, UI |
 
 ---
 
-## 4. Style modeling
+## 4. The engine
 
-Andy's playing identity is captured in `style-profile.json`, a small vector of `0..1` scores plus an error model and search settings. Each metric is estimable from his game history:
+A 0x88 mailbox board with pseudo-legal generation and in-place make/unmake,
+verified against the standard perft suite (`tools/chess-data/perft.ts`). Search
+is iterative-deepening negamax with principal-variation search, a 2^20-entry
+transposition table, null-move pruning, late-move reductions, reverse futility
+and futility pruning, killer and history ordering, a check extension, and a
+capture quiescence search with delta pruning. Evaluation is PeSTO's tapered
+tables plus doubled / isolated / passed pawns, the bishop pair, rooks on open
+files, mobility, a pawn shield and king-zone attack pressure.
 
-- **Aggression** — share of his moves that are captures, checks, or pawn storms toward the enemy king; frequency of early piece sallies. High aggression boosts sharp candidate moves during search.
-- **Tactical** — proxied by capture density in the middlegame and how often games are decided before move 40. Raises the search's appetite for forcing lines.
-- **Materialism** — how readily he trades when ahead and how quickly he recaptures. *Low* materialism = more willing to sacrifice; it discounts the penalty for giving up material in the style layer.
-- **Risk** — variance of outcomes and willingness to enter unbalanced positions; raises the sampling temperature so he picks the second-best sharp move more often.
-- **Opening preferences** — learned directly as move frequencies in the book (Italian as White, King's Indian vs `1.d4`, open `1...e5` games vs `1.e4`).
-- **Blunder tendencies** — at ~1500, roughly one in twelve to twenty middlegame moves is a real error. We model this as a per-move probability that the engine *deliberately* selects a worse-but-natural-looking move (a tempting capture, a check, an over-eager attack), scaled up in sharp/tactical positions to mimic blitz time-pressure, and scaled down in the endgame.
+At the bot's budget (250k nodes, about half a second in a browser) it reaches
+8–12 plies and solves most classic tactics: far stronger than Andy, which is
+the point. The humanizer, not a weakened search, decides how well it plays.
 
-> **Honest limitation.** Exact centipawn-loss calibration of the blunder rate would require running every historical position through a real engine offline. The pipeline ships with rating-derived defaults and a documented hook to refine them later; this is the single biggest lever for future fidelity work.
+`analyzeRoot()` scores every legal move three ways:
 
----
-
-## 5. Engine layer
-
-**Evaluation** (`evaluate.ts`) returns centipawns from White's perspective: material values, midgame piece-square tables, mobility, a bishop-pair bonus, and a light king-safety term (pawn shield + attackers near the king). On its own this plays around 1600–1800 — intentionally modest, because the humanizer pulls it *down* to ~1500, which looks more natural than corrupting a 3200 engine.
-
-**Search** (`search.ts`) is negamax with alpha-beta pruning and a quiescence search over captures to avoid absurd one-move horizon blunders. Default depth is 3 in the middlegame and 5 in the endgame (few pieces → cleaner, more "engine-driven" play, as requested). A node cap bounds worst-case latency.
-
-**Style weighting** (`style.ts`) adds a bounded bonus (≈ ±40 cp) to each candidate based on Andy's vector — captures, checks, central pawn pushes, development, castling, and kingside attacks. It is intentionally too small to justify hanging a piece, but large enough to break ties toward the sharp, Andy-flavored move.
-
-**Humanization** (`humanize.ts`) is where ~1500 comes from. After scoring, the orchestrator rolls against the error model:
-- a *blunder* roll picks a natural-looking but clearly inferior move (missed tactic / miscalculation);
-- an *inaccuracy* roll softmax-samples from the top ~6 with raised temperature;
-- otherwise it softmax-samples from the top ~3, so even "good" play has lifelike variety rather than robotic repetition.
-
-The result is a bot that **plays noticeably differently from vanilla Stockfish**: it opens with Andy's lines, attacks, occasionally overpresses, and sometimes drops a tactic — then tidies up in the endgame.
+- **glance**: the move, then the captures that follow (what's obvious);
+- **reply**: one full reply considered, then captures;
+- **deep**: the real verdict (best move at full depth, the most promising
+  alternatives two plies shallower; the rest keep their one-reply score).
 
 ---
 
-## 6. Data schemas
+## 5. The humanizer
 
-`src/chess/data/opening-book.json`:
-
-```jsonc
-{
-  "meta": { "source": "curated-default", "generatedAt": "ISO", "games": 0 },
-  "positions": {
-    // key = first 4 FEN fields (placement, side, castling, en-passant)
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": {
-      "moves": [
-        { "san": "e4", "count": 312, "score": 0.54 },  // score = (wins+½draws)/games
-        { "san": "Nf3", "count": 18,  "score": 0.50 }
-      ]
-    }
-  }
-}
+```
+P(move) = Σ_level π_level(context) · softmax((value_level(move) + habit(move)) / τ_level)
 ```
 
-`src/chess/data/style-profile.json`:
+- **Levels.** On each move Andy works at one level: a glance, checking the
+  reply, or real calculation. `π` comes from the position: endgame, how forcing
+  it is, in check, how far the best move is ahead of the second (an only-move
+  crisis), how decided the game already is, how late it is, and the time control.
+- **Choice.** At that level he picks among moves by how good they look, with
+  noise `τ`.
+- **Habits.** A learned bonus per kind of move: captures and their size, checks,
+  castling, which piece moves, retreats, escapes, recaptures, double pawn
+  pushes, development, moves into the enemy half.
 
-```jsonc
-{
-  "meta": { "username": "mozandyque", "source": "curated-default", "games": 0 },
-  "ratings": { "blitz": 1500, "rapid": 1450, "bullet": 1450 },
-  "style": { "aggression": 0.66, "tactical": 0.62, "materialism": 0.42,
-             "risk": 0.6, "captureBias": 0.5, "checkBias": 0.5,
-             "centerBias": 0.6, "developmentBias": 0.6, "kingsideAttackBias": 0.62 },
-  "errors": { "blunderRate": 0.025, "inaccuracyRate": 0.08, "blunderCpWindow": [80, 260],
-              "sharpnessMultiplier": 1.35, "endgameErrorMultiplier": 0.25 },
-  "search": { "baseDepth": 2, "endgameDepth": 4, "baseTemperature": 24,
-              "inaccuracyTemperature": 75, "bookDeviation": 0.1 }
-}
-```
+Mistakes come from the gap between levels: a move that looks fine at a glance
+but loses to a quiet reply; a tactic only a deeper look finds.
 
----
+**Fitting.** Every move Andy played after the opening in his rated rapid games
+since 2025 and his most recent blitz games was graded by Stockfish
+(`annotate.mjs`) and re-analysed by the bot's own engine at the bot's own budget
+(`build-fit-data.ts`). `fit-human.ts` fits all weights by maximum likelihood on
+those moves, with a fifth of the games held out. Rapid positions count double:
+there are few of them (Andy's rapid rating only reached 1900 in July 2026), so
+the larger blitz sample mostly teaches the *shape* of his mistakes, with a blitz
+flag absorbing the difference in level. The bot always plays as rapid Andy.
 
-## 7. Frontend integration
+**Calibration.** Sampling from a model fitted to *predict* Andy plays below him:
+it spreads probability over moves he wouldn't actually play (the raw fit picks a
+Stockfish-approved move 51% of the time on his positions; Andy, 67%). The shipped
+bot therefore sharpens the choice (`tauScale` 0.35) and calculates more often
+(`deepShift` +3), which keeps every learned habit and context effect and only
+moves the level. A rating input (his rating at the time of each game) lets the
+fit learn how his play changes as he improves; the bot plays at his current
+rapid rating.
 
-The bot becomes a first-class desktop app, identical in pattern to the existing Projects/Fun/About windows:
+### Results (November 2026 data)
 
-- a new `chess` window id in `windowConfig.ts` with a deep-link route `/chess`;
-- a hand-drawn 1-bit **knight icon** on the desktop (`PixelIcons.tsx`), wired through `iconLayout.ts` and `Desktop.tsx`;
-- `ChessWindow.tsx` renders an interactive `react-chessboard` (dithered dark squares to match the Fun panel), a two-column SAN move list, a "New Game" control with color choice, a "thinking…" indicator, and a result banner;
-- the engine talks through `useAndyBot`, so the UI thread stays smooth.
+| | Andy | Bot |
+|---|---|---|
+| Predicting Andy's move on held-out games | — | 44.6% (engine's best move: 39.8%) |
+| Stockfish-approved moves on his Jul–Aug 2026 rapid positions | 67.1% | 66.2% |
+| Avg. centipawn loss (first 31 graded moves of a game) | 38 | 40 |
+| Inaccuracies / mistakes / blunders per 40 moves | 4.4 / 3.4 / 0.8 | 6.6 / 4.1 / 0.5 |
+| vs Stockfish `UCI_Elo` 1900 / 1700 | — | 9.5/24, 9.5/32 (≈1700 on Stockfish's scale) |
 
----
-
-## 8. Deployment
-
-**Selected model: fully client-side, shipped with the existing static build.** No new infrastructure.
-
-| Model | Cost | Reliability | Maintenance | Verdict |
-|---|---|---|---|---|
-| Fully client-side | $0 | No backend to fail | Rebuild = redeploy | ✅ Chosen |
-| Serverless engine | low but non-zero | cold starts, quotas | another deploy target | ✗ Unjustified |
-| Small backend | ongoing | a server to babysit | highest | ✗ Overkill |
-
-The data pipeline runs locally and commits JSON; `npm run build && npm run deploy` ships everything. Refreshing Andy's style after new games is a single command.
-
----
-
-## 9. Risks & mitigations
-
-- **Engine too strong / too weak.** Every knob is data in `style-profile.json`; tune `baseDepth`, `blunderRate`, and temperature without touching code. A self-play sanity harness ships with the engine.
-- **UI jank during "thinking."** Mitigated by the Web Worker; the main thread only renders.
-- **Book gaps (opponent plays offbeat lines).** Graceful fallback to style-shaped search; the bot is never stuck.
-- **Blunder calibration is approximate.** Documented; rating-derived defaults now, optional offline engine-analysis pass later.
-- **`react-chessboard` v5 API churn.** Pinned in `package.json`; integration isolated to `ChessWindow.tsx`.
-- **Bundle size.** Pure-JS engine + JSON book is tens of KB, not the multi-MB of Stockfish WASM.
+Andy's column is his rated rapid games from July–August 2026, when he reached
+1900. The bot's error profile comes from its games against rating-limited
+Stockfish, graded by full-strength Stockfish exactly as Andy's were.
 
 ---
 
-## 10. Roadmap
+## 6. Artifacts
 
-1. ✅ Data pipeline + curated defaults
-2. ✅ Engine core (eval, search, book, style, humanizer)
-3. ✅ Worker + hook
-4. ✅ Mac-style chess window + desktop wiring
-5. ✅ Typecheck / build / self-play verification
-6. ▶ Andy runs the pipeline on his real games to replace the defaults
-7. ◻ Optional: offline engine-analysis pass to calibrate blunder severity to true centipawn loss
+- `opening-book.json` — `positions[fenKey].moves = [{ san, count, score }]`,
+  counts weighted by time control (rapid 3, blitz 1, bullet 0.4) and recency
+  (half-life 18 months).
+- `style-profile.json` — `ratings`, `bookDeviation`, `timing` (think-time model).
+- `human-model.json` — `model.{scale, tau, replyLogit, deepLogit, habit}`, the
+  `calibration` applied on top, the feature names, and held-out fit statistics.
+
+---
+
+## 7. Risks & mitigations
+
+- **Too strong / too weak.** `calibrate.ts` measures it against rating-limited
+  Stockfish and compares the bot's error profile with Andy's; the model can be
+  shifted toward more or less calculation without refitting.
+- **UI jank.** The engine runs in a Web Worker; the main thread only renders.
+- **Book gaps.** Out of book the engine takes over; it's never stuck.
+- **Thin rapid data.** Blitz games supply the shape of the mistakes; rerun the
+  pipeline as more rapid games are played.
+- **Bundle size.** The engine is a few thousand lines of TypeScript plus JSON:
+  tens of KB, not the megabytes of Stockfish WASM.
