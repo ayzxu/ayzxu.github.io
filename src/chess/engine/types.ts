@@ -1,10 +1,8 @@
 /* types.ts — shared contracts for the Andy Chess Bot engine.
 
    The engine is fully client-side: an opening book learned from Andy's games,
-   a handcrafted evaluation + shallow search, a style-weighting layer, and a
-   humanizer that injects ~1500-level mistakes. See docs/andy-chess-bot.md. */
-
-import type { Move } from 'chess.js';
+   a fast alpha-beta engine (core/), and a humanizer fitted to the moves Andy
+   actually plays (human/). */
 
 /** Andy's playing identity — every "feels like Andy" knob lives here.
     Loaded from src/chess/data/style-profile.json (curated default or
@@ -17,44 +15,8 @@ export type AndyProfile = {
     games: number;
   };
   ratings: { blitz: number; rapid: number; bullet: number };
-  style: {
-    /** 0..1 — appetite for captures/checks/attacks during search */
-    aggression: number;
-    /** 0..1 — appetite for forcing/tactical lines */
-    tactical: number;
-    /** 0..1 — how much material is valued (low = happy to sacrifice) */
-    materialism: number;
-    /** 0..1 — willingness to enter sharp/unbalanced positions */
-    risk: number;
-    /** 0..1 — per-feature nudges used by the style layer */
-    captureBias: number;
-    checkBias: number;
-    centerBias: number;
-    developmentBias: number;
-    kingsideAttackBias: number;
-  };
-  errors: {
-    /** probability of a real error on a given middlegame move */
-    blunderRate: number;
-    /** probability of a minor inaccuracy */
-    inaccuracyRate: number;
-    /** [min,max] centipawns worse a "blunder" move may be vs best */
-    blunderCpWindow: [number, number];
-    /** multiplies error rate as the position gets sharper */
-    sharpnessMultiplier: number;
-    /** scales error rate down in the endgame */
-    endgameErrorMultiplier: number;
-  };
-  search: {
-    baseDepth: number;
-    endgameDepth: number;
-    /** softmax temperature (cp) for normal move selection */
-    baseTemperature: number;
-    /** softmax temperature (cp) when playing an inaccuracy */
-    inaccuracyTemperature: number;
-    /** probability of leaving book even when a book move exists */
-    bookDeviation: number;
-  };
+  /** probability of leaving book even when a book move exists */
+  bookDeviation: number;
   /** Measured think-time model (optional — engine falls back to curated
       defaults in think.ts when absent). */
   timing?: TimingProfile;
@@ -175,15 +137,6 @@ export type GameReview = {
   bookMatches: number;
   bookTotal: number;
   moves: MoveReview[];
-};
-
-/** A scored candidate produced during search, before humanization. */
-export type ScoredMove = {
-  move: Move;
-  /** pure search score (cp, mover's POV) */
-  searchCp: number;
-  /** search score + style bonus (cp) — what selection ranks on */
-  adjustedCp: number;
 };
 
 /** Random source so play can be seeded in tests and varied in production. */

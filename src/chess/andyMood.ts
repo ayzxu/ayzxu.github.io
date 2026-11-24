@@ -55,7 +55,7 @@ const LINES: Record<LineKind, readonly string[]> = {
   greeting: [
     'gl hf',
     "let's see what you got",
-    "be gentle, i'm ~1500",
+    "be gentle, i'm ~1900",
     'ready when you are',
     'no clock. lucky you',
   ],

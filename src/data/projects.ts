@@ -40,14 +40,15 @@ export const projects: Project[] = [
     year: 2026,
     techStack: ['TypeScript', 'Web Workers', 'chess.js', 'Node.js', 'Chess.com API'],
     impact: [
-      'Plays at ~1500 Chess.com strength with a recognizably "Andy" style',
+      'Plays at my ~1900 Chess.com rapid level, mistakes fitted to my real games',
       'Runs entirely in the browser — no server, no Stockfish',
       'Retrains on my latest games via an offline data pipeline',
     ],
     description:
       'A chess engine that plays like me, built from my real Chess.com games. ' +
       'It opens with my actual repertoire, leans toward the moves I\'d pick, and ' +
-      'even makes my mistakes (~1500 chess.com). Hand-written search engine that runs ' +
+      'makes my mistakes, as often as I make them: its humanizer is fitted to every ' +
+      'move I played, graded by Stockfish. A hand-written search engine that runs ' +
       'entirely in your browser — no server, no Stockfish. It gets stronger as I do: ' +
       'the bot retrains on my latest games.',
     openApp: 'chess',

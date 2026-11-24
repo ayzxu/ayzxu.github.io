@@ -1,28 +1,37 @@
-/* Self-play / sanity harness for the Andy Chess Bot engine.
-   Run: node_modules/.bin/jiti tools/chess-data/selfplay.ts            */
+/* Self-play / sanity harness for the Andy Chess Bot engine: repertoire
+   checks, then a few bot-vs-bot games with per-move timing.
+   Run: tools/chess-data/run.sh tools/chess-data/selfplay.ts               */
 import { Chess } from 'chess.js';
 import { chooseMove } from '../../src/chess/engine/andyBot';
 import type { AndyProfile, OpeningBook } from '../../src/chess/engine/types';
+import { calibrated, type Calibration, type HumanModel } from '../../src/chess/engine/human/model';
 import book from '../../src/chess/data/opening-book.json';
 import profile from '../../src/chess/data/style-profile.json';
+import human from '../../src/chess/data/human-model.json';
 
-const PROFILE = profile as AndyProfile;
-const BOOK = book as OpeningBook;
+const PROFILE = profile as unknown as AndyProfile;
+const BOOK = book as unknown as OpeningBook;
+const MODEL = calibrated(
+  human.model as unknown as HumanModel,
+  (human as { calibration?: Calibration }).calibration,
+);
 
 function playGame(maxPlies = 120) {
   const g = new Chess();
   const line: string[] = [];
+  const uci: string[] = [];
   const sources: Record<string, number> = {};
   let plies = 0;
   while (!g.isGameOver() && plies < maxPlies) {
     const t0 = Date.now();
-    const res = chooseMove(g.fen(), PROFILE, BOOK);
+    const res = chooseMove(g.fen(), PROFILE, BOOK, MODEL, Math.random, { history: uci });
     const dt = Date.now() - t0;
     if (!res) break;
     g.move({ from: res.from, to: res.to, promotion: res.promotion });
     line.push(res.san);
+    uci.push(res.from + res.to + (res.promotion ?? ''));
     sources[res.source] = (sources[res.source] ?? 0) + 1;
-    if (dt > 600) console.log(`  (slow move ${res.san}: ${dt}ms)`);
+    if (dt > 1500) console.log(`  (slow move ${res.san}: ${dt}ms)`);
     plies++;
   }
   return { line, sources, result: gameResult(g), plies };
@@ -45,7 +54,7 @@ const checks: [string, string][] = [
 for (const [label, fen] of checks) {
   const counts: Record<string, number> = {};
   for (let i = 0; i < 40; i++) {
-    const r = chooseMove(fen, PROFILE, BOOK);
+    const r = chooseMove(fen, PROFILE, BOOK, MODEL);
     if (r) counts[r.san] = (counts[r.san] ?? 0) + 1;
   }
   console.log(`${label}: ${JSON.stringify(counts)}`);

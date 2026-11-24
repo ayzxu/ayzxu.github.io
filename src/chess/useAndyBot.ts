@@ -66,7 +66,7 @@ export function useAndyBot() {
   }, []);
 
   const requestMove = useCallback(
-    (fen: string, lastMove?: LastMoveInfo): Promise<EngineResult | null> => {
+    (fen: string, lastMove?: LastMoveInfo, history?: string[]): Promise<EngineResult | null> => {
       return new Promise((resolve, reject) => {
         const worker = workerRef.current;
         if (!worker) {
@@ -80,7 +80,7 @@ export function useAndyBot() {
           reject,
         });
         setThinking(true);
-        worker.postMessage({ type: 'move', id, fen, lastMove });
+        worker.postMessage({ type: 'move', id, fen, lastMove, history });
       });
     },
     [],

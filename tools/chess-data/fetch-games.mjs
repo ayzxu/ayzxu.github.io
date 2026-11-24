@@ -36,7 +36,10 @@ const USERNAME = getArg('--user', 'mozandyque').toLowerCase();
 const MAX_MONTHS = Number(getArg('--max-months', '0')) || 0; // 0 = all
 const REQUEST_DELAY_MS = 250;
 
+// Chess.com asks for a descriptive User-Agent with a contact. Override it with
+// CHESS_COM_UA (e.g. to leave the contact out when running somewhere shared).
 const UA =
+  process.env.CHESS_COM_UA ||
   'andyxu.dev-chess-bot/1.0 (data pipeline; contact: andyxuburner@gmail.com)';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -103,8 +106,11 @@ async function main() {
     const stamp = url.split('/').slice(-2).join('-'); // YYYY-MM
     const rawPath = resolve(RAW_DIR, `${stamp}.json`);
 
+    // The current month is still being played, so its cache is never final.
+    const now = new Date();
+    const thisMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
     let payload;
-    if (existsSync(rawPath)) {
+    if (existsSync(rawPath) && stamp !== thisMonth) {
       payload = JSON.parse(readFileSync(rawPath, 'utf8'));
       console.log(`  ${stamp}: cached (${payload.games?.length ?? 0} games)`);
     } else {
