@@ -1,17 +1,14 @@
 /* StartupScene — the shared stage for the startup hardware, lit like a
-   product shot: a dark void with a soft fall of light behind the machine, a
-   faint pool of light on the floor beneath it, and the machine floating
-   above that pool on its own soft shadow, its cable hanging down out of
-   frame.
+   product shot: a dark void with a soft fall of light behind the machine,
+   and the machine floating in it, its cable hanging down out of frame.
 
    It's built as layers so App can move each one every frame without
    repainting the others:
 
-     floor    → the light falloff, the floor pool, and the screen's light on
-                the floor (follows --screen-light, 0–1, set on an ancestor)
-     shadow   → the contact shadow (scaled and faded as the machine bobs)
+     room     → the soft fall of light behind the machine
      machine  → the chassis, the plug, the dark screen glass and the bloom the
-                lit picture throws across the bezel (bobbed and rolled)
+                lit picture throws across the bezel (bobbed and rolled; the
+                bloom follows --screen-light, 0–1, set on an ancestor)
      cable    → the cable, its afterglow, and the pulse of power that runs
                 along it (path rebuilt every frame from where the plug is)
 
@@ -27,7 +24,6 @@ import type { DeviceGeometry } from '../lib/startupGeometry';
 /** The layers App animates */
 export type SceneRig = {
   machine: RefObject<HTMLDivElement | null>;
-  shadow: RefObject<HTMLDivElement | null>;
   cable: RefObject<SVGSVGElement | null>;
 };
 
@@ -69,7 +65,7 @@ export default function StartupScene({
   glassRx,
   children,
 }: StartupSceneProps) {
-  const { viewW, viewH, glass, floor } = geometry;
+  const { viewW, viewH, glass } = geometry;
   const off = screen === 'off';
   const cx = glass.x + glass.w / 2;
   const cy = glass.y + glass.h / 2;
@@ -89,8 +85,8 @@ export default function StartupScene({
       onClick={off ? onPowerClick : undefined}
       style={{ width: `${(height * viewW) / viewH}px`, height: `${height}px` }}
     >
-      {/* Floor: drawn past the scene's edges (overflow visible) and faded by
-          its gradients alone, so it has no edges anywhere */}
+      {/* Room light: drawn past the scene's edges (overflow visible) and
+          faded by its gradient alone, so it has no edges anywhere */}
       <svg className="scene-layer" viewBox={viewBox} aria-hidden="true">
         <defs>
           <radialGradient id="roomFalloff">
@@ -98,38 +94,9 @@ export default function StartupScene({
             <stop offset="55%" stopColor="#15191c" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="floorPool">
-            <stop offset="0%" stopColor="#8f9aa4" stopOpacity="0.24" />
-            <stop offset="50%" stopColor="#5c656d" stopOpacity="0.1" />
-            <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="floorSpill">
-            <stop offset="0%" stopColor="#d6e2f5" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#d6e2f5" stopOpacity="0" />
-          </radialGradient>
         </defs>
         <ellipse cx={cx} cy={cy + 150} rx={viewW * 0.95} ry={viewH * 0.72} fill="url(#roomFalloff)" />
-        <ellipse cx={cx} cy={floor.y + 4} rx={floor.shadowW * 1.05} ry={62} fill="url(#floorPool)" />
-        <ellipse
-          cx={cx}
-          cy={floor.y}
-          rx={floor.shadowW * 0.8}
-          ry={46}
-          fill="url(#floorSpill)"
-          style={{ opacity: 'var(--screen-light, 0)', mixBlendMode: 'screen' }}
-        />
       </svg>
-
-      <div
-        ref={rig.shadow}
-        className="scene-shadow"
-        style={{
-          left: pct(cx - floor.shadowW / 2, viewW),
-          top: pct(floor.y - floor.shadowH / 2, viewH),
-          width: pct(floor.shadowW, viewW),
-          height: pct(floor.shadowH, viewH),
-        }}
-      />
 
       {/* The machine floats about its glass centre, like the camera pivots */}
       <div

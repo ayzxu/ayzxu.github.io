@@ -41,9 +41,10 @@ export const intro = {
   heading: "Hi, I'm Andy.",
   body:
     "I'm a Member of Technical Staff on the Applied AI, Forward Deployed " +
-    "Engineering team at Mercor. I recently graduated from Carnegie " +
-    "Mellon University with a degree in Business Administration and " +
-    "a minor in Computer Science.",
+    'Engineering team at Mercor, and I recently graduated from Carnegie ' +
+    "Mellon. Lately I'm most excited about reinforcement learning and " +
+    'post-training: the work of turning a pretrained model into one that ' +
+    'reliably does what you need.',
   portrait: pfp,
 };
 

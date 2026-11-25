@@ -23,9 +23,6 @@ export type DeviceGeometry = {
   /** A tube that switches on and off as a line (Mac), or a backlight that
       simply fades (iPhone) */
   crt: boolean;
-  /** The floor the machine floats above: its height, and the size of the
-      soft shadow cast on it with the machine at its resting height */
-  floor: { y: number; shadowW: number; shadowH: number };
   /** The cable hanging from the machine */
   tether: Tether;
 };
@@ -36,8 +33,6 @@ export const MAC_GEOMETRY: DeviceGeometry = {
   glass: { x: 160, y: 91, w: 300, h: 204 },
   rasterInset: 9,
   crt: true,
-  // The case's foot ends at y≈580; it hovers a little over 30 above the floor.
-  floor: { y: 614, shadowW: 350, shadowH: 30 },
   // The coiled keyboard cord, from the RJ-11 port on the front of the base.
   tether: {
     port: { x: 466.5, y: 555 },
@@ -55,8 +50,6 @@ export const IPHONE_GEOMETRY: DeviceGeometry = {
   glass: { x: 89, y: 79, w: 222, h: 394 },
   rasterInset: 2,
   crt: false,
-  // The body ends at y≈535.
-  floor: { y: 572, shadowW: 210, shadowH: 22 },
   // A charging cable from the port on its bottom edge.
   tether: {
     port: { x: 199, y: 545 },
