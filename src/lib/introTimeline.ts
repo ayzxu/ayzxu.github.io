@@ -130,12 +130,6 @@ function floatAt(a: number, envelope: number): Hover {
   };
 }
 
-/** The shadow under a floating machine: higher means wider, softer, fainter */
-function shadowFor(rise: number): IntroFrame['shadow'] {
-  const k = Math.max(-3, Math.min(3, rise / BOB));
-  return { scaleX: 1 + 0.05 * k, scaleY: 1 + 0.08 * k, opacity: Math.min(1, 0.9 - 0.11 * k) };
-}
-
 const NO_PULSE = { at: 1, strength: 0, glow: 0 };
 
 /* --- Frames ---------------------------------------------------------------- */
@@ -165,7 +159,6 @@ export type IntroFrame = {
   /** The machine's float, and the cable's slack trailing it */
   hover: Hover;
   sway: { x: number; y: number };
-  shadow: { scaleX: number; scaleY: number; opacity: number };
   /** Power on the cable: where the pulse is (0 = at the machine, 1 = off
       the frame), how bright, and the afterglow of the whole cable */
   pulse: { at: number; strength: number; glow: number };
@@ -198,7 +191,7 @@ export function introFrame(
   const hover = { rise: bob.rise + rise, roll: bob.roll };
   const lag = floatAt(a - SWAY_LAG_MS, envelope);
   const sway = { x: 5 * (lag.roll / ROLL) * envelope, y: -0.8 * (lag.rise + rise) };
-  const float = { hover, sway, shadow: shadowFor(hover.rise) };
+  const float = { hover, sway };
 
   if (mode === 'exterior') {
     return {

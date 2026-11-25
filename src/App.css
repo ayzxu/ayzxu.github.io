@@ -978,15 +978,18 @@
   font-size: clamp(17px, 2.3vw, 21px);
 }
 
-.lightbox-window {
-  max-width: min(80%, 92vw) !important;
-  max-height: min(80%, 88vh) !important;
+/* The window is sized from its image in Lightbox.tsx */
+.lightbox-image {
+  display: block;
+  object-fit: contain;
 }
 
-.lightbox-image {
-  max-width: min(70vw, 92vw);
-  max-height: min(64vh, 78vh);
-  object-fit: contain;
+/* One-line caption that gives way to the image's width */
+.lightbox-title {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 519px) {
@@ -3222,18 +3225,6 @@
   inset: 0;
 }
 
-.scene-shadow {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    rgba(0, 0, 0, 0.92) 0%,
-    rgba(0, 0, 0, 0.62) 38%,
-    rgba(0, 0, 0, 0.22) 72%,
-    rgba(0, 0, 0, 0) 100%
-  );
-}
-
 .scene-cable {
   pointer-events: none;
 }
@@ -3250,7 +3241,6 @@
    lighting change as it pulls back. */
 .startup-stage--composited,
 .startup-stage--composited .scene-machine,
-.startup-stage--composited .scene-shadow,
 .startup-stage--composited .scene-cable {
   will-change: transform;
 }

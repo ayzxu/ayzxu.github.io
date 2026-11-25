@@ -120,9 +120,8 @@ export default function App() {
   const restRef = useRef<HTMLSpanElement>(null);
   const caretRef = useRef<HTMLElement>(null);
   const machineRef = useRef<HTMLDivElement>(null);
-  const shadowRef = useRef<HTMLDivElement>(null);
   const cableRef = useRef<SVGSVGElement>(null);
-  const [rig] = useState(() => ({ machine: machineRef, shadow: shadowRef, cable: cableRef }));
+  const [rig] = useState(() => ({ machine: machineRef, cable: cableRef }));
   /** The float's clock: runs at 1× through every phase, never fast-forwards,
       so the bob carries on unbroken from film to exterior and back */
   const ambient = useRef(0);
@@ -183,11 +182,6 @@ export default function App() {
         stage.style.setProperty('--screen-light', f.light.toFixed(3));
       }
       if (machineRef.current) machineRef.current.style.transform = hoverTransform(f.hover, lay);
-      if (shadowRef.current) {
-        const { scaleX, scaleY, opacity } = f.shadow;
-        shadowRef.current.style.transform = `scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`;
-        shadowRef.current.style.opacity = opacity.toFixed(3);
-      }
       const cable = cableRef.current;
       if (cable) {
         const plug = hoverPoint(geometry.tether.port, f.hover, geometry);

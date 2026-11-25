@@ -45,6 +45,86 @@ function isDarkSquare(sq: Square): boolean {
   return (sq.charCodeAt(0) - 97 + (Number(sq[1]) - 1)) % 2 === 0;
 }
 
+/* --- Premoves ---------------------------------------------------------------
+   Like chess.com: while Andy is thinking you can drag (or click) one of your
+   pieces to a square it could plausibly reach. It's played the moment Andy
+   moves, if it's legal then, and quietly dropped if not. Legality can't be
+   judged yet (Andy's move may open a line, or take on the target square, which
+   is how premove recaptures work), so only the piece's movement pattern is
+   checked here. */
+
+type Premove = { from: Square; to: Square };
+
+const fileIdx = (sq: Square) => sq.charCodeAt(0) - 97;
+const rankIdx = (sq: Square) => Number(sq[1]) - 1;
+
+/** Could this piece ever move from -> to, ignoring what's in the way? */
+function premovePlausible(g: Chess, from: Square, to: Square, color: 'w' | 'b'): boolean {
+  if (from === to) return false;
+  const piece = g.get(from);
+  if (!piece || piece.color !== color) return false;
+  const df = fileIdx(to) - fileIdx(from);
+  const dr = rankIdx(to) - rankIdx(from);
+  const adf = Math.abs(df);
+  const adr = Math.abs(dr);
+  switch (piece.type) {
+    case 'n':
+      return (adf === 1 && adr === 2) || (adf === 2 && adr === 1);
+    case 'b':
+      return adf === adr;
+    case 'r':
+      return df === 0 || dr === 0;
+    case 'q':
+      return adf === adr || df === 0 || dr === 0;
+    case 'k': {
+      if (adf <= 1 && adr <= 1) return true;
+      // Castling, from the king's home square
+      const home = color === 'w' ? 'e1' : 'e8';
+      return from === home && dr === 0 && adf === 2;
+    }
+    case 'p': {
+      const dir = color === 'w' ? 1 : -1;
+      const startRank = color === 'w' ? 1 : 6;
+      if (df === 0) return dr === dir || (dr === 2 * dir && rankIdx(from) === startRank);
+      return adf === 1 && dr === dir; // a capture, if something's there by then
+    }
+  }
+  return false;
+}
+
+/** The position to draw: the real game with the premove shown as played. */
+function premoveFen(fen: string, pm: Premove | null): string {
+  if (!pm) return fen;
+  const g = new Chess(fen);
+  const piece = g.get(pm.from);
+  if (!piece) return fen;
+  g.remove(pm.from);
+  const lastRank = piece.color === 'w' ? '8' : '1';
+  const promoted = piece.type === 'p' && pm.to[1] === lastRank;
+  g.put({ type: promoted ? 'q' : piece.type, color: piece.color }, pm.to);
+  // Castling premoves bring the rook along too.
+  if (piece.type === 'k' && Math.abs(fileIdx(pm.to) - fileIdx(pm.from)) === 2) {
+    const rank = pm.from[1];
+    const kingside = fileIdx(pm.to) > fileIdx(pm.from);
+    const rookFrom = ((kingside ? 'h' : 'a') + rank) as Square;
+    const rookTo = ((kingside ? 'f' : 'd') + rank) as Square;
+    const rook = g.get(rookFrom);
+    if (rook) {
+      g.remove(rookFrom);
+      g.put(rook, rookTo);
+    }
+  }
+  return g.fen();
+}
+
+/** 1-bit premove marking: a diagonal hatch, kept over the dither on dark squares */
+function premoveSquareStyle(sq: Square): React.CSSProperties {
+  const hatch = 'repeating-linear-gradient(45deg, rgba(0,0,0,0.55) 0 2px, rgba(0,0,0,0) 2px 6px)';
+  return isDarkSquare(sq)
+    ? { backgroundImage: `${hatch}, ${DITHER.backgroundImage}`, backgroundSize: `auto, ${DITHER.backgroundSize}` }
+    : { backgroundImage: hatch };
+}
+
 type UserColor = 'white' | 'black';
 type Outcome = 'andy' | 'user' | 'draw';
 type Status =
@@ -129,6 +209,8 @@ export default function ChessWindow() {
   const [history, setHistory] = useState<string[]>([]);
   const [status, setStatus] = useState<Status>({ kind: 'playing' });
   const [selected, setSelected] = useState<Square | null>(null);
+  /* A move queued while Andy thinks, played as soon as he's moved */
+  const [premove, setPremove] = useState<Premove | null>(null);
   /* True when the engine failed to produce a move (worker error or no result)
      — surfaces a Retry button instead of soft-locking on "Andy's move". */
   const [engineError, setEngineError] = useState(false);
@@ -230,6 +312,7 @@ export default function ChessWindow() {
       gameRef.current = new Chess();
       setUserColor(color);
       setSelected(null);
+      setPremove(null);
       setEngineError(false);
       setStatus({ kind: 'playing' });
       setFen(gameRef.current.fen());
@@ -270,8 +353,10 @@ export default function ChessWindow() {
 
   /* Attempt a user move from -> to (auto-queen on promotion). Returns success. */
   const tryUserMove = useCallback(
-    (from: Square, to: Square): boolean => {
-      if (status.kind === 'over' || !isUserTurn() || thinking) return false;
+    (from: Square, to: Square, opts: { premove?: boolean } = {}): boolean => {
+      // Gated on whose turn it is, not on the worker being busy: a request
+      // left over from the previous game must not lock the new one.
+      if (status.kind === 'over' || !isUserTurn()) return false;
       const g = gameRef.current;
       const piece = g.get(from);
       const promo =
@@ -282,7 +367,8 @@ export default function ChessWindow() {
       try {
         mv = g.move({ from, to, promotion: promo });
       } catch {
-        playChessSound('illegal');
+        // A premove that Andy's reply made illegal just lapses, silently.
+        if (!opts.premove) playChessSound('illegal');
         return false;
       }
       playChessSound(soundForMove(mv, g, true));
@@ -296,22 +382,64 @@ export default function ChessWindow() {
       if (!g.isGameOver()) void askAndy();
       return true;
     },
-    [status.kind, isUserTurn, thinking, syncFromGame, askAndy],
+    [status.kind, isUserTurn, syncFromGame, askAndy],
+  );
+
+  const myColor = userColor === 'white' ? 'w' : 'b';
+  /* Andy's turn: moves become premoves */
+  const premoving = status.kind === 'playing' && !isUserTurn();
+  /* Andy is thinking about *this* game (not a request left over from the last) */
+  const andyThinking = thinking && premoving;
+
+  const setPremoveIfPlausible = useCallback(
+    (from: Square, to: Square): boolean => {
+      if (premovePlausible(gameRef.current, from, to, myColor)) {
+        setPremove({ from, to });
+        setSelected(null);
+        return true;
+      }
+      setPremove(null);
+      return false;
+    },
+    [myColor],
   );
 
   const onPieceDrop = useCallback(
     ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
       if (!targetSquare) return false;
+      if (premoving) return setPremoveIfPlausible(sourceSquare as Square, targetSquare as Square);
       return tryUserMove(sourceSquare as Square, targetSquare as Square);
     },
-    [tryUserMove],
+    [premoving, setPremoveIfPlausible, tryUserMove],
   );
+
+  /* Only your own pieces can be picked up, on either player's turn */
+  const canDragPiece = useCallback(
+    ({ piece }: { piece: { pieceType: string } }) => piece.pieceType[0] === myColor,
+    [myColor],
+  );
+
+  /* Right-click anywhere on the board cancels a premove, as on chess.com */
+  const onSquareRightClick = useCallback(() => {
+    setPremove(null);
+    setSelected(null);
+  }, []);
 
   const onSquareClick = useCallback(
     ({ square }: { square: string }) => {
-      if (status.kind === 'over' || !isUserTurn() || thinking) return;
+      if (status.kind === 'over') return;
       const sq = square as Square;
       const g = gameRef.current;
+
+      if (premoving) {
+        // Click a piece, then a square: queue it. Anything else cancels.
+        if (selected && selected !== sq && setPremoveIfPlausible(selected, sq)) return;
+        const own = g.get(sq);
+        const pickUp = !!own && own.color === myColor && sq !== selected;
+        setPremove(null);
+        setSelected(pickUp ? sq : null);
+        return;
+      }
 
       const piece = g.get(sq);
       const mine = piece && (piece.color === 'w') === (userColor === 'white');
@@ -329,17 +457,20 @@ export default function ChessWindow() {
       // (Re)select if the square holds one of the user's pieces.
       setSelected(mine ? sq : null);
     },
-    [selected, status.kind, isUserTurn, thinking, userColor, tryUserMove],
+    [selected, status.kind, premoving, myColor, setPremoveIfPlausible, userColor, tryUserMove],
   );
 
   /* Highlight the selected square and its legal destinations, 1-bit style.
      On dark squares the dot is layered over the dither so the texture is
      preserved underneath. */
   const squareStyles = useMemo<Record<string, React.CSSProperties>>(() => {
-    if (!selected) return {};
-    const styles: Record<string, React.CSSProperties> = {
-      [selected]: { boxShadow: 'inset 0 0 0 3px #000000' },
-    };
+    const styles: Record<string, React.CSSProperties> = {};
+    if (premove) {
+      styles[premove.from] = premoveSquareStyle(premove.from);
+      styles[premove.to] = premoveSquareStyle(premove.to);
+    }
+    if (!selected) return styles;
+    styles[selected] = { ...styles[selected], boxShadow: 'inset 0 0 0 3px #000000' };
     const moves = gameRef.current.moves({ square: selected, verbose: true });
     for (const m of moves) {
       styles[m.to] = isDarkSquare(m.to)
@@ -356,13 +487,16 @@ export default function ChessWindow() {
     // `fen` isn't read directly but must stay: it forces the legal-move dots to
     // recompute whenever the position changes (gameRef.current isn't reactive).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, fen]);
+  }, [selected, fen, premove]);
 
   const options: ChessboardOptions = useMemo(
     () => ({
-      position: fen,
+      // While a premove waits, it's drawn as if already played.
+      position: premoveFen(fen, premove),
       boardOrientation: userColor,
-      allowDragging: status.kind === 'playing' && isUserTurn() && !thinking,
+      allowDragging: status.kind === 'playing',
+      canDragPiece,
+      onSquareRightClick,
       allowDrawingArrows: false,
       showNotation: true,
       animationDurationInMs: 150,
@@ -372,8 +506,21 @@ export default function ChessWindow() {
       onPieceDrop,
       onSquareClick,
     }),
-    [fen, userColor, status.kind, isUserTurn, thinking, squareStyles, onPieceDrop, onSquareClick],
+    [fen, premove, userColor, status.kind, squareStyles, onPieceDrop, onSquareClick, canDragPiece, onSquareRightClick],
   );
+
+  /* Andy has moved: play the queued premove straight away, if it's legal now. */
+  useEffect(() => {
+    if (!premove || status.kind !== 'playing' || !isUserTurn()) return;
+    const pm = premove;
+    setPremove(null);
+    tryUserMove(pm.from, pm.to, { premove: true });
+  }, [premove, status.kind, isUserTurn, tryUserMove, fen]);
+
+  // A finished game leaves nothing queued.
+  useEffect(() => {
+    if (status.kind === 'over') setPremove(null);
+  }, [status.kind]);
 
   // Start a fresh game on first mount — coin-flip for color, like a real pairing.
   useEffect(() => {
@@ -464,8 +611,10 @@ export default function ChessWindow() {
       ? status.text
       : engineError
         ? 'Andy froze up — '
-        : thinking
-          ? 'Andy is thinking…'
+        : andyThinking
+          ? premove
+            ? 'Andy is thinking… (premove set)'
+            : 'Andy is thinking…'
           : isUserTurn()
             ? 'Your move'
             : "Andy's move";
@@ -478,7 +627,7 @@ export default function ChessWindow() {
       ? END_MOOD[status.outcome]
       : engineError
         ? 'frozen'
-        : thinking
+        : andyThinking
           ? reaction?.mood === 'sweating'
             ? 'sweating'
             : 'thinking'
